@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
+import 'create_routine_screen.dart'; // Importa la pantalla de creación de rutina
 
 class RoutineListScreen extends StatelessWidget {
+  const RoutineListScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -27,12 +30,10 @@ class RoutineListScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          final newRoutine = Routine(
-            id: DateTime.now().toString(),
-            name: "Nueva Rutina",
-            dateCreated: DateTime.now(),
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CreateRoutineScreen()),
           );
-          appState.addRoutine(newRoutine);
         },
         child: const Icon(Icons.add),
       ),

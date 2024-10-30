@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
-
+import 'api/wger_api_service.dart';
 class Routine {
   final String id;
   final String name;
@@ -11,12 +11,20 @@ class Routine {
 
 class AppState with ChangeNotifier {
   List<Routine> _routines = [];
+  List<Map<String, dynamic>> _exercises = [];
   final DatabaseHelper _dbHelper = DatabaseHelper();
+  final WgerApiService _apiService = WgerApiService();
 
   List<Routine> get routines => _routines;
+  List<Map<String, dynamic>> get exercises => _exercises;
 
   AppState() {
     _loadRoutines();
+  }
+
+  Future<void> fetchExercises({int? muscleGroup, int? equipment}) async {
+    _exercises = await _apiService.fetchExercises(muscleGroup: muscleGroup, equipment: equipment);
+    notifyListeners();
   }
 
   // Cargar las rutinas desde la base de datos al iniciar la app
