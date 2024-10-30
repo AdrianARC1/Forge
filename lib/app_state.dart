@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
 import 'api/wger_api_service.dart';
+
 class Routine {
   final String id;
   final String name;
@@ -12,18 +13,37 @@ class Routine {
 class AppState with ChangeNotifier {
   List<Routine> _routines = [];
   List<Map<String, dynamic>> _exercises = [];
+  List<Map<String, dynamic>> _muscleGroups = [];
+  List<Map<String, dynamic>> _equipment = [];
+  
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final WgerApiService _apiService = WgerApiService();
 
   List<Routine> get routines => _routines;
   List<Map<String, dynamic>> get exercises => _exercises;
+  List<Map<String, dynamic>> get muscleGroups => _muscleGroups;
+  List<Map<String, dynamic>> get equipment => _equipment;
 
   AppState() {
     _loadRoutines();
+    loadMuscleGroups();
+    loadEquipment();
   }
 
   Future<void> fetchExercises({int? muscleGroup, int? equipment}) async {
     _exercises = await _apiService.fetchExercises(muscleGroup: muscleGroup, equipment: equipment);
+    notifyListeners();
+  }
+
+  // Cargar categorías de músculos desde la API
+  Future<void> loadMuscleGroups() async {
+    _muscleGroups = await _apiService.fetchMuscleGroups();
+    notifyListeners();
+  }
+
+  // Cargar tipos de equipamiento desde la API
+  Future<void> loadEquipment() async {
+    _equipment = await _apiService.fetchEquipment();
     notifyListeners();
   }
 

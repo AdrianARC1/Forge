@@ -55,42 +55,46 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
               },
             ),
           ),
-          // Filtros de músculo y equipo
+          // Filtros de músculo y equipo dinámicos
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              DropdownButton<int>(
-                hint: Text("Seleccionar músculo"),
-                value: selectedMuscleGroup,
-                onChanged: (value) {
-                  setState(() {
-                    selectedMuscleGroup = value;
-                  });
-                  appState.fetchExercises(muscleGroup: value, equipment: selectedEquipment);
-                },
-                items: [
-                  // Ejemplo: añade categorías desde appState o una lista fija
-                  DropdownMenuItem(value: 1, child: Text("Bíceps")),
-                  DropdownMenuItem(value: 2, child: Text("Pecho")),
-                  // Agrega más según los datos disponibles
-                ],
-              ),
-              DropdownButton<int>(
-                hint: Text("Seleccionar equipo"),
-                value: selectedEquipment,
-                onChanged: (value) {
-                  setState(() {
-                    selectedEquipment = value;
-                  });
-                  appState.fetchExercises(muscleGroup: selectedMuscleGroup, equipment: value);
-                },
-                items: [
-                  // Ejemplo: añade opciones de equipo desde appState o una lista fija
-                  DropdownMenuItem(value: 1, child: Text("Mancuernas")),
-                  DropdownMenuItem(value: 2, child: Text("Barra")),
-                  // Agrega más según los datos disponibles
-                ],
-              ),
+              // Para el filtro de músculo
+DropdownButton<int>(
+  hint: Text("Seleccionar músculo"),
+  value: selectedMuscleGroup,
+  onChanged: (value) {
+    setState(() {
+      selectedMuscleGroup = value;
+    });
+    appState.fetchExercises(muscleGroup: value, equipment: selectedEquipment);
+  },
+  items: appState.muscleGroups.map<DropdownMenuItem<int>>((group) {
+    return DropdownMenuItem<int>(
+      value: group['id'] as int,
+      child: Text(group['name']),
+    );
+  }).toList(),
+),
+
+// Para el filtro de equipo
+DropdownButton<int>(
+  hint: Text("Seleccionar equipo"),
+  value: selectedEquipment,
+  onChanged: (value) {
+    setState(() {
+      selectedEquipment = value;
+    });
+    appState.fetchExercises(muscleGroup: selectedMuscleGroup, equipment: value);
+  },
+  items: appState.equipment.map<DropdownMenuItem<int>>((equip) {
+    return DropdownMenuItem<int>(
+      value: equip['id'] as int,
+      child: Text(equip['name']),
+    );
+  }).toList(),
+),
+
             ],
           ),
           Expanded(
