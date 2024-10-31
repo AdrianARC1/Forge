@@ -5,9 +5,9 @@ import 'exercice_selection_screen.dart';
 import '../app_state.dart';
 
 class RoutineExecutionScreen extends StatefulWidget {
-  final Routine? routine; // Cambiado a opcional
+  final Routine? routine;
 
-  RoutineExecutionScreen({this.routine}); // Constructor actualizado
+  RoutineExecutionScreen({this.routine});
 
   @override
   _RoutineExecutionScreenState createState() => _RoutineExecutionScreenState();
@@ -22,7 +22,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     if (widget.routine != null) {
       exercises = widget.routine!.exercises.map((exercise) {
         return Exercise(
@@ -30,11 +30,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
           name: exercise.name,
           series: exercise.series.map((series) {
             return Series(
-              previousWeight: series.previousWeight,
-              previousReps: series.previousReps,
-              weight: series.weight,
-              reps: series.reps,
-              perceivedExertion: series.perceivedExertion,
+              previousWeight: series.weight,
+              previousReps: series.reps,
+              weight: 0,
+              reps: 0,
+              perceivedExertion: 0,
+              lastSavedPerceivedExertion: series.perceivedExertion, // Añadido para hint de RIR
               isCompleted: false,
             );
           }).toList(),
@@ -54,8 +55,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
 
   @override
   void dispose() {
-    _timer?.cancel(); // Cancelar el temporizador cuando se salga de la pantalla
-    _elapsedTimeNotifier.dispose(); // Disponer del ValueNotifier
+    _timer?.cancel();
+    _elapsedTimeNotifier.dispose();
     super.dispose();
   }
 
@@ -72,7 +73,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
     if (widget.routine != null) {
       widget.routine!.exercises = exercises;
       widget.routine!.duration = _elapsedTimeNotifier.value;
-      appState.saveRoutine(widget.routine!); // Guardar en historial solo al finalizar
+      appState.saveRoutine(widget.routine!);
     }
 
     Navigator.pop(context);
@@ -126,11 +127,14 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
     setState(() {
       exercise.series.add(
         Series(
-          previousWeight: exercise.series.isNotEmpty ? exercise.series.last.lastSavedWeight : null,
-          previousReps: exercise.series.isNotEmpty ? exercise.series.last.lastSavedReps : null,
+          previousWeight: exercise.series.isNotEmpty ? exercise.series.last.weight : null,
+          previousReps: exercise.series.isNotEmpty ? exercise.series.last.reps : null,
           weight: 0,
           reps: 0,
           perceivedExertion: 0,
+          lastSavedPerceivedExertion: exercise.series.isNotEmpty
+              ? exercise.series.last.perceivedExertion
+              : null, // RIR previo para hint
           isCompleted: false,
         ),
       );
@@ -224,6 +228,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
                                         setState(() {
                                           series.weight = series.previousWeight!;
                                           series.reps = series.previousReps!;
+                                          series.perceivedExertion = series.lastSavedPerceivedExertion ?? 0;
                                         });
                                       }
                                     },
@@ -235,12 +240,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
                                   Expanded(
                                     child: TextField(
                                       keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        hintText: "${series.previousWeight ?? 'KG'}",
+                                        hintStyle: TextStyle(color: Colors.grey),
+                                      ),
                                       controller: TextEditingController(
                                         text: series.weight > 0 ? series.weight.toString() : "",
-                                      ),
-                                      decoration: InputDecoration(
-                                        hintText: "${series.previousWeight ?? "KG"}",
-                                        hintStyle: TextStyle(color: Colors.grey),
                                       ),
                                       onChanged: (value) {
                                         series.weight = int.tryParse(value) ?? series.weight;
@@ -250,12 +255,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
                                   Expanded(
                                     child: TextField(
                                       keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        hintText: "${series.previousReps ?? 'Reps'}",
+                                        hintStyle: TextStyle(color: Colors.grey),
+                                      ),
                                       controller: TextEditingController(
                                         text: series.reps > 0 ? series.reps.toString() : "",
-                                      ),
-                                      decoration: InputDecoration(
-                                        hintText: "${series.previousReps ?? "Reps"}",
-                                        hintStyle: TextStyle(color: Colors.grey),
                                       ),
                                       onChanged: (value) {
                                         series.reps = int.tryParse(value) ?? series.reps;
@@ -265,18 +270,19 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
                                   Expanded(
                                     child: TextField(
                                       keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        hintText: series.lastSavedPerceivedExertion != null
+                                            ? series.lastSavedPerceivedExertion.toString()
+                                            : "RIR",
+                                        hintStyle: TextStyle(color: Colors.grey),
+                                      ),
                                       controller: TextEditingController(
                                         text: series.perceivedExertion > 0
                                             ? series.perceivedExertion.toString()
                                             : "",
                                       ),
-                                      decoration: InputDecoration(
-                                        hintText: "RIR",
-                                        hintStyle: TextStyle(color: Colors.grey),
-                                      ),
                                       onChanged: (value) {
-                                        series.perceivedExertion =
-                                            int.tryParse(value) ?? series.perceivedExertion;
+                                        series.perceivedExertion = int.tryParse(value) ?? series.perceivedExertion;
                                       },
                                     ),
                                   ),
@@ -284,12 +290,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
                                     value: series.isCompleted,
                                     onChanged: (value) {
                                       setState(() {
-                                        if (value == true &&
-                                            (series.weight == 0 || series.reps == 0)) {
+                                        series.isCompleted = value ?? false;
+                                        if (series.isCompleted) {
                                           series.weight = series.previousWeight ?? 0;
                                           series.reps = series.previousReps ?? 0;
+                                          series.perceivedExertion = series.lastSavedPerceivedExertion ?? 0;
                                         }
-                                        series.isCompleted = value ?? false;
                                       });
                                     },
                                   ),

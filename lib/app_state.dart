@@ -10,6 +10,7 @@ class Series {
   int weight;
   int reps;
   int perceivedExertion;
+  int? lastSavedPerceivedExertion; // Añadido para RIR previo
   bool isCompleted;
 
   Series({
@@ -20,6 +21,7 @@ class Series {
     required this.weight,
     required this.reps,
     required this.perceivedExertion,
+    this.lastSavedPerceivedExertion, // Inicialización
     this.isCompleted = false,
   });
 }
@@ -106,6 +108,8 @@ class AppState with ChangeNotifier {
 
   // Añadir una serie a la base de datos y al ejercicio
   Future<void> addSeriesToExercise(Series series, String exerciseId) async {
+    // Guardar el valor de RIR actual como RIR previo
+    series.lastSavedPerceivedExertion = series.perceivedExertion;
     await _dbHelper.insertSeries(series, exerciseId);
     final exercise = _routines
         .expand((routine) => routine.exercises)
