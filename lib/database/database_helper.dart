@@ -64,22 +64,22 @@ class DatabaseHelper {
             name TEXT,
             dateCompleted TEXT,
             duration INTEGER,
+            totalVolume INTEGER,
             FOREIGN KEY (routineId) REFERENCES routines (id) ON DELETE CASCADE
           )
         ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS routines_completed (
-              completionId INTEGER PRIMARY KEY AUTOINCREMENT,
-              routineId TEXT,
-              name TEXT,
-              dateCompleted TEXT,
-              duration INTEGER,
-              FOREIGN KEY (routineId) REFERENCES routines (id) ON DELETE CASCADE
-            )
-          ''');
+          // Verificar si la columna 'totalVolume' ya existe antes de agregarla
+          final tableInfo = await db.rawQuery('PRAGMA table_info(routines_completed)');
+          final columnExists = tableInfo.any((column) => column['name'] == 'totalVolume');
+          
+          if (!columnExists) {
+            await db.execute('''
+              ALTER TABLE routines_completed ADD COLUMN totalVolume INTEGER
+            ''');
+          }
         }
       },
     );
@@ -212,13 +212,14 @@ class DatabaseHelper {
   }
 
   // Métodos para manejar rutinas completadas
-  Future<void> insertCompletedRoutine(Routine routine, Duration duration) async {
+  Future<void> insertCompletedRoutine(Routine routine, Duration duration, int totalVolume) async {
     final db = await database;
     await db.insert('routines_completed', {
       'routineId': routine.id,
       'name': routine.name,
       'dateCompleted': DateTime.now().toIso8601String(),
       'duration': duration.inSeconds,
+      'totalVolume': totalVolume,
     });
   }
 

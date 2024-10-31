@@ -4,31 +4,64 @@ import 'edit_routine_screen.dart';
 
 class RoutineDetailScreen extends StatelessWidget {
   final Routine routine;
+  final bool isFromHistory;
+  final Duration? duration;
+  final int? totalVolume;
+  final DateTime? completionDate;
 
-  RoutineDetailScreen({required this.routine});
+  RoutineDetailScreen({
+    required this.routine,
+    this.isFromHistory = false,
+    this.duration,
+    this.totalVolume,
+    this.completionDate,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(routine.name),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditRoutineScreen(routine: routine),
+        actions: isFromHistory
+            ? null
+            : [
+                IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditRoutineScreen(routine: routine),
+                      ),
+                    );
+                  },
+                  tooltip: 'Editar Rutina',
                 ),
-              );
-            },
-            tooltip: 'Editar Rutina',
-          ),
-        ],
+              ],
       ),
       body: Column(
         children: [
+          if (isFromHistory)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Finalizada el: ${completionDate != null ? "${completionDate!.toLocal().toString().split(' ')[0]}" : 'N/A'}",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "Duración: ${duration != null ? "${duration!.inHours}h ${duration!.inMinutes.remainder(60)}min" : 'N/A'}",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  Text(
+                    "Volumen Total: ${totalVolume != null ? "$totalVolume kg" : 'N/A'}",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(

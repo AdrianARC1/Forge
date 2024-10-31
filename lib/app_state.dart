@@ -116,8 +116,9 @@ class AppState with ChangeNotifier {
   }
 
   // Añadir una rutina finalizada al historial
-  Future<void> addCompletedRoutine(Routine routine, Duration duration) async {
-    await _dbHelper.insertCompletedRoutine(routine, duration);
+ Future<void> addCompletedRoutine(Routine routine, Duration duration) async {
+    int totalVolume = calculateTotalVolume(routine);
+    await _dbHelper.insertCompletedRoutine(routine, duration, totalVolume);
     await _loadCompletedRoutines(); // Recarga el historial después de añadir
   }
 
@@ -169,5 +170,16 @@ class AppState with ChangeNotifier {
     await _dbHelper.deleteRoutine(id);
     _routines.removeWhere((routine) => routine.id == id);
     notifyListeners();
+  }
+  
+  // Calcular el volumen total de una rutina completada
+  int calculateTotalVolume(Routine routine) {
+    int totalVolume = 0;
+    for (var exercise in routine.exercises) {
+      for (var series in exercise.series) {
+        totalVolume += series.weight * series.reps;
+      }
+    }
+    return totalVolume;
   }
 }
