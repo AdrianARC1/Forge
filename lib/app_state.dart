@@ -48,6 +48,21 @@ class Routine {
     this.exercises = const [],
     this.duration = Duration.zero, // Inicializamos duración en 0
   });
+
+  // Método para copiar una rutina con cambios
+  Routine copyWith({
+    String? name,
+    List<Exercise>? exercises,
+    Duration? duration,
+  }) {
+    return Routine(
+      id: this.id,
+      name: name ?? this.name,
+      dateCreated: this.dateCreated,
+      exercises: exercises ?? this.exercises,
+      duration: duration ?? this.duration,
+    );
+  }
 }
 
 class AppState with ChangeNotifier {
@@ -98,6 +113,16 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
+  // Actualizar una rutina existente
+  Future<void> updateRoutine(Routine routine) async {
+    await _dbHelper.updateRoutine(routine); // Este método se añade en el helper de base de datos
+    final index = _routines.indexWhere((r) => r.id == routine.id);
+    if (index != -1) {
+      _routines[index] = routine;
+      notifyListeners();
+    }
+  }
+
   // Añadir un ejercicio a la base de datos y a la rutina
   Future<void> addExerciseToRoutine(Exercise exercise, String routineId) async {
     await _dbHelper.insertExercise(exercise, routineId);
@@ -108,7 +133,6 @@ class AppState with ChangeNotifier {
 
   // Añadir una serie a la base de datos y al ejercicio
   Future<void> addSeriesToExercise(Series series, String exerciseId) async {
-    // Guardar el valor de RIR actual como RIR previo
     series.lastSavedPerceivedExertion = series.perceivedExertion;
     await _dbHelper.insertSeries(series, exerciseId);
     final exercise = _routines

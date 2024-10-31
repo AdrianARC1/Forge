@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../app_state.dart';
+import 'edit_routine_screen.dart';
 
 class RoutineDetailScreen extends StatelessWidget {
   final Routine routine;
@@ -11,6 +12,20 @@ class RoutineDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(routine.name),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditRoutineScreen(routine: routine),
+                ),
+              );
+            },
+            tooltip: 'Editar Rutina',
+          ),
+        ],
       ),
       body: Column(
         children: [

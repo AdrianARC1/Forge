@@ -70,6 +70,25 @@ class DatabaseHelper {
     });
   }
 
+  // Método para actualizar una rutina en la base de datos
+  Future<void> updateRoutine(Routine routine) async {
+    final db = await database;
+    await db.update(
+      'routines',
+      {
+        'name': routine.name,
+      },
+      where: 'id = ?',
+      whereArgs: [routine.id],
+    );
+
+    // Borrar ejercicios antiguos y volver a insertar los nuevos ejercicios y series asociados
+    await db.delete('exercises', where: 'routineId = ?', whereArgs: [routine.id]);
+    for (var exercise in routine.exercises) {
+      await insertExercise(exercise, routine.id);
+    }
+  }
+
   Future<List<Routine>> getRoutines() async {
     final db = await database;
     final routinesData = await db.query('routines');

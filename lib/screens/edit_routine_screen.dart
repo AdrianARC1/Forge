@@ -3,14 +3,25 @@ import 'package:provider/provider.dart';
 import 'exercice_selection_screen.dart';
 import '../app_state.dart';
 
-class CreateRoutineScreen extends StatefulWidget {
+class EditRoutineScreen extends StatefulWidget {
+  final Routine routine;
+
+  EditRoutineScreen({required this.routine});
+
   @override
-  _CreateRoutineScreenState createState() => _CreateRoutineScreenState();
+  _EditRoutineScreenState createState() => _EditRoutineScreenState();
 }
 
-class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
+class _EditRoutineScreenState extends State<EditRoutineScreen> {
   final TextEditingController _routineNameController = TextEditingController();
   List<Exercise> selectedExercises = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _routineNameController.text = widget.routine.name;
+    selectedExercises = widget.routine.exercises;
+  }
 
   Future<void> _addExercise() async {
     final selectedExercise = await Navigator.push(
@@ -58,7 +69,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
     });
   }
 
-  void _cancelCreation() {
+  void _cancelEdit() {
     Navigator.pop(context);
   }
 
@@ -71,7 +82,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
     return true;
   }
 
-  void _saveRoutine() async {
+  void _saveEditedRoutine() async {
     if (!_areAllSeriesCompleted()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Completa todas las series antes de guardar")),
@@ -87,15 +98,13 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
       return;
     }
 
-    final newRoutine = Routine(
-      id: DateTime.now().toString(),
+    final editedRoutine = widget.routine.copyWith(
       name: routineName,
-      dateCreated: DateTime.now(),
       exercises: selectedExercises,
     );
 
     final appState = Provider.of<AppState>(context, listen: false);
-    await appState.saveRoutine(newRoutine);
+    await appState.updateRoutine(editedRoutine);
 
     Navigator.pop(context);
   }
@@ -104,11 +113,11 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Crear Rutina"),
+        title: Text("Editar Rutina"),
         actions: [
           IconButton(
             icon: Icon(Icons.cancel),
-            onPressed: _cancelCreation,
+            onPressed: _cancelEdit,
             tooltip: 'Cancelar',
           ),
         ],
@@ -251,8 +260,8 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
-                  onPressed: _saveRoutine,
-                  child: Text("Guardar Rutina"),
+                  onPressed: _saveEditedRoutine,
+                  child: Text("Guardar Cambios"),
                 ),
               ),
             ],

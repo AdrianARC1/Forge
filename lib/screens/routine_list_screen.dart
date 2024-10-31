@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:forge/screens/create_routine_screen.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
+import 'edit_routine_screen.dart';
 import 'routine_detail_screen.dart';
 import 'routine_execution_screen.dart';
 
@@ -74,12 +75,23 @@ class RoutineListScreen extends StatelessWidget {
                           ),
                           PopupMenuButton<String>(
                             onSelected: (value) {
-                              if (value == 'delete') {
+                              if (value == 'edit') {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditRoutineScreen(routine: routine),
+                                  ),
+                                );
+                              } else if (value == 'delete') {
                                 appState.deleteRoutine(routine.id);
                               }
                             },
                             itemBuilder: (BuildContext context) {
                               return [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Text('Editar Rutina'),
+                                ),
                                 PopupMenuItem(
                                   value: 'delete',
                                   child: Text('Eliminar Rutina'),
