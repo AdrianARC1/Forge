@@ -10,7 +10,7 @@ class Series {
   int weight;
   int reps;
   int perceivedExertion;
-  int? lastSavedPerceivedExertion; // Añadido para RIR previo
+  int? lastSavedPerceivedExertion;
   bool isCompleted;
 
   Series({
@@ -21,7 +21,7 @@ class Series {
     required this.weight,
     required this.reps,
     required this.perceivedExertion,
-    this.lastSavedPerceivedExertion, // Inicialización
+    this.lastSavedPerceivedExertion,
     this.isCompleted = false,
   });
 }
@@ -39,14 +39,14 @@ class Routine {
   final String name;
   final DateTime dateCreated;
   List<Exercise> exercises;
-  Duration duration; // Agregamos duración
+  Duration duration;
 
   Routine({
     required this.id,
     required this.name,
     required this.dateCreated,
     this.exercises = const [],
-    this.duration = Duration.zero, // Inicializamos duración en 0
+    this.duration = Duration.zero,
   });
 
   // Método para copiar una rutina con cambios
@@ -67,20 +67,23 @@ class Routine {
 
 class AppState with ChangeNotifier {
   List<Routine> _routines = [];
+  List<Map<String, dynamic>> _completedRoutines = []; // Rutinas completadas
   List<Map<String, dynamic>> _exercises = [];
   List<Map<String, dynamic>> _muscleGroups = [];
   List<Map<String, dynamic>> _equipment = [];
-  
+
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final WgerApiService _apiService = WgerApiService();
 
   List<Routine> get routines => _routines;
+  List<Map<String, dynamic>> get completedRoutines => _completedRoutines;
   List<Map<String, dynamic>> get exercises => _exercises;
   List<Map<String, dynamic>> get muscleGroups => _muscleGroups;
   List<Map<String, dynamic>> get equipment => _equipment;
 
   AppState() {
     _loadRoutines();
+    _loadCompletedRoutines(); // Carga las rutinas completadas al inicio
     loadMuscleGroups();
     loadEquipment();
   }
@@ -100,10 +103,22 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // Cargar las rutinas desde la base de datos al iniciar la app
+  // Cargar rutinas desde la base de datos al iniciar la app
   Future<void> _loadRoutines() async {
     _routines = await _dbHelper.getRoutines();
     notifyListeners();
+  }
+
+  // Cargar rutinas completadas en el historial
+  Future<void> _loadCompletedRoutines() async {
+    _completedRoutines = await _dbHelper.getCompletedRoutines();
+    notifyListeners();
+  }
+
+  // Añadir una rutina finalizada al historial
+  Future<void> addCompletedRoutine(Routine routine, Duration duration) async {
+    await _dbHelper.insertCompletedRoutine(routine, duration);
+    await _loadCompletedRoutines(); // Recarga el historial después de añadir
   }
 
   // Guardar rutina en la base de datos y en la lista de rutinas
@@ -115,7 +130,7 @@ class AppState with ChangeNotifier {
 
   // Actualizar una rutina existente
   Future<void> updateRoutine(Routine routine) async {
-    await _dbHelper.updateRoutine(routine); // Este método se añade en el helper de base de datos
+    await _dbHelper.updateRoutine(routine);
     final index = _routines.indexWhere((r) => r.id == routine.id);
     if (index != -1) {
       _routines[index] = routine;

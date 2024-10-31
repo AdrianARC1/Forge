@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'routine_list_screen.dart';
-import 'routine_history_screen.dart';
+import 'history_screen.dart';
 // import 'profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -12,7 +12,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    RoutineHistoryScreen(),
+    HistoryScreen(),
     RoutineListScreen(),  // Cambiado a RoutineListScreen
     // ProfileScreen(),
   ];

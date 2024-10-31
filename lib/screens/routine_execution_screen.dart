@@ -61,23 +61,19 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
   }
 
   void _finishRoutine() {
-    if (!_areAllSeriesCompleted()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Completa todas las series para finalizar la rutina")),
-      );
-      return;
-    }
-
-    final appState = Provider.of<AppState>(context, listen: false);
-
-    if (widget.routine != null) {
-      widget.routine!.exercises = exercises;
-      widget.routine!.duration = _elapsedTimeNotifier.value;
-      appState.saveRoutine(widget.routine!);
-    }
-
-    Navigator.pop(context);
+  if (!_areAllSeriesCompleted()) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Completa todas las series para finalizar la rutina")),
+    );
+    return;
   }
+
+  final appState = Provider.of<AppState>(context, listen: false);
+  appState.addCompletedRoutine(widget.routine!, _elapsedTimeNotifier.value); // Agregar al historial
+
+  Navigator.pop(context);
+}
+
 
   bool _areAllSeriesCompleted() {
     for (var exercise in exercises) {

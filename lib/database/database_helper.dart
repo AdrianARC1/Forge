@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE routines (
@@ -56,6 +56,31 @@ class DatabaseHelper {
             FOREIGN KEY (exerciseId) REFERENCES exercises (id) ON DELETE CASCADE
           )
         ''');
+
+        await db.execute('''
+          CREATE TABLE routines_completed (
+            completionId INTEGER PRIMARY KEY AUTOINCREMENT,
+            routineId TEXT,
+            name TEXT,
+            dateCompleted TEXT,
+            duration INTEGER,
+            FOREIGN KEY (routineId) REFERENCES routines (id) ON DELETE CASCADE
+          )
+        ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS routines_completed (
+              completionId INTEGER PRIMARY KEY AUTOINCREMENT,
+              routineId TEXT,
+              name TEXT,
+              dateCompleted TEXT,
+              duration INTEGER,
+              FOREIGN KEY (routineId) REFERENCES routines (id) ON DELETE CASCADE
+            )
+          ''');
+        }
       },
     );
   }
@@ -184,5 +209,21 @@ class DatabaseHelper {
   Future<void> deleteSeries(int id) async {
     final db = await database;
     await db.delete('series', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Métodos para manejar rutinas completadas
+  Future<void> insertCompletedRoutine(Routine routine, Duration duration) async {
+    final db = await database;
+    await db.insert('routines_completed', {
+      'routineId': routine.id,
+      'name': routine.name,
+      'dateCompleted': DateTime.now().toIso8601String(),
+      'duration': duration.inSeconds,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getCompletedRoutines() async {
+    final db = await database;
+    return await db.query('routines_completed', orderBy: 'dateCompleted DESC');
   }
 }
