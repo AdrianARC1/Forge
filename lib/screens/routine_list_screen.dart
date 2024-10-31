@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:forge/screens/create_routine_screen.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
-import 'create_routine_screen.dart'; // Importa la pantalla de creación de rutina
+import 'routine_detail_screen.dart';
 
 class RoutineListScreen extends StatelessWidget {
-  const RoutineListScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -19,6 +18,14 @@ class RoutineListScreen extends StatelessWidget {
           return ListTile(
             title: Text(routine.name),
             subtitle: Text('Creada el: ${routine.dateCreated}'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RoutineDetailScreen(routine: routine),
+                ),
+              );
+            },
             trailing: IconButton(
               icon: Icon(Icons.delete),
               onPressed: () {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'exercice_selection_screen.dart';
 import '../app_state.dart';
 
@@ -8,9 +9,9 @@ class CreateRoutineScreen extends StatefulWidget {
 }
 
 class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
-  List<Exercise> selectedExercises = []; // Lista de ejercicios seleccionados para la rutina
+  final TextEditingController _routineNameController = TextEditingController();
+  List<Exercise> selectedExercises = [];
 
-  // Función para abrir la pantalla de selección de ejercicios
   Future<void> _addExercise() async {
     final selectedExercise = await Navigator.push(
       context,
@@ -22,14 +23,22 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
         final exercise = Exercise(
           id: selectedExercise['id'].toString(),
           name: selectedExercise['name'],
-          series: [],
+          series: [
+            Series(
+              previousWeight: null,
+              previousReps: null,
+              weight: 0,
+              reps: 0,
+              perceivedExertion: 0,
+              isCompleted: false,
+            ),
+          ],
         );
         selectedExercises.add(exercise);
       });
     }
   }
 
-  // Añadir una nueva serie al ejercicio
   void _addSeriesToExercise(Exercise exercise) {
     setState(() {
       final newSeries = Series(
@@ -45,20 +54,74 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
     });
   }
 
+  void _deleteSeries(Exercise exercise, int seriesIndex) {
+    setState(() {
+      exercise.series.removeAt(seriesIndex);
+    });
+  }
+
+bool _areAllSeriesCompleted() {
+  for (var exercise in selectedExercises) {
+    for (var series in exercise.series) {
+      if (!series.isCompleted) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+void _saveRoutine() async {
+  if (!_areAllSeriesCompleted()) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Completa todas las series antes de guardar")),
+    );
+    return;
+  }
+
+  final routineName = _routineNameController.text.trim();
+  if (routineName.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Por favor, ingresa un nombre para la rutina")),
+    );
+    return;
+  }
+
+  final newRoutine = Routine(
+    id: DateTime.now().toString(),
+    name: routineName,
+    dateCreated: DateTime.now(),
+    exercises: selectedExercises,
+  );
+
+  final appState = Provider.of<AppState>(context, listen: false);
+  await appState.saveRoutine(newRoutine);
+
+  Navigator.pop(context);
+}
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Crear Rutina"),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: selectedExercises.length,
-              itemBuilder: (context, index) {
-                final exercise = selectedExercises[index];
-                
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _routineNameController,
+                decoration: InputDecoration(
+                  labelText: "Nombre de la Rutina",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            Column(
+              children: selectedExercises.map((exercise) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -80,12 +143,9 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                         ],
                       ),
                     ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: exercise.series.length,
-                      itemBuilder: (context, seriesIndex) {
-                        final series = exercise.series[seriesIndex];
+                    Column(
+                      children: exercise.series.map((series) {
+                        int seriesIndex = exercise.series.indexOf(series);
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: Row(
@@ -137,7 +197,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                             ],
                           ),
                         );
-                      },
+                      }).toList(),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -149,26 +209,24 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                     Divider(),
                   ],
                 );
-              },
+              }).toList(),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: _addExercise,
-              child: Text("Añadir Ejercicio"),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: _addExercise,
+                child: Text("Añadir Ejercicio"),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                // Aquí iría la lógica para guardar la rutina completa y actualizar los datos de "Anterior"
-              },
-              child: Text("Guardar Rutina"),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: _saveRoutine,
+                child: Text("Guardar Rutina"),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

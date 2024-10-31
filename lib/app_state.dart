@@ -5,11 +5,11 @@ import 'api/wger_api_service.dart';
 class Series {
   int? previousWeight;
   int? previousReps;
-  int? lastSavedWeight; // Para almacenar el último peso guardado
-  int? lastSavedReps; // Para almacenar las últimas repeticiones guardadas
+  int? lastSavedWeight;
+  int? lastSavedReps;
   int weight;
   int reps;
-  int perceivedExertion; // 1 a 10
+  int perceivedExertion;
   bool isCompleted;
 
   Series({
@@ -23,7 +23,6 @@ class Series {
     this.isCompleted = false,
   });
 }
-
 
 class Exercise {
   final String id;
@@ -72,13 +71,11 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // Cargar categorías de músculos desde la API
   Future<void> loadMuscleGroups() async {
     _muscleGroups = await _apiService.fetchMuscleGroups();
     notifyListeners();
   }
 
-  // Cargar tipos de equipamiento desde la API
   Future<void> loadEquipment() async {
     _equipment = await _apiService.fetchEquipment();
     notifyListeners();
@@ -90,32 +87,35 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // Añadir una rutina a la lista y base de datos
-  void addRoutine(Routine routine) async {
-    _routines.add(routine);
+  // Guardar rutina en la base de datos y en la lista de rutinas
+  Future<void> saveRoutine(Routine routine) async {
     await _dbHelper.insertRoutine(routine);
+    _routines.add(routine);
     notifyListeners();
   }
 
-  // Añadir un ejercicio a una rutina
-  void addExerciseToRoutine(String routineId, Exercise exercise) {
+  // Añadir un ejercicio a la base de datos y a la rutina
+  Future<void> addExerciseToRoutine(Exercise exercise, String routineId) async {
+    await _dbHelper.insertExercise(exercise, routineId);
     final routine = _routines.firstWhere((routine) => routine.id == routineId);
     routine.exercises.add(exercise);
     notifyListeners();
   }
 
-  // Añadir una serie a un ejercicio específico en una rutina
-  void addSeriesToExercise(String routineId, String exerciseId, Series series) {
-    final routine = _routines.firstWhere((routine) => routine.id == routineId);
-    final exercise = routine.exercises.firstWhere((exercise) => exercise.id == exerciseId);
+  // Añadir una serie a la base de datos y al ejercicio
+  Future<void> addSeriesToExercise(Series series, String exerciseId) async {
+    await _dbHelper.insertSeries(series, exerciseId);
+    final exercise = _routines
+        .expand((routine) => routine.exercises)
+        .firstWhere((exercise) => exercise.id == exerciseId);
     exercise.series.add(series);
     notifyListeners();
   }
 
   // Eliminar una rutina de la lista y base de datos
-  void deleteRoutine(String id) async {
-    _routines.removeWhere((routine) => routine.id == id);
+  Future<void> deleteRoutine(String id) async {
     await _dbHelper.deleteRoutine(id);
+    _routines.removeWhere((routine) => routine.id == id);
     notifyListeners();
   }
 }

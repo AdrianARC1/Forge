@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Forge',
         theme: ThemeData(primarySwatch: Colors.blue),
-        home: const RoutineListScreen(), // Pantalla inicial
+        home: RoutineListScreen(), // Pantalla inicial
       ),
     );
   }
