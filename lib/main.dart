@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app_state.dart';
-import 'screens/routine_list_screen.dart';
+import 'screens/main_navigation_screen.dart'; // Importa la pantalla de navegación principal
 
 void main() {
   runApp(const MyApp());
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Forge',
         theme: ThemeData(primarySwatch: Colors.blue),
-        home: RoutineListScreen(), // Pantalla inicial
+        home: MainNavigationScreen(), // Cambia a la pantalla de navegación principal
       ),
     );
   }

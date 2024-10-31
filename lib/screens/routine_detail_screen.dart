@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'routine_execution_screen.dart';
 import '../app_state.dart';
 
 class RoutineDetailScreen extends StatelessWidget {
@@ -18,7 +17,7 @@ class RoutineDetailScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              "Ejercicios y Series",
+              "Ejercicios",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -39,8 +38,8 @@ class RoutineDetailScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text("SERIE"),
-                          Text("KG"),
-                          Text("REPS"),
+                          Text("KGxREPS"),
+                          Text("RIR"),
                         ],
                       ),
                     ),
@@ -53,8 +52,8 @@ class RoutineDetailScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text("${seriesIndex + 1}"),
-                              Text("${series.weight} kg"),
-                              Text("${series.reps} reps"),
+                              Text("${series.weight} kg x ${series.reps}"),
+                              Text("${series.perceivedExertion}"),
                             ],
                           ),
                         );
@@ -62,21 +61,6 @@ class RoutineDetailScreen extends StatelessWidget {
                     ),
                     Divider(),
                   ],
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton.icon(
-              icon: Icon(Icons.play_arrow),
-              label: Text("Iniciar Rutina"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RoutineExecutionScreen(routine: routine),
-                  ),
                 );
               },
             ),

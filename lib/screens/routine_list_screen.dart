@@ -11,56 +11,99 @@ class RoutineListScreen extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text("Rutinas")),
-      body: ListView.builder(
-        itemCount: appState.routines.length,
-        itemBuilder: (context, index) {
-          final routine = appState.routines[index];
-          return ListTile(
-            title: Text(routine.name),
-            subtitle: Text('Creada el: ${routine.dateCreated}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
+      appBar: AppBar(title: Text("Entrenamiento")),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                IconButton(
-                  icon: Icon(Icons.play_arrow),
+                ElevatedButton.icon(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RoutineExecutionScreen(routine: routine),
+                        builder: (context) => RoutineExecutionScreen(),
                       ),
                     );
                   },
-                  tooltip: 'Iniciar Rutina',
+                  icon: Icon(Icons.play_arrow),
+                  label: Text("Iniciar Entrenamiento Vacío"),
                 ),
-                IconButton(
-                  icon: Icon(Icons.delete),
+                SizedBox(width: 10),
+                ElevatedButton.icon(
                   onPressed: () {
-                    appState.deleteRoutine(routine.id);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CreateRoutineScreen(),
+                      ),
+                    );
                   },
+                  icon: Icon(Icons.add),
+                  label: Text("Nueva Rutina"),
                 ),
               ],
             ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => RoutineDetailScreen(routine: routine),
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CreateRoutineScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
+            Expanded(
+              child: ListView.builder(
+                itemCount: appState.routines.length,
+                itemBuilder: (context, index) {
+                  final routine = appState.routines[index];
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: ListTile(
+                      title: Text(routine.name),
+                      subtitle: Text('Creada el: ${routine.dateCreated}'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RoutineExecutionScreen(routine: routine),
+                                ),
+                              );
+                            },
+                            child: Text("Empezar Rutina"),
+                          ),
+                          PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'delete') {
+                                appState.deleteRoutine(routine.id);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) {
+                              return [
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Text('Eliminar Rutina'),
+                                ),
+                              ];
+                            },
+                          ),
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RoutineDetailScreen(routine: routine),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

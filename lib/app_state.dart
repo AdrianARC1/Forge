@@ -37,12 +37,14 @@ class Routine {
   final String name;
   final DateTime dateCreated;
   List<Exercise> exercises;
+  Duration duration; // Agregamos duración
 
   Routine({
     required this.id,
     required this.name,
     required this.dateCreated,
     this.exercises = const [],
+    this.duration = Duration.zero, // Inicializamos duración en 0
   });
 }
 
@@ -109,6 +111,13 @@ class AppState with ChangeNotifier {
         .expand((routine) => routine.exercises)
         .firstWhere((exercise) => exercise.id == exerciseId);
     exercise.series.add(series);
+    notifyListeners();
+  }
+
+  // Actualizar duración de la rutina
+  void updateRoutineDuration(String routineId, Duration duration) {
+    final routine = _routines.firstWhere((routine) => routine.id == routineId);
+    routine.duration = duration;
     notifyListeners();
   }
 

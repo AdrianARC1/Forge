@@ -115,146 +115,172 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _routineNameController,
-                decoration: InputDecoration(
-                  labelText: "Nombre de la Rutina",
-                  border: OutlineInputBorder(),
+      body: GestureDetector(
+        // Detecta taps en cualquier parte fuera de los TextFields
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: FocusScope(
+                  // Envuelve el TextField de nombre de rutina para evitar foco automático
+                  child: TextField(
+                    controller: _routineNameController,
+                    decoration: InputDecoration(
+                      labelText: "Nombre de la Rutina",
+                      border: OutlineInputBorder(),
+                    ),
+                    readOnly: false, // Define si se debe abrir el teclado o no
+                  ),
                 ),
               ),
-            ),
-            Column(
-              children: selectedExercises.map((exercise) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ListTile(
-                      title: Text(exercise.name),
-                      subtitle: Text("Series: ${exercise.series.length}"),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("SERIE"),
-                          Text("ANTERIOR"),
-                          Text("KG"),
-                          Text("REPS"),
-                          Text("RIR"),
-                        ],
+              Column(
+                children: selectedExercises.map((exercise) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListTile(
+                        title: Text(exercise.name),
+                        subtitle: Text("Series: ${exercise.series.length}"),
                       ),
-                    ),
-                    Column(
-                      children: exercise.series.map((series) {
-                        int seriesIndex = exercise.series.indexOf(series);
-                        return Dismissible(
-                          key: UniqueKey(),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (direction) => _deleteSeries(exercise, seriesIndex),
-                          background: Container(
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            padding: EdgeInsets.symmetric(horizontal: 20.0),
-                            child: Icon(Icons.delete, color: Colors.white),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("${seriesIndex + 1}"),
-                                GestureDetector(
-                                  onTap: () {
-                                    if (series.previousWeight != null && series.previousReps != null) {
-                                      setState(() {
-                                        series.weight = series.previousWeight!;
-                                        series.reps = series.previousReps!;
-                                      });
-                                    }
-                                  },
-                                  child: Text(
-                                    "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: TextField(
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      hintText: "${series.weight}",
-                                      hintStyle: TextStyle(color: Colors.grey),
-                                    ),
-                                    onChanged: (value) => series.weight = int.tryParse(value) ?? series.weight,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: TextField(
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      hintText: "${series.reps}",
-                                      hintStyle: TextStyle(color: Colors.grey),
-                                    ),
-                                    onChanged: (value) => series.reps = int.tryParse(value) ?? series.reps,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: TextField(
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(hintText: "RIR"),
-                                    onChanged: (value) => series.perceivedExertion = int.tryParse(value) ?? series.perceivedExertion,
-                                  ),
-                                ),
-                                Checkbox(
-                                  value: series.isCompleted,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      if (value == true && series.weight == 0 && series.reps == 0) {
-                                        series.weight = series.previousWeight ?? 0;
-                                        series.reps = series.previousReps ?? 0;
-                                      }
-                                      series.isCompleted = value ?? false;
-                                    });
-                                  },
-                                ),
-                              ],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("SERIE"),
+                            Text("ANTERIOR"),
+                            Text("KG"),
+                            Text("REPS"),
+                            Text("RIR"),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        children: exercise.series.asMap().entries.map((entry) {
+                          int seriesIndex = entry.key;
+                          Series series = entry.value;
+
+                          return Dismissible(
+                            key: UniqueKey(),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (direction) => _deleteSeries(exercise, seriesIndex),
+                            background: Container(
+                              color: Colors.red,
+                              alignment: Alignment.centerRight,
+                              padding: EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Icon(Icons.delete, color: Colors.white),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: ElevatedButton(
-                        onPressed: () => _addSeriesToExercise(exercise),
-                        child: Text("+ Agregar Serie"),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("${seriesIndex + 1}"),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (series.previousWeight != null &&
+                                            series.previousReps != null) {
+                                          series.weight = series.previousWeight!;
+                                          series.reps = series.previousReps!;
+                                        }
+                                      });
+                                    },
+                                    child: Text(
+                                      "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: TextField(
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        hintText: series.previousWeight == null
+                                            ? 'KG'
+                                            : '${series.previousWeight}',
+                                        hintStyle: TextStyle(color: Colors.grey),
+                                      ),
+                                      controller: TextEditingController()
+                                        ..text = series.weight > 0
+                                            ? series.weight.toString()
+                                            : '',
+                                      onChanged: (value) =>
+                                          series.weight = int.tryParse(value) ?? series.weight,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: TextField(
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        hintText: series.previousReps == null
+                                            ? 'Reps'
+                                            : '${series.previousReps}',
+                                        hintStyle: TextStyle(color: Colors.grey),
+                                      ),
+                                      controller: TextEditingController()
+                                        ..text = series.reps > 0
+                                            ? series.reps.toString()
+                                            : '',
+                                      onChanged: (value) =>
+                                          series.reps = int.tryParse(value) ?? series.reps,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: TextField(
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(hintText: "RIR"),
+                                      controller: TextEditingController()
+                                        ..text = series.perceivedExertion > 0
+                                            ? series.perceivedExertion.toString()
+                                            : '',
+                                      onChanged: (value) => series.perceivedExertion =
+                                          int.tryParse(value) ?? series.perceivedExertion,
+                                    ),
+                                  ),
+                                  Checkbox(
+                                    value: series.isCompleted,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        series.isCompleted = value ?? false;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    ),
-                    Divider(),
-                  ],
-                );
-              }).toList(),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: _addExercise,
-                child: Text("Añadir Ejercicio"),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: ElevatedButton(
+                          onPressed: () => _addSeriesToExercise(exercise),
+                          child: Text("+ Agregar Serie"),
+                        ),
+                      ),
+                      Divider(),
+                    ],
+                  );
+                }).toList(),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: _saveRoutine,
-                child: Text("Guardar Rutina"),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: _addExercise,
+                  child: Text("Añadir Ejercicio"),
+                ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: _saveRoutine,
+                  child: Text("Guardar Rutina"),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
