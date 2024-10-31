@@ -41,16 +41,16 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
 
   void _addSeriesToExercise(Exercise exercise) {
     setState(() {
-      final newSeries = Series(
-        previousWeight: exercise.series.isNotEmpty ? exercise.series.last.lastSavedWeight : null,
-        previousReps: exercise.series.isNotEmpty ? exercise.series.last.lastSavedReps : null,
-        weight: 0,
-        reps: 0,
-        perceivedExertion: 0,
-        isCompleted: false,
+      exercise.series.add(
+        Series(
+          previousWeight: exercise.series.isNotEmpty ? exercise.series.last.lastSavedWeight : null,
+          previousReps: exercise.series.isNotEmpty ? exercise.series.last.lastSavedReps : null,
+          weight: 0,
+          reps: 0,
+          perceivedExertion: 0,
+          isCompleted: false,
+        ),
       );
-
-      exercise.series.add(newSeries);
     });
   }
 
@@ -60,52 +60,60 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
     });
   }
 
-bool _areAllSeriesCompleted() {
-  for (var exercise in selectedExercises) {
-    for (var series in exercise.series) {
-      if (!series.isCompleted) {
-        return false;
+  void _cancelCreation() {
+    Navigator.pop(context);
+  }
+
+  bool _areAllSeriesCompleted() {
+    for (var exercise in selectedExercises) {
+      for (var series in exercise.series) {
+        if (!series.isCompleted) return false;
       }
     }
+    return true;
   }
-  return true;
-}
 
-void _saveRoutine() async {
-  if (!_areAllSeriesCompleted()) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Completa todas las series antes de guardar")),
+  void _saveRoutine() async {
+    if (!_areAllSeriesCompleted()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Completa todas las series antes de guardar")),
+      );
+      return;
+    }
+
+    final routineName = _routineNameController.text.trim();
+    if (routineName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Por favor, ingresa un nombre para la rutina")),
+      );
+      return;
+    }
+
+    final newRoutine = Routine(
+      id: DateTime.now().toString(),
+      name: routineName,
+      dateCreated: DateTime.now(),
+      exercises: selectedExercises,
     );
-    return;
+
+    final appState = Provider.of<AppState>(context, listen: false);
+    await appState.saveRoutine(newRoutine);
+
+    Navigator.pop(context);
   }
-
-  final routineName = _routineNameController.text.trim();
-  if (routineName.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Por favor, ingresa un nombre para la rutina")),
-    );
-    return;
-  }
-
-  final newRoutine = Routine(
-    id: DateTime.now().toString(),
-    name: routineName,
-    dateCreated: DateTime.now(),
-    exercises: selectedExercises,
-  );
-
-  final appState = Provider.of<AppState>(context, listen: false);
-  await appState.saveRoutine(newRoutine);
-
-  Navigator.pop(context);
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Crear Rutina"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.cancel),
+            onPressed: _cancelCreation,
+            tooltip: 'Cancelar',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -139,62 +147,83 @@ void _saveRoutine() async {
                           Text("KG"),
                           Text("REPS"),
                           Text("RIR"),
-                          SizedBox(width: 40),
                         ],
                       ),
                     ),
                     Column(
                       children: exercise.series.map((series) {
                         int seriesIndex = exercise.series.indexOf(series);
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text("${seriesIndex + 1}"),
-                              Text("${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}"),
-                              Expanded(
-                                child: TextField(
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(hintText: "KG"),
+                        return Dismissible(
+                          key: UniqueKey(),
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (direction) => _deleteSeries(exercise, seriesIndex),
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Icon(Icons.delete, color: Colors.white),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("${seriesIndex + 1}"),
+                                GestureDetector(
+                                  onTap: () {
+                                    if (series.previousWeight != null && series.previousReps != null) {
+                                      setState(() {
+                                        series.weight = series.previousWeight!;
+                                        series.reps = series.previousReps!;
+                                      });
+                                    }
+                                  },
+                                  child: Text(
+                                    "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: TextField(
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      hintText: "${series.weight}",
+                                      hintStyle: TextStyle(color: Colors.grey),
+                                    ),
+                                    onChanged: (value) => series.weight = int.tryParse(value) ?? series.weight,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: TextField(
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      hintText: "${series.reps}",
+                                      hintStyle: TextStyle(color: Colors.grey),
+                                    ),
+                                    onChanged: (value) => series.reps = int.tryParse(value) ?? series.reps,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: TextField(
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(hintText: "RIR"),
+                                    onChanged: (value) => series.perceivedExertion = int.tryParse(value) ?? series.perceivedExertion,
+                                  ),
+                                ),
+                                Checkbox(
+                                  value: series.isCompleted,
                                   onChanged: (value) {
                                     setState(() {
-                                      series.weight = int.tryParse(value) ?? 0;
+                                      if (value == true && series.weight == 0 && series.reps == 0) {
+                                        series.weight = series.previousWeight ?? 0;
+                                        series.reps = series.previousReps ?? 0;
+                                      }
+                                      series.isCompleted = value ?? false;
                                     });
                                   },
                                 ),
-                              ),
-                              Expanded(
-                                child: TextField(
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(hintText: "Reps"),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      series.reps = int.tryParse(value) ?? 0;
-                                    });
-                                  },
-                                ),
-                              ),
-                              Expanded(
-                                child: TextField(
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(hintText: "RIR"),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      series.perceivedExertion = int.tryParse(value) ?? 0;
-                                    });
-                                  },
-                                ),
-                              ),
-                              Checkbox(
-                                value: series.isCompleted,
-                                onChanged: (value) {
-                                  setState(() {
-                                    series.isCompleted = value ?? false;
-                                  });
-                                },
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       }).toList(),

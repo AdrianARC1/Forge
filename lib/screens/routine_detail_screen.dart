@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'routine_execution_screen.dart';
 import '../app_state.dart';
 
 class RoutineDetailScreen extends StatelessWidget {
@@ -61,6 +62,21 @@ class RoutineDetailScreen extends StatelessWidget {
                     ),
                     Divider(),
                   ],
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton.icon(
+              icon: Icon(Icons.play_arrow),
+              label: Text("Iniciar Rutina"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RoutineExecutionScreen(routine: routine),
+                  ),
                 );
               },
             ),
