@@ -16,7 +16,7 @@ class RoutineExecutionScreen extends StatefulWidget {
 class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
   List<Exercise> exercises = [];
   Timer? _timer;
-  Duration _elapsedTime = Duration.zero;
+  ValueNotifier<Duration> _elapsedTimeNotifier = ValueNotifier(Duration.zero);
   String routineName = "Entrenamiento Vacío";
 
   @override
@@ -48,37 +48,35 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
 
   void _startTimer() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        _elapsedTime = Duration(seconds: _elapsedTime.inSeconds + 1);
-      });
+      _elapsedTimeNotifier.value = Duration(seconds: _elapsedTimeNotifier.value.inSeconds + 1);
     });
   }
 
   @override
   void dispose() {
     _timer?.cancel(); // Cancelar el temporizador cuando se salga de la pantalla
+    _elapsedTimeNotifier.dispose(); // Disponer del ValueNotifier
     super.dispose();
   }
 
-void _finishRoutine() {
-  if (!_areAllSeriesCompleted()) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Completa todas las series para finalizar la rutina")),
-    );
-    return;
+  void _finishRoutine() {
+    if (!_areAllSeriesCompleted()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Completa todas las series para finalizar la rutina")),
+      );
+      return;
+    }
+
+    final appState = Provider.of<AppState>(context, listen: false);
+
+    if (widget.routine != null) {
+      widget.routine!.exercises = exercises;
+      widget.routine!.duration = _elapsedTimeNotifier.value;
+      appState.saveRoutine(widget.routine!); // Guardar en historial solo al finalizar
+    }
+
+    Navigator.pop(context);
   }
-
-  final appState = Provider.of<AppState>(context, listen: false);
-
-  if (widget.routine != null) {
-    widget.routine!.exercises = exercises;
-    widget.routine!.duration = _elapsedTime;
-    appState.saveRoutine(widget.routine!); // Guardar en historial solo al finalizar
-  }
-
-  Navigator.pop(context);
-}
-
 
   bool _areAllSeriesCompleted() {
     for (var exercise in exercises) {
@@ -166,9 +164,14 @@ void _finishRoutine() {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'Tiempo Transcurrido: ${_formatDuration(_elapsedTime)}',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            child: ValueListenableBuilder<Duration>(
+              valueListenable: _elapsedTimeNotifier,
+              builder: (context, elapsedTime, child) {
+                return Text(
+                  'Tiempo Transcurrido: ${_formatDuration(elapsedTime)}',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                );
+              },
             ),
           ),
           Expanded(

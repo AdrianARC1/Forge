@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'routine_list_screen.dart';
 import 'routine_history_screen.dart';
-import 'profile_screen.dart';
+// import 'profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   @override
