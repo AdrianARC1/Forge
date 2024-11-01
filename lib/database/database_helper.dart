@@ -71,7 +71,6 @@ class DatabaseHelper {
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
-          // Verificar si la columna 'totalVolume' ya existe antes de agregarla
           final tableInfo = await db.rawQuery('PRAGMA table_info(routines_completed)');
           final columnExists = tableInfo.any((column) => column['name'] == 'totalVolume');
           
@@ -93,9 +92,13 @@ class DatabaseHelper {
       'name': routine.name,
       'dateCreated': routine.dateCreated.toIso8601String(),
     });
+    print("Rutina guardada: ${routine.name}");
+
+    for (var exercise in routine.exercises) {
+      await insertExercise(exercise, routine.id);
+    }
   }
 
-  // Método para actualizar una rutina en la base de datos
   Future<void> updateRoutine(Routine routine) async {
     final db = await database;
     await db.update(
@@ -107,7 +110,6 @@ class DatabaseHelper {
       whereArgs: [routine.id],
     );
 
-    // Borrar ejercicios antiguos y volver a insertar los nuevos ejercicios y series asociados
     await db.delete('exercises', where: 'routineId = ?', whereArgs: [routine.id]);
     for (var exercise in routine.exercises) {
       await insertExercise(exercise, routine.id);
@@ -128,12 +130,14 @@ class DatabaseHelper {
         exercises: exercises,
       ));
     }
+    print("Rutinas cargadas: ${routines.length}");
     return routines;
   }
 
   Future<void> deleteRoutine(String id) async {
     final db = await database;
     await db.delete('routines', where: 'id = ?', whereArgs: [id]);
+    print("Rutina eliminada: ID $id");
   }
 
   // Métodos CRUD para Ejercicios
@@ -144,6 +148,8 @@ class DatabaseHelper {
       'routineId': routineId,
       'name': exercise.name,
     });
+    print("Ejercicio guardado: ${exercise.name} para rutina ID: $routineId");
+
     for (var series in exercise.series) {
       await insertSeries(series, exercise.id);
     }
@@ -162,12 +168,14 @@ class DatabaseHelper {
         series: series,
       ));
     }
+    print("Ejercicios cargados para rutina ID $routineId: ${exercises.length}");
     return exercises;
   }
 
   Future<void> deleteExercise(String id) async {
     final db = await database;
     await db.delete('exercises', where: 'id = ?', whereArgs: [id]);
+    print("Ejercicio eliminado: ID $id");
   }
 
   // Métodos CRUD para Series
@@ -184,6 +192,7 @@ class DatabaseHelper {
       'perceivedExertion': series.perceivedExertion,
       'isCompleted': series.isCompleted ? 1 : 0,
     });
+    print("Serie guardada para ejercicio ID: $exerciseId con peso ${series.weight} y repeticiones ${series.reps}");
   }
 
   Future<List<Series>> getSeries(String exerciseId) async {
@@ -203,12 +212,14 @@ class DatabaseHelper {
         isCompleted: (seriesItem['isCompleted'] as int) == 1,
       ));
     }
+    print("Series cargadas para ejercicio ID $exerciseId: ${seriesList.length}");
     return seriesList;
   }
 
   Future<void> deleteSeries(int id) async {
     final db = await database;
     await db.delete('series', where: 'id = ?', whereArgs: [id]);
+    print("Serie eliminada: ID $id");
   }
 
   // Métodos para manejar rutinas completadas
@@ -221,10 +232,57 @@ class DatabaseHelper {
       'duration': duration.inSeconds,
       'totalVolume': totalVolume,
     });
+    print("Rutina completada guardada: ${routine.name}");
   }
 
   Future<List<Map<String, dynamic>>> getCompletedRoutines() async {
     final db = await database;
-    return await db.query('routines_completed', orderBy: 'dateCompleted DESC');
+    final completedRoutinesData = await db.query('routines_completed', orderBy: 'dateCompleted DESC');
+
+    List<Map<String, dynamic>> completedRoutines = [];
+
+    for (var routineData in completedRoutinesData) {
+      final routineId = routineData['routineId'] as String;
+
+      Map<String, dynamic> routine = Map<String, dynamic>.from(routineData);
+
+      final exercisesData = await db.query('exercises', where: 'routineId = ?', whereArgs: [routineId]);
+
+      List<Map<String, dynamic>> exercises = [];
+
+      for (var exerciseData in exercisesData) {
+        final exerciseId = exerciseData['id'] as String;
+
+        Map<String, dynamic> exercise = Map<String, dynamic>.from(exerciseData);
+
+        final seriesData = await db.query('series', where: 'exerciseId = ?', whereArgs: [exerciseId]);
+
+        for (var series in seriesData) {
+          print("Serie recuperada: Peso = ${series['weight']}, Reps = ${series['reps']}");
+        }
+
+        exercise['series'] = seriesData;
+        exercises.add(exercise);
+      }
+
+      routine['exercises'] = exercises;
+
+      completedRoutines.add(routine);
+      print("Rutina completada recuperada: ${routine['name']} con ${exercises.length} ejercicios");
+    }
+
+    return completedRoutines;
+  }
+
+  Future<void> resetDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'forge.db');
+
+    await deleteDatabase(path);
+    print("Base de datos eliminada por completo.");
+
+    _database = null;
+    await database;
+    print("Base de datos recreada.");
   }
 }

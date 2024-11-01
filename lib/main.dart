@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app_state.dart';
-import 'screens/main_navigation_screen.dart'; // Importa la pantalla de navegación principal
+import 'screens/main_navigation_screen.dart';
+// import 'database/database_helper.dart'; // Importa DatabaseHelper para acceder a resetDatabase
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Llama a resetDatabase para eliminar los datos de la base de datos
+  // await DatabaseHelper().resetDatabase();
+  // print("Base de datos reiniciada.");
+
   runApp(const MyApp());
 }
 
@@ -19,7 +26,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Forge',
         theme: ThemeData(primarySwatch: Colors.blue),
-        home: MainNavigationScreen(), // Cambia a la pantalla de navegación principal
+        home: MainNavigationScreen(),
       ),
     );
   }

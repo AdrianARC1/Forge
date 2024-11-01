@@ -49,7 +49,6 @@ class Routine {
     this.duration = Duration.zero,
   });
 
-  // Método para copiar una rutina con cambios
   Routine copyWith({
     String? name,
     List<Exercise>? exercises,
@@ -67,7 +66,7 @@ class Routine {
 
 class AppState with ChangeNotifier {
   List<Routine> _routines = [];
-  List<Map<String, dynamic>> _completedRoutines = []; // Rutinas completadas
+  List<Map<String, dynamic>> _completedRoutines = [];
   List<Map<String, dynamic>> _exercises = [];
   List<Map<String, dynamic>> _muscleGroups = [];
   List<Map<String, dynamic>> _equipment = [];
@@ -83,7 +82,7 @@ class AppState with ChangeNotifier {
 
   AppState() {
     _loadRoutines();
-    _loadCompletedRoutines(); // Carga las rutinas completadas al inicio
+    _loadCompletedRoutines();
     loadMuscleGroups();
     loadEquipment();
   }
@@ -103,51 +102,56 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // Cargar rutinas desde la base de datos al iniciar la app
   Future<void> _loadRoutines() async {
     _routines = await _dbHelper.getRoutines();
+    print("Rutinas cargadas: ${_routines.length}");
+    for (var routine in _routines) {
+      print("Rutina: ${routine.name} con ${routine.exercises.length} ejercicios");
+    }
     notifyListeners();
   }
 
-  // Cargar rutinas completadas en el historial
   Future<void> _loadCompletedRoutines() async {
     _completedRoutines = await _dbHelper.getCompletedRoutines();
+    print("Rutinas completadas cargadas: ${_completedRoutines.length}");
+    for (var completedRoutine in _completedRoutines) {
+      print("Rutina completada: ${completedRoutine['name']} con ${(completedRoutine['exercises'] as List).length} ejercicios");
+    }
     notifyListeners();
   }
 
-  // Añadir una rutina finalizada al historial
- Future<void> addCompletedRoutine(Routine routine, Duration duration) async {
+  Future<void> addCompletedRoutine(Routine routine, Duration duration) async {
     int totalVolume = calculateTotalVolume(routine);
     await _dbHelper.insertCompletedRoutine(routine, duration, totalVolume);
-    await _loadCompletedRoutines(); // Recarga el historial después de añadir
+    await _loadCompletedRoutines();
+    print("Rutina completada añadida: ${routine.name} con duración de ${duration.inMinutes} minutos y volumen total de $totalVolume kg");
   }
 
-  // Guardar rutina en la base de datos y en la lista de rutinas
   Future<void> saveRoutine(Routine routine) async {
     await _dbHelper.insertRoutine(routine);
     _routines.add(routine);
+    print("Rutina guardada: ${routine.name} con ${routine.exercises.length} ejercicios");
     notifyListeners();
   }
 
-  // Actualizar una rutina existente
   Future<void> updateRoutine(Routine routine) async {
     await _dbHelper.updateRoutine(routine);
     final index = _routines.indexWhere((r) => r.id == routine.id);
     if (index != -1) {
       _routines[index] = routine;
+      print("Rutina actualizada: ${routine.name} con ${routine.exercises.length} ejercicios");
       notifyListeners();
     }
   }
 
-  // Añadir un ejercicio a la base de datos y a la rutina
   Future<void> addExerciseToRoutine(Exercise exercise, String routineId) async {
     await _dbHelper.insertExercise(exercise, routineId);
     final routine = _routines.firstWhere((routine) => routine.id == routineId);
     routine.exercises.add(exercise);
+    print("Ejercicio añadido: ${exercise.name} a la rutina ID: $routineId");
     notifyListeners();
   }
 
-  // Añadir una serie a la base de datos y al ejercicio
   Future<void> addSeriesToExercise(Series series, String exerciseId) async {
     series.lastSavedPerceivedExertion = series.perceivedExertion;
     await _dbHelper.insertSeries(series, exerciseId);
@@ -155,24 +159,24 @@ class AppState with ChangeNotifier {
         .expand((routine) => routine.exercises)
         .firstWhere((exercise) => exercise.id == exerciseId);
     exercise.series.add(series);
+    print("Serie añadida a ejercicio ID: $exerciseId con peso ${series.weight} kg y ${series.reps} repeticiones");
     notifyListeners();
   }
 
-  // Actualizar duración de la rutina
   void updateRoutineDuration(String routineId, Duration duration) {
     final routine = _routines.firstWhere((routine) => routine.id == routineId);
     routine.duration = duration;
+    print("Duración de rutina actualizada: ${routine.name} a ${duration.inMinutes} minutos");
     notifyListeners();
   }
 
-  // Eliminar una rutina de la lista y base de datos
   Future<void> deleteRoutine(String id) async {
     await _dbHelper.deleteRoutine(id);
     _routines.removeWhere((routine) => routine.id == id);
+    print("Rutina eliminada: ID $id");
     notifyListeners();
   }
   
-  // Calcular el volumen total de una rutina completada
   int calculateTotalVolume(Routine routine) {
     int totalVolume = 0;
     for (var exercise in routine.exercises) {
@@ -180,6 +184,7 @@ class AppState with ChangeNotifier {
         totalVolume += series.weight * series.reps;
       }
     }
+    print("Volumen total calculado para rutina ${routine.name}: $totalVolume kg");
     return totalVolume;
   }
 }
