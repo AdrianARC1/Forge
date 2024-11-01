@@ -233,9 +233,16 @@ class DatabaseHelper {
       'totalVolume': totalVolume,
     });
     print("Rutina completada guardada: ${routine.name}");
+
+    for (var exercise in routine.exercises) {
+      await insertExercise(exercise, routine.id);
+      for (var series in exercise.series) {
+        await insertSeries(series, exercise.id);
+      }
+    }
   }
 
-  Future<List<Map<String, dynamic>>> getCompletedRoutines() async {
+    Future<List<Map<String, dynamic>>> getCompletedRoutines() async {
     final db = await database;
     final completedRoutinesData = await db.query('routines_completed', orderBy: 'dateCompleted DESC');
 
@@ -243,26 +250,20 @@ class DatabaseHelper {
 
     for (var routineData in completedRoutinesData) {
       final routineId = routineData['routineId'] as String;
-
       Map<String, dynamic> routine = Map<String, dynamic>.from(routineData);
 
+      // Cargar ejercicios asociados a la rutina completada
       final exercisesData = await db.query('exercises', where: 'routineId = ?', whereArgs: [routineId]);
-
       List<Map<String, dynamic>> exercises = [];
 
       for (var exerciseData in exercisesData) {
         final exerciseId = exerciseData['id'] as String;
-
         Map<String, dynamic> exercise = Map<String, dynamic>.from(exerciseData);
 
+        // Cargar series asociadas al ejercicio
         final seriesData = await db.query('series', where: 'exerciseId = ?', whereArgs: [exerciseId]);
-
         exercise['series'] = seriesData.map((seriesItem) {
           return {
-            'previousWeight': seriesItem['previousWeight'],
-            'previousReps': seriesItem['previousReps'],
-            'lastSavedWeight': seriesItem['lastSavedWeight'],
-            'lastSavedReps': seriesItem['lastSavedReps'],
             'weight': seriesItem['weight'],
             'reps': seriesItem['reps'],
             'perceivedExertion': seriesItem['perceivedExertion'],
@@ -275,7 +276,7 @@ class DatabaseHelper {
 
       routine['exercises'] = exercises;
       completedRoutines.add(routine);
-      print("Rutina completada recuperada: ${routine['name']} con ${exercises.length} ejercicios y ${exercises.expand((ex) => ex['series']).length} series en total");
+      print("Rutina completada recuperada: ${routine['name']} con ${exercises.length} ejercicios");
     }
 
     return completedRoutines;

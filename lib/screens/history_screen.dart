@@ -23,65 +23,37 @@ class HistoryScreen extends StatelessWidget {
 
                 final Duration duration = Duration(seconds: durationInSeconds);
 
-                // Crear objeto Routine para pasar a RoutineDetailScreen
-                final routine = Routine(
-                  id: completedRoutine['routineId'] ?? '',
-                  name: name,
-                  dateCreated: DateTime.tryParse(dateCompleted) ?? DateTime.now(),
-                  exercises: (completedRoutine['exercises'] as List<dynamic>?)
-                          ?.map((exerciseData) => Exercise(
-                                id: exerciseData['id'] ?? '',
-                                name: exerciseData['name'] ?? 'Ejercicio',
-                                series: [], // Aquí puedes ajustar si tienes una lista de series
-                              ))
-                          .toList() ??
-                      [],
-                  duration: duration,
-                );
-
-                // Previsualización de los primeros 3 ejercicios
-                final previewExercises = (completedRoutine['exercises'] as List<dynamic>?)
-                        ?.take(3)
-                        .map((exercise) => exercise as Map<String, dynamic>)
-                        .toList() ??
-                    [];
+                final exercises = (completedRoutine['exercises'] as List<dynamic>)
+                    .map((exerciseData) => Exercise(
+                          id: exerciseData['id'] ?? '',
+                          name: exerciseData['name'] ?? 'Ejercicio',
+                          series: (exerciseData['series'] as List<dynamic>)
+                              .map((seriesData) => Series(
+                                    weight: seriesData['weight'] ?? 0,
+                                    reps: seriesData['reps'] ?? 0,
+                                    perceivedExertion: seriesData['perceivedExertion'] ?? 0,
+                                    isCompleted: seriesData['isCompleted'] ?? false,
+                                  ))
+                              .toList(),
+                        ))
+                    .toList();
 
                 return Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
                   child: ListTile(
-                    title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Completada el: $dateCompleted\n'
-                          'Duración: ${duration.inHours}h ${duration.inMinutes.remainder(60)}min\n'
-                          'Volumen total: $totalVolume kg',
-                        ),
-                        SizedBox(height: 8),
-                        Text("Ejercicios:", style: TextStyle(fontWeight: FontWeight.bold)),
-                        ...previewExercises.map((exercise) => Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
-                              child: Text(
-                                "${exercise['seriesCount'] ?? 0} series ${exercise['name'] ?? 'Ejercicio'} (${exercise['equipment'] ?? 'Equipo'})",
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                            )),
-                        if (((completedRoutine['exercises'] as List<dynamic>?)?.length ?? 0) > 3)
-                          Text(
-                            "Ver ${(completedRoutine['exercises'] as List<dynamic>).length - 3} más ejercicios",
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                      ],
-                    ),
+                    title: Text(name),
+                    subtitle: Text("Volumen total: $totalVolume kg, Duración: ${duration.inMinutes} min"),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => RoutineDetailScreen(
-                            routine: routine,
+                            routine: Routine(
+                              id: completedRoutine['routineId'] ?? '',
+                              name: name,
+                              dateCreated: DateTime.tryParse(dateCompleted) ?? DateTime.now(),
+                              exercises: exercises,
+                              duration: duration,
+                            ),
                             isFromHistory: true,
                             duration: duration,
                             totalVolume: totalVolume,

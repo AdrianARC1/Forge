@@ -69,6 +69,14 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
     }
 
     final appState = Provider.of<AppState>(context, listen: false);
+    
+    // Imprimir datos de cada serie para depuración
+    for (var exercise in exercises) {
+      for (var series in exercise.series) {
+        print("Ejercicio: ${exercise.name}, Peso: ${series.weight}, Reps: ${series.reps}, RIR: ${series.perceivedExertion}");
+      }
+    }
+    
     appState.addCompletedRoutine(
       Routine(
         id: widget.routine!.id,
@@ -81,6 +89,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
 
     Navigator.pop(context);
   }
+
 
   bool _areAllSeriesCompleted() {
     for (var exercise in exercises) {

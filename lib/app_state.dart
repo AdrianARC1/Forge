@@ -123,6 +123,8 @@ class AppState with ChangeNotifier {
   Future<void> addCompletedRoutine(Routine routine, Duration duration) async {
     int totalVolume = calculateTotalVolume(routine);
     await _dbHelper.insertCompletedRoutine(routine, duration, totalVolume);
+
+    // Recargar rutinas completadas para actualizar la vista
     await _loadCompletedRoutines();
     print("Rutina completada añadida: ${routine.name} con duración de ${duration.inMinutes} minutos y volumen total de $totalVolume kg");
   }
