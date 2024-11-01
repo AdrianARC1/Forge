@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
 import 'api/wger_api_service.dart';
+import 'package:uuid/uuid.dart';
 
+const uuid = Uuid();
 class Series {
   int? previousWeight;
   int? previousReps;
@@ -27,11 +29,11 @@ class Series {
 }
 
 class Exercise {
-  final String id;
+  String? id;
   final String name;
   List<Series> series;
 
-  Exercise({required this.id, required this.name, this.series = const []});
+  Exercise({this.id, required this.name, this.series = const []});
 }
 
 class Routine {
