@@ -257,18 +257,25 @@ class DatabaseHelper {
 
         final seriesData = await db.query('series', where: 'exerciseId = ?', whereArgs: [exerciseId]);
 
-        for (var series in seriesData) {
-          print("Serie recuperada: Peso = ${series['weight']}, Reps = ${series['reps']}");
-        }
+        exercise['series'] = seriesData.map((seriesItem) {
+          return {
+            'previousWeight': seriesItem['previousWeight'],
+            'previousReps': seriesItem['previousReps'],
+            'lastSavedWeight': seriesItem['lastSavedWeight'],
+            'lastSavedReps': seriesItem['lastSavedReps'],
+            'weight': seriesItem['weight'],
+            'reps': seriesItem['reps'],
+            'perceivedExertion': seriesItem['perceivedExertion'],
+            'isCompleted': seriesItem['isCompleted'] == 1,
+          };
+        }).toList();
 
-        exercise['series'] = seriesData;
         exercises.add(exercise);
       }
 
       routine['exercises'] = exercises;
-
       completedRoutines.add(routine);
-      print("Rutina completada recuperada: ${routine['name']} con ${exercises.length} ejercicios");
+      print("Rutina completada recuperada: ${routine['name']} con ${exercises.length} ejercicios y ${exercises.expand((ex) => ex['series']).length} series en total");
     }
 
     return completedRoutines;

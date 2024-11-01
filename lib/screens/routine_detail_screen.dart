@@ -85,9 +85,9 @@ class RoutineDetailScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("SERIE"),
-                          Text("KGxREPS"),
-                          Text("RIR"),
+                          Text("SERIE", style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text("KGxREPS", style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text("RIR", style: TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -95,13 +95,13 @@ class RoutineDetailScreen extends StatelessWidget {
                       children: exercise.series.map((series) {
                         int seriesIndex = exercise.series.indexOf(series);
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("${seriesIndex + 1}"),
-                              Text("${series.weight} kg x ${series.reps}"),
-                              Text("${series.perceivedExertion}"),
+                              Text("${seriesIndex + 1}"), // Número de serie
+                              Text("${series.weight} kg x ${series.reps}"), // Peso x Repeticiones
+                              Text("${series.perceivedExertion}"), // RIR
                             ],
                           ),
                         );
