@@ -22,14 +22,12 @@ class HistoryScreen extends StatelessWidget {
                 final int totalVolume = completedRoutine['totalVolume'] ?? 0;
                 final Duration duration = Duration(seconds: durationInSeconds);
 
-                final previewExercises = (completedRoutine['exercises'] as List<dynamic>?)
-                        ?.take(3)
-                        .map((exercise) => exercise as Map<String, dynamic>)
-                        .toList() ??
-                    [];
+                // Obtener la lista de ejercicios y la vista previa de los primeros 3 ejercicios
+                final exercises = (completedRoutine['exercises'] as List<dynamic>?) ?? [];
+                final previewExercises = exercises.take(3).toList();
 
-                final int remainingExercises =
-                    (completedRoutine['exercises'] as List<dynamic>?)?.length ?? 0 - 3;
+                // Calcular los ejercicios restantes para el texto "ver más"
+                final int remainingExercises = exercises.length > 3 ? exercises.length - 3 : 0;
 
                 return Card(
                   shape: RoundedRectangleBorder(
@@ -47,13 +45,18 @@ class HistoryScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 8),
                         Text("Ejercicios:", style: TextStyle(fontWeight: FontWeight.bold)),
-                        ...previewExercises.map((exercise) => Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
-                              child: Text(
-                                "${exercise['seriesCount'] ?? 0} series ${exercise['name'] ?? 'Ejercicio'} (${exercise['equipment'] ?? 'Equipo'})",
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                            )),
+                        // Mostrar los primeros 3 ejercicios en la vista previa
+                        ...previewExercises.map((exercise) {
+                          final seriesCount = (exercise['series'] as List<dynamic>?)?.length ?? 0;
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Text(
+                              "$seriesCount series ${exercise['name'] ?? 'Ejercicio'} (${exercise['equipment'] ?? 'Equipo'})",
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          );
+                        }),
+                        // Mostrar el texto "Ver x ejercicio(s) más" si hay más de 3 ejercicios
                         if (remainingExercises > 0)
                           Text(
                             "Ver $remainingExercises ejercicio(s) más",
@@ -70,21 +73,20 @@ class HistoryScreen extends StatelessWidget {
                               id: completedRoutine['routineId'] ?? '',
                               name: name,
                               dateCreated: DateTime.tryParse(dateCompleted) ?? DateTime.now(),
-                              exercises: (completedRoutine['exercises'] as List<dynamic>)
-                                  .map((exerciseData) => Exercise(
-                                        id: exerciseData['id'] ?? '',
-                                        name: exerciseData['name'] ?? 'Ejercicio',
-                                        series: (exerciseData['series'] as List<dynamic>)
-                                            .map((seriesData) => Series(
-                                                  weight: seriesData['weight'] ?? 0,
-                                                  reps: seriesData['reps'] ?? 0,
-                                                  perceivedExertion:
-                                                      seriesData['perceivedExertion'] ?? 0,
-                                                  isCompleted: seriesData['isCompleted'] ?? false,
-                                                ))
-                                            .toList(),
-                                      ))
-                                  .toList(),
+                              exercises: exercises.map((exerciseData) {
+                                return Exercise(
+                                  id: exerciseData['id'] ?? '',
+                                  name: exerciseData['name'] ?? 'Ejercicio',
+                                  series: (exerciseData['series'] as List<dynamic>).map((seriesData) {
+                                    return Series(
+                                      weight: seriesData['weight'] ?? 0,
+                                      reps: seriesData['reps'] ?? 0,
+                                      perceivedExertion: seriesData['perceivedExertion'] ?? 0,
+                                      isCompleted: seriesData['isCompleted'] ?? false,
+                                    );
+                                  }).toList(),
+                                );
+                              }).toList(),
                               duration: duration,
                             ),
                             isFromHistory: true,

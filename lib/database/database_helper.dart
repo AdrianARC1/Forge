@@ -4,6 +4,7 @@ import '../app_state.dart';
 import 'package:uuid/uuid.dart';
 
 const uuid = Uuid();
+
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   DatabaseHelper._internal();
@@ -61,7 +62,7 @@ class DatabaseHelper {
 
         await db.execute('''
           CREATE TABLE routines_completed (
-            completionId INTEGER PRIMARY KEY AUTOINCREMENT,
+            completionId TEXT PRIMARY KEY,  -- Cambiado a TEXT para almacenar un UUID
             routineId TEXT,
             name TEXT,
             dateCompleted TEXT,
@@ -88,19 +89,18 @@ class DatabaseHelper {
 
   // Métodos CRUD para Rutinas
   Future<void> insertRoutine(Routine routine) async {
-  final db = await database;
-  await db.insert('routines', {
-    'id': routine.id,
-    'name': routine.name,
-    'dateCreated': routine.dateCreated.toIso8601String(),
-  });
-  print("Rutina guardada: ${routine.name}");
+    final db = await database;
+    await db.insert('routines', {
+      'id': routine.id,
+      'name': routine.name,
+      'dateCreated': routine.dateCreated.toIso8601String(),
+    });
+    print("Rutina guardada: ${routine.name}");
 
-  for (var exercise in routine.exercises) {
-    await insertExercise(exercise, routine.id);
+    for (var exercise in routine.exercises) {
+      await insertExercise(exercise, routine.id);
+    }
   }
-}
-
 
   Future<void> updateRoutine(Routine routine) async {
     final db = await database;
@@ -144,27 +144,24 @@ class DatabaseHelper {
   }
 
   // Métodos CRUD para Ejercicios
-Future<void> insertExercise(Exercise exercise, String routineId) async {
-  final db = await database;
+  Future<void> insertExercise(Exercise exercise, String routineId) async {
+    final db = await database;
 
-  // Generar un ID único cada vez que se inserta un ejercicio
-  final String uniqueId = uuid.v4();
+    final String uniqueId = uuid.v4();
 
-  await db.insert('exercises', {
-    'id': uniqueId,
-    'routineId': routineId,
-    'name': exercise.name,
-  });
-  print("Ejercicio guardado: ${exercise.name} para rutina ID: $routineId con ID único $uniqueId");
+    await db.insert('exercises', {
+      'id': uniqueId,
+      'routineId': routineId,
+      'name': exercise.name,
+    });
+    print("Ejercicio guardado: ${exercise.name} para rutina ID: $routineId con ID único $uniqueId");
 
-  // Asignar el ID generado al ejercicio para su referencia futura
-  exercise.id = uniqueId;
+    exercise.id = uniqueId;
 
-  for (var series in exercise.series) {
-    await insertSeries(series, uniqueId);
+    for (var series in exercise.series) {
+      await insertSeries(series, uniqueId);
+    }
   }
-}
-
 
   Future<List<Exercise>> getExercises(String routineId) async {
     final db = await database;
@@ -234,27 +231,50 @@ Future<void> insertExercise(Exercise exercise, String routineId) async {
   }
 
   // Métodos para manejar rutinas completadas
-Future<void> insertCompletedRoutine(Routine routine, Duration duration, int totalVolume) async {
-  final db = await database;
-  await db.insert('routines_completed', {
-    'routineId': routine.id,
-    'name': routine.name,
-    'dateCompleted': DateTime.now().toIso8601String(),
-    'duration': duration.inSeconds,
-    'totalVolume': totalVolume,
-  });
-  print("Rutina completada guardada: ${routine.name}");
+  Future<void> insertCompletedRoutine(Routine routine, Duration duration, int totalVolume) async {
+    final db = await database;
 
-  for (var exercise in routine.exercises) {
-    await insertExercise(exercise, routine.id);
-    for (var series in exercise.series) {
-      await insertSeries(series, exercise.id!);  // Usar el operador ! para asegurar que no es nulo
-    }
+    await db.transaction((txn) async {
+      final String completionId = uuid.v4();
+
+      await txn.insert('routines_completed', {
+        'completionId': completionId,  // ID único para cada instancia completada
+        'routineId': routine.id,
+        'name': routine.name,
+        'dateCompleted': DateTime.now().toIso8601String(),
+        'duration': duration.inSeconds,
+        'totalVolume': totalVolume,
+      });
+      print("Rutina completada guardada: ${routine.name} con completionId $completionId");
+
+      for (var exercise in routine.exercises) {
+        final String uniqueExerciseId = uuid.v4();
+        await txn.insert('exercises', {
+          'id': uniqueExerciseId,
+          'routineId': completionId,  // Vincula el ejercicio con el completionId de la rutina completada
+          'name': exercise.name,
+        });
+        print("Ejercicio guardado: ${exercise.name} con ID único $uniqueExerciseId");
+
+        for (var series in exercise.series) {
+          await txn.insert('series', {
+            'exerciseId': uniqueExerciseId,
+            'previousWeight': series.previousWeight,
+            'previousReps': series.previousReps,
+            'lastSavedWeight': series.lastSavedWeight,
+            'lastSavedReps': series.lastSavedReps,
+            'weight': series.weight,
+            'reps': series.reps,
+            'perceivedExertion': series.perceivedExertion,
+            'isCompleted': series.isCompleted ? 1 : 0,
+          });
+          print("Serie guardada para ejercicio ID: $uniqueExerciseId con peso ${series.weight} y repeticiones ${series.reps}");
+        }
+      }
+    });
   }
-}
 
-
-    Future<List<Map<String, dynamic>>> getCompletedRoutines() async {
+  Future<List<Map<String, dynamic>>> getCompletedRoutines() async {
     final db = await database;
     final completedRoutinesData = await db.query('routines_completed', orderBy: 'dateCompleted DESC');
 
@@ -264,7 +284,6 @@ Future<void> insertCompletedRoutine(Routine routine, Duration duration, int tota
       final routineId = routineData['routineId'] as String;
       Map<String, dynamic> routine = Map<String, dynamic>.from(routineData);
 
-      // Cargar ejercicios asociados a la rutina completada
       final exercisesData = await db.query('exercises', where: 'routineId = ?', whereArgs: [routineId]);
       List<Map<String, dynamic>> exercises = [];
 
@@ -272,7 +291,6 @@ Future<void> insertCompletedRoutine(Routine routine, Duration duration, int tota
         final exerciseId = exerciseData['id'] as String;
         Map<String, dynamic> exercise = Map<String, dynamic>.from(exerciseData);
 
-        // Cargar series asociadas al ejercicio
         final seriesData = await db.query('series', where: 'exerciseId = ?', whereArgs: [exerciseId]);
         exercise['series'] = seriesData.map((seriesItem) {
           return {
@@ -299,10 +317,6 @@ Future<void> insertCompletedRoutine(Routine routine, Duration duration, int tota
     final path = join(dbPath, 'forge.db');
 
     await deleteDatabase(path);
-    print("Base de datos eliminada por completo.");
-
-    _database = null;
-    await database;
-    print("Base de datos recreada.");
+    print("Base de datos eliminada y recreada.");
   }
 }
