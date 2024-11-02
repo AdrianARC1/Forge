@@ -10,6 +10,7 @@ class CreateRoutineScreen extends StatefulWidget {
 
 class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   final TextEditingController _routineNameController = TextEditingController();
+  final FocusNode _routineNameFocusNode = FocusNode();
   List<Exercise> selectedExercises = [];
 
   Future<void> _addExercise() async {
@@ -36,6 +37,8 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
         );
         selectedExercises.add(exercise);
       });
+      // Quitar el enfoque del campo de nombre y ponerlo en el primer campo de la serie
+      FocusScope.of(context).unfocus();
     }
   }
 
@@ -50,6 +53,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
         ),
       );
     });
+    FocusScope.of(context).unfocus(); // Quita el enfoque del campo de nombre
   }
 
   void _deleteSeries(Exercise exercise, int seriesIndex) {
@@ -72,6 +76,8 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   }
 
   void _saveRoutine() async {
+    FocusScope.of(context).unfocus(); // Quita el enfoque antes de guardar
+
     if (!_areAllSeriesCompleted()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Completa todas las series antes de guardar")),
@@ -122,6 +128,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
                   controller: _routineNameController,
+                  focusNode: _routineNameFocusNode,
                   decoration: InputDecoration(
                     labelText: "Nombre de la Rutina",
                     border: OutlineInputBorder(),
@@ -221,6 +228,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                                       setState(() {
                                         series.isCompleted = value ?? false;
                                       });
+                                      FocusScope.of(context).unfocus(); // Quita el enfoque del campo de nombre
                                     },
                                   ),
                                 ],
