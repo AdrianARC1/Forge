@@ -76,7 +76,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   }
 
   void _saveRoutine() async {
-    FocusScope.of(context).unfocus(); // Quita el enfoque antes de guardar
+    FocusScope.of(context).unfocus();
 
     if (!_areAllSeriesCompleted()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,6 +89,13 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
     if (routineName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Por favor, ingresa un nombre para la rutina")),
+      );
+      return;
+    }
+
+    if (selectedExercises.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Agrega al menos un ejercicio a la rutina")),
       );
       return;
     }
