@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
 import 'api/wger_api_service.dart';
 import 'package:uuid/uuid.dart';
 
 const uuid = Uuid();
+
 class Series {
   int? previousWeight;
   int? previousReps;
@@ -76,6 +78,10 @@ class AppState with ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final WgerApiService _apiService = WgerApiService();
 
+  Routine? minimizedRoutine;
+  Duration minimizedRoutineDuration = Duration.zero;
+  Timer? _timer;
+
   List<Routine> get routines => _routines;
   List<Map<String, dynamic>> get completedRoutines => _completedRoutines;
   List<Map<String, dynamic>> get exercises => _exercises;
@@ -87,6 +93,43 @@ class AppState with ChangeNotifier {
     _loadCompletedRoutines();
     loadMuscleGroups();
     loadEquipment();
+  }
+
+  // Inicia el temporizador para la rutina minimizada
+  void startRoutineTimer() {
+    stopRoutineTimer(); // Detener cualquier temporizador anterior
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      minimizedRoutineDuration += Duration(seconds: 1);
+      notifyListeners();
+    });
+  }
+
+  // Detener el temporizador
+  void stopRoutineTimer() {
+    _timer?.cancel();
+  }
+
+  // Minimiza la rutina y comienza el temporizador
+  void minimizeRoutine(Routine routine) {
+    minimizedRoutine = routine;
+    startRoutineTimer();
+    notifyListeners();
+  }
+
+  // Restaura la rutina, detiene el temporizador y reinicia el tiempo
+  void restoreRoutine() {
+    minimizedRoutine = null;
+    minimizedRoutineDuration = Duration.zero;
+    stopRoutineTimer();
+    notifyListeners();
+  }
+
+  // Cancela la rutina minimizada y limpia el estado
+  void cancelMinimizedRoutine() {
+    minimizedRoutine = null;
+    minimizedRoutineDuration = Duration.zero;
+    stopRoutineTimer();
+    notifyListeners();
   }
 
   Future<void> fetchExercises({int? muscleGroup, int? equipment}) async {
