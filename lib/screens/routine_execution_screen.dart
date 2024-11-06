@@ -16,12 +16,27 @@ class RoutineExecutionScreen extends StatefulWidget {
 class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
   List<Exercise> exercises = [];
   String routineName = "Entrenamiento Vacío";
+  Duration displayDuration = Duration.zero;
+  Timer? _localTimer;
+
+  // Mapas para mantener los controladores de cada Serie
+  Map<Series, TextEditingController> weightControllers = {};
+  Map<Series, TextEditingController> repsControllers = {};
+  Map<Series, TextEditingController> exertionControllers = {};
 
   @override
   void initState() {
     super.initState();
 
-    if (widget.routine != null) {
+    final appState = Provider.of<AppState>(context, listen: false);
+
+    if (appState.savedRoutineState != null) {
+      // Restaurando rutina minimizada
+      exercises = appState.savedRoutineState!.exercises;
+      routineName = appState.savedRoutineState!.name;
+      displayDuration = appState.minimizedRoutineDuration;
+    } else if (widget.routine != null) {
+      // Iniciando nueva rutina
       exercises = widget.routine!.exercises.map((exercise) {
         return Exercise(
           id: exercise.id,
@@ -30,25 +45,65 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
             return Series(
               previousWeight: series.weight,
               previousReps: series.reps,
-              weight: 0,
-              reps: 0,
-              perceivedExertion: 0,
-              lastSavedPerceivedExertion: series.perceivedExertion, // Para hint de RIR
+              weight: 0, // Iniciamos en 0
+              reps: 0,   // Iniciamos en 0
+              perceivedExertion: 0, // Iniciamos en 0
+              lastSavedPerceivedExertion: series.perceivedExertion,
               isCompleted: false,
             );
           }).toList(),
         );
       }).toList();
       routineName = widget.routine!.name;
+      displayDuration = Duration.zero; // Comenzamos desde cero
     }
 
-    // Ejecutar minimizeRoutine después de que el widget esté completamente construido
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final appState = Provider.of<AppState>(context, listen: false);
-      if (appState.minimizedRoutine == null) {
-        appState.minimizeRoutine(widget.routine!); // Minimiza y comienza el temporizador
+    // Inicializar controladores
+    for (var exercise in exercises) {
+      for (var series in exercise.series) {
+        if (appState.savedRoutineState != null) {
+          // Restaurando rutina minimizada: inicializamos los controladores con los valores ingresados
+          weightControllers[series] = TextEditingController(
+            text: series.weight > 0 ? series.weight.toString() : '',
+          );
+          repsControllers[series] = TextEditingController(
+            text: series.reps > 0 ? series.reps.toString() : '',
+          );
+          exertionControllers[series] = TextEditingController(
+            text: series.perceivedExertion > 0 ? series.perceivedExertion.toString() : '',
+          );
+        } else {
+          // Nueva rutina: inicializamos los controladores sin texto
+          weightControllers[series] = TextEditingController();
+          repsControllers[series] = TextEditingController();
+          exertionControllers[series] = TextEditingController();
+        }
       }
-    });
+    }
+
+    _startLocalTimer();
+  }
+
+  @override
+  void dispose() {
+    // Liberar todos los controladores
+    weightControllers.values.forEach((controller) => controller.dispose());
+    repsControllers.values.forEach((controller) => controller.dispose());
+    exertionControllers.values.forEach((controller) => controller.dispose());
+    _localTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startLocalTimer() {
+    if (_localTimer == null || !_localTimer!.isActive) {
+      _localTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+        setState(() {
+          displayDuration += Duration(seconds: 1);
+          final appState = Provider.of<AppState>(context, listen: false);
+          appState.minimizedRoutineDuration = displayDuration;
+        });
+      });
+    }
   }
 
   void _finishRoutine() {
@@ -60,8 +115,18 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
     }
 
     final appState = Provider.of<AppState>(context, listen: false);
-    appState.addCompletedRoutine(widget.routine!, appState.minimizedRoutineDuration);
-    appState.restoreRoutine(); // Detiene el temporizador y limpia el estado de minimización
+    // Actualizar la rutina con los ejercicios y series actuales
+    Routine completedRoutine = Routine(
+      id: widget.routine!.id,
+      name: routineName,
+      dateCreated: widget.routine!.dateCreated,
+      exercises: exercises,
+      duration: displayDuration,
+    );
+    appState.addCompletedRoutine(completedRoutine, appState.minimizedRoutineDuration);
+    appState.restoreRoutine();
+    appState.minimizedRoutineDuration = Duration.zero; // Reiniciar duración
+    _localTimer?.cancel(); // Detener el temporizador local
     Navigator.pop(context);
   }
 
@@ -75,7 +140,18 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
   }
 
   void _minimizeRoutine() {
-    Navigator.pop(context); // Regresa a la pantalla principal sin detener el temporizador
+    final appState = Provider.of<AppState>(context, listen: false);
+    appState.minimizeRoutine(
+      Routine(
+        id: widget.routine!.id,
+        name: routineName,
+        dateCreated: widget.routine!.dateCreated,
+        exercises: exercises,
+        duration: displayDuration,
+      ),
+    );
+    _localTimer?.cancel();
+    Navigator.pop(context);
   }
 
   void _cancelExecution() {
@@ -93,9 +169,10 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
             TextButton(
               onPressed: () {
                 final appState = Provider.of<AppState>(context, listen: false);
-                appState.cancelMinimizedRoutine(); // Detiene el temporizador y limpia el estado
-                Navigator.of(context).pop(); // Cierra el diálogo de confirmación
-                Navigator.of(context).pop(); // Vuelve a la pantalla principal
+                appState.cancelMinimizedRoutine();
+                _localTimer?.cancel();
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
               },
               child: Text("Sí"),
             ),
@@ -136,36 +213,63 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
           ],
         );
         exercises.add(exercise);
+
+        // Inicializar controladores sin texto
+        for (var series in exercise.series) {
+          weightControllers[series] = TextEditingController();
+          repsControllers[series] = TextEditingController();
+          exertionControllers[series] = TextEditingController();
+        }
       });
     }
   }
 
   void _addSeriesToExercise(Exercise exercise) {
     setState(() {
-      exercise.series.add(
-        Series(
-          previousWeight: exercise.series.isNotEmpty ? exercise.series.last.weight : null,
-          previousReps: exercise.series.isNotEmpty ? exercise.series.last.reps : null,
-          weight: 0,
-          reps: 0,
-          perceivedExertion: 0,
-          lastSavedPerceivedExertion: exercise.series.isNotEmpty
-              ? exercise.series.last.perceivedExertion
-              : null,
-          isCompleted: false,
-        ),
+      Series newSeries = Series(
+        previousWeight: exercise.series.isNotEmpty ? exercise.series.last.weight : null,
+        previousReps: exercise.series.isNotEmpty ? exercise.series.last.reps : null,
+        weight: 0,
+        reps: 0,
+        perceivedExertion: 0,
+        lastSavedPerceivedExertion: exercise.series.isNotEmpty
+            ? exercise.series.last.perceivedExertion
+            : null,
+        isCompleted: false,
       );
+      exercise.series.add(newSeries);
+
+      // Inicializar controladores sin texto
+      weightControllers[newSeries] = TextEditingController();
+      repsControllers[newSeries] = TextEditingController();
+      exertionControllers[newSeries] = TextEditingController();
+    });
+  }
+
+  void _autofillSeries(Series series) {
+    setState(() {
+      if (series.weight == 0 && series.previousWeight != null) {
+        series.weight = series.previousWeight!;
+        weightControllers[series]?.text = series.weight.toString();
+      }
+      if (series.reps == 0 && series.previousReps != null) {
+        series.reps = series.previousReps!;
+        repsControllers[series]?.text = series.reps.toString();
+      }
+      if (series.perceivedExertion == 0 && series.lastSavedPerceivedExertion != null) {
+        series.perceivedExertion = series.lastSavedPerceivedExertion!;
+        exertionControllers[series]?.text = series.perceivedExertion.toString();
+      }
+      series.isCompleted = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-
     return WillPopScope(
       onWillPop: () async {
-        _minimizeRoutine(); // Minimiza la rutina en lugar de cerrar la pantalla
-        return false; // Evita que la pantalla se cierre
+        _minimizeRoutine();
+        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -187,7 +291,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                'Tiempo Transcurrido: ${_formatDuration(appState.minimizedRoutineDuration)}',
+                'Tiempo Transcurrido: ${_formatDuration(displayDuration)}',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
@@ -215,82 +319,79 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
                             ],
                           ),
                         ),
-                          Column(
-                            children: exercise.series.map((series) {
-                              int seriesIndex = exercise.series.indexOf(series);
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text("${seriesIndex + 1}"),
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _autofillSeries(series);
-                                        });
-                                      },
-                                      child: Text(
-                                        "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: TextField(
-                                        keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        hintText: "${series.previousWeight ?? 'KG'}",
-                                        hintStyle: TextStyle(color: Colors.grey),
-                                      ),
-                                      controller: TextEditingController(
-                                        text: series.weight > 0 ? series.weight.toString() : "",
-                                      ),
-                                      onChanged: (value) {
-                                        series.weight = int.tryParse(value) ?? series.weight;
-                                      },
+                        Column(
+                          children: exercise.series.map((series) {
+                            int seriesIndex = exercise.series.indexOf(series);
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("${seriesIndex + 1}"),
+                                  GestureDetector(
+                                    onTap: () {
+                                      _autofillSeries(series);
+                                    },
+                                    child: Text(
+                                      "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
+                                      style: TextStyle(color: Colors.grey),
                                     ),
                                   ),
-                                  Expanded(
+                                  SizedBox(
+                                    width: 50,
                                     child: TextField(
+                                      controller: weightControllers[series],
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
-                                        hintText: "${series.previousReps ?? 'Reps'}",
+                                        hintText: series.previousWeight != null
+                                            ? series.previousWeight.toString()
+                                            : 'KG',
                                         hintStyle: TextStyle(color: Colors.grey),
                                       ),
-                                      controller: TextEditingController(
-                                        text: series.reps > 0 ? series.reps.toString() : "",
-                                      ),
                                       onChanged: (value) {
-                                        series.reps = int.tryParse(value) ?? series.reps;
+                                        series.weight = int.tryParse(value) ?? 0;
                                       },
                                     ),
                                   ),
-                                  Expanded(
+                                  SizedBox(
+                                    width: 50,
                                     child: TextField(
+                                      controller: repsControllers[series],
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        hintText: series.previousReps != null
+                                            ? series.previousReps.toString()
+                                            : 'Reps',
+                                        hintStyle: TextStyle(color: Colors.grey),
+                                      ),
+                                      onChanged: (value) {
+                                        series.reps = int.tryParse(value) ?? 0;
+                                      },
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 50,
+                                    child: TextField(
+                                      controller: exertionControllers[series],
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
                                         hintText: series.lastSavedPerceivedExertion != null
                                             ? series.lastSavedPerceivedExertion.toString()
-                                            : "RIR",
+                                            : 'RIR',
                                         hintStyle: TextStyle(color: Colors.grey),
                                       ),
-                                      controller: TextEditingController(
-                                        text: series.perceivedExertion > 0
-                                            ? series.perceivedExertion.toString()
-                                            : "",
-                                      ),
                                       onChanged: (value) {
-                                        series.perceivedExertion = int.tryParse(value) ?? series.perceivedExertion;
+                                        series.perceivedExertion = int.tryParse(value) ?? 0;
                                       },
                                     ),
                                   ),
                                   Checkbox(
                                     value: series.isCompleted,
                                     onChanged: (value) {
+                                      if (value == true) {
+                                        _autofillSeries(series);
+                                      }
                                       setState(() {
-                                        if (value == true) {
-                                          _autofillSeries(series);
-                                        }
                                         series.isCompleted = value ?? false;
                                       });
                                     },
@@ -334,20 +435,5 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
         ),
       ),
     );
-  }
-
-  void _autofillSeries(Series series) {
-    setState(() {
-      if (series.weight == 0 && series.previousWeight != null) {
-        series.weight = series.previousWeight!;
-      }
-      if (series.reps == 0 && series.previousReps != null) {
-        series.reps = series.previousReps!;
-      }
-      if (series.perceivedExertion == 0 && series.lastSavedPerceivedExertion != null) {
-        series.perceivedExertion = series.lastSavedPerceivedExertion!;
-      }
-      series.isCompleted = true;
-    });
   }
 }

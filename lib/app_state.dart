@@ -79,6 +79,7 @@ class AppState with ChangeNotifier {
   final WgerApiService _apiService = WgerApiService();
 
   Routine? minimizedRoutine;
+  Routine? savedRoutineState; // Guarda el estado de la rutina minimizada
   Duration minimizedRoutineDuration = Duration.zero;
   Timer? _timer;
 
@@ -109,24 +110,27 @@ class AppState with ChangeNotifier {
     _timer?.cancel();
   }
 
-  // Minimiza la rutina y comienza el temporizador
+  // Minimiza la rutina y guarda su estado
   void minimizeRoutine(Routine routine) {
+    savedRoutineState = routine; // Guarda el estado actual de la rutina
     minimizedRoutine = routine;
     startRoutineTimer();
     notifyListeners();
   }
 
-  // Restaura la rutina, detiene el temporizador y reinicia el tiempo
+  // Restaura la rutina minimizada, detiene el temporizador y reinicia el tiempo
   void restoreRoutine() {
     minimizedRoutine = null;
-    minimizedRoutineDuration = Duration.zero;
-    stopRoutineTimer();
+    savedRoutineState = null;
+    stopRoutineTimer(); // Detiene el temporizador
+    // No reiniciamos minimizedRoutineDuration aquí para preservar el tiempo al restaurar
     notifyListeners();
   }
 
   // Cancela la rutina minimizada y limpia el estado
   void cancelMinimizedRoutine() {
     minimizedRoutine = null;
+    savedRoutineState = null; // Limpia el estado guardado
     minimizedRoutineDuration = Duration.zero;
     stopRoutineTimer();
     notifyListeners();
@@ -223,7 +227,7 @@ class AppState with ChangeNotifier {
     print("Rutina eliminada: ID $id");
     notifyListeners();
   }
-  
+
   int calculateTotalVolume(Routine routine) {
     int totalVolume = 0;
     for (var exercise in routine.exercises) {
