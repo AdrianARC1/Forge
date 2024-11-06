@@ -38,23 +38,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               bottom: 0,
               left: 0,
               right: 0,
-              child: Container(
-                color: Colors.blueAccent,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RoutineExecutionScreen(routine: appState.minimizedRoutine),
-                            ),
-                          );
-                        },
-                        child: Row(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RoutineExecutionScreen(routine: appState.minimizedRoutine),
+                    ),
+                  );
+                },
+                child: Container(
+                  color: Colors.blueAccent,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
                           children: [
                             Text(
                               "${appState.minimizedRoutine!.name}",
@@ -67,27 +67,27 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             ),
                           ],
                         ),
-                      ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.play_arrow, color: Colors.white),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => RoutineExecutionScreen(routine: appState.minimizedRoutine),
-                                ),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.cancel, color: Colors.white),
-                            onPressed: () => _cancelMinimizedRoutine(context),
-                          ),
-                        ],
-                      ),
-                    ],
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.play_arrow, color: Colors.white),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RoutineExecutionScreen(routine: appState.minimizedRoutine),
+                                  ),
+                                );
+                              },
+                            ),
+                            GestureDetector(
+                              onTap: () => _cancelMinimizedRoutine(context),
+                              child: Icon(Icons.cancel, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
