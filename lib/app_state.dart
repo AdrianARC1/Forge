@@ -136,8 +136,8 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchExercises({int? muscleGroup, int? equipment}) async {
-    _exercises = await _apiService.fetchExercises(muscleGroup: muscleGroup, equipment: equipment);
+  Future<void> fetchExercises({int? muscleGroup, int? equipment, int page = 1}) async {
+    _exercises = await _apiService.fetchExercises(muscleGroup: muscleGroup, equipment: equipment, page: page);
     notifyListeners();
   }
 

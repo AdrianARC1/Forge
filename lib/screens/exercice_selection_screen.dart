@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../app_state.dart';
 
 class ExerciseSelectionScreen extends StatefulWidget {
-  const ExerciseSelectionScreen({super.key});
+  const ExerciseSelectionScreen({Key? key}) : super(key: key);
 
   @override
   _ExerciseSelectionScreenState createState() => _ExerciseSelectionScreenState();
@@ -13,12 +13,40 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   String searchQuery = "";
   int? selectedMuscleGroup;
   int? selectedEquipment;
+  ScrollController _scrollController = ScrollController();
+  int _currentPage = 1;
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
-    // Cargar ejercicios desde la API al iniciar la pantalla
-    Provider.of<AppState>(context, listen: false).fetchExercises();
+    final appState = Provider.of<AppState>(context, listen: false);
+    appState.fetchExercises();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients || _isLoadingMore) return;
+    final thresholdReached = _scrollController.position.extentAfter < 200;
+    if (thresholdReached) {
+      _loadMoreExercises();
+    }
+  }
+
+  Future<void> _loadMoreExercises() async {
+    setState(() {
+      _isLoadingMore = true;
+    });
+    _currentPage++;
+    final appState = Provider.of<AppState>(context, listen: false);
+    await appState.fetchExercises(
+      muscleGroup: selectedMuscleGroup,
+      equipment: selectedEquipment,
+      page: _currentPage,
+    );
+    setState(() {
+      _isLoadingMore = false;
+    });
   }
 
   @override
@@ -60,56 +88,66 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // Para el filtro de músculo
-DropdownButton<int>(
-  hint: Text("Seleccionar músculo"),
-  value: selectedMuscleGroup,
-  onChanged: (value) {
-    setState(() {
-      selectedMuscleGroup = value;
-    });
-    appState.fetchExercises(muscleGroup: value, equipment: selectedEquipment);
-  },
-  items: appState.muscleGroups.map<DropdownMenuItem<int>>((group) {
-    return DropdownMenuItem<int>(
-      value: group['id'] as int,
-      child: Text(group['name']),
-    );
-  }).toList(),
-),
+              DropdownButton<int>(
+                hint: Text("Músculo"),
+                value: selectedMuscleGroup,
+                onChanged: (value) {
+                  setState(() {
+                    selectedMuscleGroup = value;
+                    _currentPage = 1; // Reiniciar paginación
+                  });
+                  appState.fetchExercises(muscleGroup: value, equipment: selectedEquipment);
+                },
+                items: appState.muscleGroups.map<DropdownMenuItem<int>>((group) {
+                  return DropdownMenuItem<int>(
+                    value: group['id'] as int,
+                    child: Text(group['name']),
+                  );
+                }).toList(),
+              ),
 
-// Para el filtro de equipo
-DropdownButton<int>(
-  hint: Text("Seleccionar equipo"),
-  value: selectedEquipment,
-  onChanged: (value) {
-    setState(() {
-      selectedEquipment = value;
-    });
-    appState.fetchExercises(muscleGroup: selectedMuscleGroup, equipment: value);
-  },
-  items: appState.equipment.map<DropdownMenuItem<int>>((equip) {
-    return DropdownMenuItem<int>(
-      value: equip['id'] as int,
-      child: Text(equip['name']),
-    );
-  }).toList(),
-),
-
+              // Para el filtro de equipo
+              DropdownButton<int>(
+                hint: Text("Equipo"),
+                value: selectedEquipment,
+                onChanged: (value) {
+                  setState(() {
+                    selectedEquipment = value;
+                    _currentPage = 1; // Reiniciar paginación
+                  });
+                  appState.fetchExercises(muscleGroup: selectedMuscleGroup, equipment: value);
+                },
+                items: appState.equipment.map<DropdownMenuItem<int>>((equip) {
+                  return DropdownMenuItem<int>(
+                    value: equip['id'] as int,
+                    child: Text(equip['name']),
+                  );
+                }).toList(),
+              ),
             ],
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: appState.exercises.length,
+              controller: _scrollController,
+              itemCount: appState.exercises.length + 1,
               itemBuilder: (context, index) {
+                if (index == appState.exercises.length) {
+                  return _isLoadingMore
+                      ? Center(child: CircularProgressIndicator())
+                      : SizedBox();
+                }
+
                 final exercise = appState.exercises[index];
                 final exerciseName = exercise['name'].toLowerCase();
-                
+
                 // Filtra los ejercicios según el término de búsqueda
                 if (!exerciseName.contains(searchQuery)) return Container();
 
                 return ListTile(
+                  leading: exercise['image'] != null
+                      ? Image.network(exercise['image'], width: 50, height: 50)
+                      : Icon(Icons.image_not_supported),
                   title: Text(exercise['name']),
-                  subtitle: Text("Músculo: ${exercise['category']}, Equipo: ${exercise['equipment']}"),
                   onTap: () {
                     Navigator.pop(context, exercise); // Devuelve el ejercicio seleccionado
                   },

@@ -274,43 +274,43 @@ class DatabaseHelper {
     });
   }
 
-  Future<List<Map<String, dynamic>>> getCompletedRoutines() async {
-    final db = await database;
-    final completedRoutinesData = await db.query('routines_completed', orderBy: 'dateCompleted DESC');
+Future<List<Map<String, dynamic>>> getCompletedRoutines() async {
+  final db = await database;
+  final completedRoutinesData = await db.query('routines_completed', orderBy: 'dateCompleted DESC');
 
-    List<Map<String, dynamic>> completedRoutines = [];
+  List<Map<String, dynamic>> completedRoutines = [];
 
-    for (var routineData in completedRoutinesData) {
-      final routineId = routineData['routineId'] as String;
-      Map<String, dynamic> routine = Map<String, dynamic>.from(routineData);
+  for (var routineData in completedRoutinesData) {
+    final completionId = routineData['completionId'] as String;
+    Map<String, dynamic> routine = Map<String, dynamic>.from(routineData);
 
-      final exercisesData = await db.query('exercises', where: 'routineId = ?', whereArgs: [routineId]);
-      List<Map<String, dynamic>> exercises = [];
+    final exercisesData = await db.query('exercises', where: 'routineId = ?', whereArgs: [completionId]);
+    List<Map<String, dynamic>> exercises = [];
 
-      for (var exerciseData in exercisesData) {
-        final exerciseId = exerciseData['id'] as String;
-        Map<String, dynamic> exercise = Map<String, dynamic>.from(exerciseData);
+    for (var exerciseData in exercisesData) {
+      final exerciseId = exerciseData['id'] as String;
+      Map<String, dynamic> exercise = Map<String, dynamic>.from(exerciseData);
 
-        final seriesData = await db.query('series', where: 'exerciseId = ?', whereArgs: [exerciseId]);
-        exercise['series'] = seriesData.map((seriesItem) {
-          return {
-            'weight': seriesItem['weight'],
-            'reps': seriesItem['reps'],
-            'perceivedExertion': seriesItem['perceivedExertion'],
-            'isCompleted': seriesItem['isCompleted'] == 1,
-          };
-        }).toList();
+      final seriesData = await db.query('series', where: 'exerciseId = ?', whereArgs: [exerciseId]);
+      exercise['series'] = seriesData.map((seriesItem) {
+        return {
+          'weight': seriesItem['weight'],
+          'reps': seriesItem['reps'],
+          'perceivedExertion': seriesItem['perceivedExertion'],
+          'isCompleted': seriesItem['isCompleted'] == 1,
+        };
+      }).toList();
 
-        exercises.add(exercise);
-      }
-
-      routine['exercises'] = exercises;
-      completedRoutines.add(routine);
-      print("Rutina completada recuperada: ${routine['name']} con ${exercises.length} ejercicios");
+      exercises.add(exercise);
     }
 
-    return completedRoutines;
+    routine['exercises'] = exercises;
+    completedRoutines.add(routine);
+    print("Rutina completada recuperada: ${routine['name']} con ${exercises.length} ejercicios");
   }
+
+  return completedRoutines;
+}
 
   Future<void> resetDatabase() async {
     final dbPath = await getDatabasesPath();
