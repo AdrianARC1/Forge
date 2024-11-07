@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:forge/screens/profile_screen.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import 'routine_list_screen.dart';
@@ -16,7 +17,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = [
     HistoryScreen(),
     RoutineListScreen(),
-    // ProfileScreen(), // Descomentar si tienes una pantalla de perfil
+    ProfileScreen(), // Descomentar si tienes una pantalla de perfil
   ];
 
   void _onTabTapped(int index) {
