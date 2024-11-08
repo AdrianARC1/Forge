@@ -149,7 +149,6 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                     children: [
                       ListTile(
                         title: Text(exercise.name),
-                        subtitle: Text("Series: ${exercise.series.length}"),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
