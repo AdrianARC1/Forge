@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forge/screens/exercice_selection_screen.dart';
-import 'package:forge/screens/routine_summary_screen.dart';
+import 'package:forge/screens/navigation/main_navigation_screen.dart';
+import 'package:forge/screens/routine/routine_summary_screen.dart';
 import 'package:provider/provider.dart';
-import '../app_state.dart';
+import '../../app_state.dart';
 
 class RoutineExecutionScreen extends StatefulWidget {
   final Routine? routine;
@@ -216,26 +217,36 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
     return false;
   }
 
-  void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
-    if (updateRoutine && widget.routine != null) {
-      // Actualizar la rutina en AppState y en la base de datos
-      Routine updatedRoutine = widget.routine!.copyWith(
-        exercises: exercises,
-      );
-      appState.updateRoutine(updatedRoutine);
-    }
-    // Guardar la rutina completada
-    Routine completedRoutine = Routine(
-      id: widget.routine?.id ?? '',
-      name: routineName,
-      dateCreated: widget.routine?.dateCreated ?? DateTime.now(),
+void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
+  if (updateRoutine && widget.routine != null) {
+    // Actualizar la rutina en AppState y en la base de datos
+    Routine updatedRoutine = widget.routine!.copyWith(
       exercises: exercises,
-      duration: _displayDuration.value,
     );
-    appState.addCompletedRoutine(completedRoutine, _displayDuration.value);
-    appState.restoreRoutine();
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    appState.updateRoutine(updatedRoutine);
   }
+
+  // Guardar la rutina completada sin modificar la original
+  Routine completedRoutine = widget.routine!.copyWith(
+    exercises: exercises,
+  );
+
+  try {
+    appState.completeRoutine(completedRoutine, _displayDuration.value);
+  } catch (e) {
+    print("Error al completar la rutina: $e");
+    // Opcional: Mostrar un mensaje de error al usuario
+  }
+  appState.restoreRoutine();
+
+  // Navegar de vuelta a la pantalla principal
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(builder: (context) => MainNavigationScreen()),
+    (route) => false,
+  );
+}
+
 
   bool _areAllSeriesCompleted() {
     for (var exercise in exercises) {

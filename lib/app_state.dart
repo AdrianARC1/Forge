@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
 import 'api/wger_api_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 const uuid = Uuid();
 
@@ -42,38 +45,54 @@ class Routine {
   final String id;
   final String name;
   final DateTime dateCreated;
+  DateTime? dateCompleted;
   List<Exercise> exercises;
   Duration duration;
+  int totalVolume;
+  bool isCompleted;
 
   Routine({
     required this.id,
     required this.name,
     required this.dateCreated,
+    this.dateCompleted,
     this.exercises = const [],
     this.duration = Duration.zero,
+    this.totalVolume = 0,
+    this.isCompleted = false,
   });
 
   Routine copyWith({
+    String? id,
     String? name,
     List<Exercise>? exercises,
     Duration? duration,
+    bool? isCompleted,
+    DateTime? dateCompleted,
+    int? totalVolume,
   }) {
     return Routine(
-      id: this.id,
+      id: id ?? this.id,
       name: name ?? this.name,
       dateCreated: this.dateCreated,
+      dateCompleted: dateCompleted ?? this.dateCompleted,
       exercises: exercises ?? this.exercises,
       duration: duration ?? this.duration,
+      totalVolume: totalVolume ?? this.totalVolume,
+      isCompleted: isCompleted ?? this.isCompleted,
     );
   }
 }
 
+
 class AppState with ChangeNotifier {
   List<Routine> _routines = [];
-  List<Map<String, dynamic>> _completedRoutines = [];
+  List<Routine> _completedRoutines = [];
   List<Map<String, dynamic>> _exercises = [];
   List<Map<String, dynamic>> _muscleGroups = [];
   List<Map<String, dynamic>> _equipment = [];
+  bool _isLoading = true;
+  bool get isLoading => _isLoading;
 
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final WgerApiService _apiService = WgerApiService();
@@ -83,17 +102,100 @@ class AppState with ChangeNotifier {
   Duration minimizedRoutineDuration = Duration.zero;
   Timer? _timer;
 
+  // Propiedades del usuario
+  String? _userId;
+  String? get userId => _userId;
+  String? _username;
+  String? get username => _username;
+
+  bool _showTutorial = false;
+  bool get showTutorial => _showTutorial;
+
   List<Routine> get routines => _routines;
-  List<Map<String, dynamic>> get completedRoutines => _completedRoutines;
+  List<Routine> get completedRoutines => _completedRoutines;
   List<Map<String, dynamic>> get exercises => _exercises;
   List<Map<String, dynamic>> get muscleGroups => _muscleGroups;
   List<Map<String, dynamic>> get equipment => _equipment;
 
-  AppState() {
-    _loadRoutines();
-    _loadCompletedRoutines();
-    loadMuscleGroups();
-    loadEquipment();
+   AppState() {
+    _initializeApp();
+  }
+
+Future<void> _initializeApp() async {
+  await Future.delayed(Duration(seconds: 2)); // Espera 2 segundos
+  await _loadUserSession();
+  _isLoading = false;
+  notifyListeners();
+}
+
+
+  Future<void> _loadUserSession() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _userId = prefs.getString('userId');
+    _username = prefs.getString('username');
+
+    if (_userId != null) {
+      await _loadRoutines();
+      await _loadCompletedRoutines();
+      loadMuscleGroups();
+      loadEquipment();
+    }
+    notifyListeners();
+  }
+
+  String hashPassword(String password) {
+    return sha256.convert(utf8.encode(password)).toString();
+  }
+
+  Future<bool> register(String username, String password) async {
+    String hashedPassword = hashPassword(password);
+    bool success = await _dbHelper.registerUser(username, hashedPassword);
+    if (success) {
+      await login(username, password);
+      _showTutorial = true;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> login(String username, String password) async {
+    String hashedPassword = hashPassword(password);
+    final user = await _dbHelper.loginUser(username, hashedPassword);
+    if (user != null) {
+      _userId = user['id'] as String;
+      _username = user['username'] as String;
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userId', _userId!);
+      await prefs.setString('username', _username!);
+
+      await _loadRoutines();
+      await _loadCompletedRoutines();
+      loadMuscleGroups();
+      loadEquipment();
+      notifyListeners();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<void> logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('userId');
+    await prefs.remove('username');
+
+    _userId = null;
+    _username = null;
+    _routines = [];
+    _completedRoutines = [];
+    notifyListeners();
+  }
+
+  void completeTutorial() {
+    _showTutorial = false;
+    notifyListeners();
   }
 
   // Inicia el temporizador para la rutina minimizada
@@ -152,46 +254,69 @@ class AppState with ChangeNotifier {
   }
 
   Future<void> _loadRoutines() async {
-    _routines = await _dbHelper.getRoutines();
-    print("Rutinas cargadas: ${_routines.length}");
-    for (var routine in _routines) {
-      print("Rutina: ${routine.name} con ${routine.exercises.length} ejercicios");
+    if (_userId != null) {
+      _routines = await _dbHelper.getRoutines(_userId!);
+      print("Rutinas cargadas: ${_routines.length}");
+      for (var routine in _routines) {
+        print("Rutina: ${routine.name} con ${routine.exercises.length} ejercicios");
+      }
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<void> _loadCompletedRoutines() async {
-    _completedRoutines = await _dbHelper.getCompletedRoutines();
-    print("Rutinas completadas cargadas: ${_completedRoutines.length}");
-    for (var completedRoutine in _completedRoutines) {
-      print("Rutina completada: ${completedRoutine['name']} con ${(completedRoutine['exercises'] as List).length} ejercicios");
+    if (_userId != null) {
+      _completedRoutines = await _dbHelper.getCompletedRoutines(_userId!);
+      print("Rutinas completadas cargadas: ${_completedRoutines.length}");
+      for (var completedRoutine in _completedRoutines) {
+        print("Rutina completada: ${completedRoutine.name} con ${completedRoutine.exercises.length} ejercicios");
+      }
+      notifyListeners();
     }
-    notifyListeners();
   }
 
-  Future<void> addCompletedRoutine(Routine routine, Duration duration) async {
+  Future<void> completeRoutine(Routine routine, Duration duration) async {
     int totalVolume = calculateTotalVolume(routine);
-    await _dbHelper.insertCompletedRoutine(routine, duration, totalVolume);
+   print("Antes de completar la rutina, userId: $_userId");
 
-    // Recargar rutinas completadas para actualizar la vista
+    // Crear una copia de la rutina con un nuevo ID y marcarla como completada
+    Routine completedRoutine = routine.copyWith(
+      id: uuid.v4(),
+      isCompleted: true,
+      dateCompleted: DateTime.now(),
+      duration: duration,
+      totalVolume: totalVolume,
+    );
+
+    // Guardar la rutina completada en la base de datos
+    await _dbHelper.insertRoutine(completedRoutine, _userId!);
+
+    // Recargar rutinas completadas
     await _loadCompletedRoutines();
-    print("Rutina completada añadida: ${routine.name} con duración de ${duration.inMinutes} minutos y volumen total de $totalVolume kg");
+
+    print("Rutina completada: ${completedRoutine.name} con duración de ${duration.inMinutes} minutos y volumen total de $totalVolume kg");
+    print("Después de completar la rutina, userId: $_userId");
+
   }
 
   Future<void> saveRoutine(Routine routine) async {
-    await _dbHelper.insertRoutine(routine);
-    _routines.add(routine);
-    print("Rutina guardada: ${routine.name} con ${routine.exercises.length} ejercicios");
-    notifyListeners();
+    if (_userId != null) {
+      await _dbHelper.insertRoutine(routine, _userId!);
+      _routines.add(routine);
+      print("Rutina guardada: ${routine.name} con ${routine.exercises.length} ejercicios");
+      notifyListeners();
+    }
   }
 
   Future<void> updateRoutine(Routine routine) async {
-    await _dbHelper.updateRoutine(routine);
-    final index = _routines.indexWhere((r) => r.id == routine.id);
-    if (index != -1) {
-      _routines[index] = routine;
-      print("Rutina actualizada: ${routine.name} con ${routine.exercises.length} ejercicios");
-      notifyListeners();
+    if (_userId != null) {
+      await _dbHelper.updateRoutine(routine, _userId!);
+      final index = _routines.indexWhere((r) => r.id == routine.id);
+      if (index != -1) {
+        _routines[index] = routine;
+        print("Rutina actualizada: ${routine.name} con ${routine.exercises.length} ejercicios");
+        notifyListeners();
+      }
     }
   }
 

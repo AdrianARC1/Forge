@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'exercice_selection_screen.dart';
-import '../app_state.dart';
+import '../exercice_selection_screen.dart';
+import '../../app_state.dart';
 
 class CreateRoutineScreen extends StatefulWidget {
   @override

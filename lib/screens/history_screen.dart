@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
-import 'routine_detail_screen.dart';
+import 'routine/routine_detail_screen.dart';
 
 class HistoryScreen extends StatelessWidget {
   @override
@@ -16,14 +16,14 @@ class HistoryScreen extends StatelessWidget {
               itemCount: appState.completedRoutines.length,
               itemBuilder: (context, index) {
                 final completedRoutine = appState.completedRoutines[index];
-                final String name = completedRoutine['name'] ?? 'Rutina';
-                final String dateCompleted = completedRoutine['dateCompleted'] ?? '';
-                final int durationInSeconds = completedRoutine['duration'] ?? 0;
-                final int totalVolume = completedRoutine['totalVolume'] ?? 0;
-                final Duration duration = Duration(seconds: durationInSeconds);
+
+                final String name = completedRoutine.name;
+                final DateTime dateCompleted = completedRoutine.dateCompleted ?? DateTime.now();
+                final Duration duration = completedRoutine.duration;
+                final int totalVolume = completedRoutine.totalVolume;
 
                 // Obtener la lista de ejercicios y la vista previa de los primeros 3 ejercicios
-                final exercises = (completedRoutine['exercises'] as List<dynamic>?) ?? [];
+                final exercises = completedRoutine.exercises;
                 final previewExercises = exercises.take(3).toList();
 
                 // Calcular los ejercicios restantes para el texto "ver más"
@@ -39,7 +39,7 @@ class HistoryScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Completada el: $dateCompleted\n'
+                          'Completada el: ${dateCompleted.toLocal().toString().split(' ')[0]}\n'
                           'Duración: ${duration.inHours}h ${duration.inMinutes.remainder(60)}min\n'
                           'Volumen total: $totalVolume kg',
                         ),
@@ -47,11 +47,11 @@ class HistoryScreen extends StatelessWidget {
                         Text("Ejercicios:", style: TextStyle(fontWeight: FontWeight.bold)),
                         // Mostrar los primeros 3 ejercicios en la vista previa
                         ...previewExercises.map((exercise) {
-                          final seriesCount = (exercise['series'] as List<dynamic>?)?.length ?? 0;
+                          final seriesCount = exercise.series.length;
                           return Padding(
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Text(
-                              "$seriesCount series ${exercise['name'] ?? 'Ejercicio'} (${exercise['equipment'] ?? 'Equipo'})",
+                              "$seriesCount series ${exercise.name}",
                               style: TextStyle(color: Colors.grey[600]),
                             ),
                           );
@@ -69,30 +69,11 @@ class HistoryScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => RoutineDetailScreen(
-                            routine: Routine(
-                              id: completedRoutine['routineId'] ?? '',
-                              name: name,
-                              dateCreated: DateTime.tryParse(dateCompleted) ?? DateTime.now(),
-                              exercises: exercises.map((exerciseData) {
-                                return Exercise(
-                                  id: exerciseData['id'] ?? '',
-                                  name: exerciseData['name'] ?? 'Ejercicio',
-                                  series: (exerciseData['series'] as List<dynamic>).map((seriesData) {
-                                    return Series(
-                                      weight: seriesData['weight'] ?? 0,
-                                      reps: seriesData['reps'] ?? 0,
-                                      perceivedExertion: seriesData['perceivedExertion'] ?? 0,
-                                      isCompleted: seriesData['isCompleted'] ?? false,
-                                    );
-                                  }).toList(),
-                                );
-                              }).toList(),
-                              duration: duration,
-                            ),
+                            routine: completedRoutine,
                             isFromHistory: true,
                             duration: duration,
                             totalVolume: totalVolume,
-                            completionDate: DateTime.tryParse(dateCompleted) ?? DateTime.now(),
+                            completionDate: dateCompleted,
                           ),
                         ),
                       );

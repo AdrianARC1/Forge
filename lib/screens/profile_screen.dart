@@ -1,6 +1,8 @@
+// lib/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
+import 'auth/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -9,7 +11,7 @@ class ProfileScreen extends StatelessWidget {
 
     int totalWorkouts = appState.completedRoutines.length;
     int totalVolume = appState.completedRoutines.fold<int>(0, (int sum, routine) {
-      return sum + (routine['totalVolume'] as int? ?? 0);
+      return sum + (routine.totalVolume);
     });
 
     return Scaffold(
@@ -24,7 +26,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              'Usuario',
+              appState.username ?? 'Usuario',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 32),
@@ -39,6 +41,18 @@ class ProfileScreen extends StatelessWidget {
               trailing: Text('$totalVolume kg'),
             ),
             // Puedes agregar más estadísticas si lo deseas
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                await appState.logout();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                  (route) => false,
+                );
+              },
+              child: Text('Cerrar Sesión'),
+            ),
           ],
         ),
       ),

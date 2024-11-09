@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:forge/screens/create_routine_screen.dart';
+import 'package:forge/screens/routine/create_routine_screen.dart';
 import 'package:provider/provider.dart';
-import '../app_state.dart';
+import '../../app_state.dart';
 import 'edit_routine_screen.dart';
 import 'routine_detail_screen.dart';
 import 'routine_execution_screen.dart';
@@ -188,14 +188,14 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                         ],
                                       ),
                                       SizedBox(height: 5),
-                                      Text(
-                                        routine.exercises.join(", "),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
+                                        Text(
+                                          routine.exercises.map((exercise) => exercise.name).join(", "),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                          ),
                                         ),
-                                      ),
                                       SizedBox(height: 10),
                                       SizedBox(
                                         width: double.infinity,

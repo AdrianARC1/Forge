@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:forge/screens/profile_screen.dart';
 import 'package:provider/provider.dart';
-import '../app_state.dart';
-import 'routine_list_screen.dart';
-import 'history_screen.dart';
-import 'routine_execution_screen.dart';
+import '../../app_state.dart';
+import '../routine/routine_list_screen.dart';
+import '../history_screen.dart';
+import '../routine/routine_execution_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   @override

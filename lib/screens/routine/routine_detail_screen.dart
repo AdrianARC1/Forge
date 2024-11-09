@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../app_state.dart';
+import '../../app_state.dart';
 import 'edit_routine_screen.dart';
 
 class RoutineDetailScreen extends StatelessWidget {

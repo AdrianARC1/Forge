@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../app_state.dart';
+import '../../../app_state.dart';
 
 class RoutineSummaryScreen extends StatelessWidget {
   final Routine routine;
