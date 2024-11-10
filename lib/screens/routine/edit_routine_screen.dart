@@ -36,11 +36,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           name: selectedExercise['name'],
           series: [
             Series(
+              id: uuid.v4(),
               previousWeight: null,
               previousReps: null,
               weight: 0,
               reps: 0,
-              perceivedExertion: 0,
+              perceivedExertion: 1,
               isCompleted: false,
             ),
           ],
@@ -54,9 +55,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     setState(() {
       exercise.series.add(
         Series(
+          id: uuid.v4(),
           weight: 0,
           reps: 0,
-          perceivedExertion: 0,
+          perceivedExertion: 1,
           isCompleted: false,
         ),
       );
@@ -179,7 +181,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text("${seriesIndex + 1}"),
-                                  Expanded(
+                                  SizedBox(
+                                    width: 50,
                                     child: TextField(
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
@@ -187,14 +190,13 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         hintStyle: TextStyle(color: Colors.grey),
                                       ),
                                       controller: TextEditingController()
-                                        ..text = series.weight > 0
-                                            ? series.weight.toString()
-                                            : '',
+                                        ..text = series.weight > 0 ? series.weight.toString() : '',
                                       onChanged: (value) => series.weight =
                                           int.tryParse(value) ?? series.weight,
                                     ),
                                   ),
-                                  Expanded(
+                                  SizedBox(
+                                    width: 50,
                                     child: TextField(
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
@@ -202,26 +204,27 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         hintStyle: TextStyle(color: Colors.grey),
                                       ),
                                       controller: TextEditingController()
-                                        ..text = series.reps > 0
-                                            ? series.reps.toString()
-                                            : '',
+                                        ..text = series.reps > 0 ? series.reps.toString() : '',
                                       onChanged: (value) => series.reps =
                                           int.tryParse(value) ?? series.reps,
                                     ),
                                   ),
-                                  Expanded(
-                                    child: TextField(
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        hintText: "RIR",
-                                        hintStyle: TextStyle(color: Colors.grey),
-                                      ),
-                                      controller: TextEditingController()
-                                        ..text = series.perceivedExertion > 0
-                                            ? series.perceivedExertion.toString()
-                                            : '',
-                                      onChanged: (value) => series.perceivedExertion =
-                                          int.tryParse(value) ?? series.perceivedExertion,
+                                  SizedBox(
+                                    width: 50,
+                                    child: DropdownButton<int>(
+                                      value: series.perceivedExertion,
+                                      isExpanded: false,
+                                      items: List.generate(10, (index) => index + 1).map((int value) {
+                                        return DropdownMenuItem<int>(
+                                          value: value,
+                                          child: Text(value.toString()),
+                                        );
+                                      }).toList(),
+                                      onChanged: (int? newValue) {
+                                        setState(() {
+                                          series.perceivedExertion = newValue!;
+                                        });
+                                      },
                                     ),
                                   ),
                                   Checkbox(

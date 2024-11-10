@@ -5,6 +5,7 @@ import 'package:forge/screens/navigation/main_navigation_screen.dart';
 import 'package:forge/screens/routine/routine_summary_screen.dart';
 import 'package:provider/provider.dart';
 import '../../app_state.dart';
+import 'package:uuid/uuid.dart';
 
 class RoutineExecutionScreen extends StatefulWidget {
   final Routine? routine;
@@ -22,10 +23,9 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
   ValueNotifier<Duration> _displayDuration = ValueNotifier(Duration.zero);
   Timer? _localTimer;
 
-  // Mapas para mantener los controladores de cada Serie
-  Map<Series, TextEditingController> weightControllers = {};
-  Map<Series, TextEditingController> repsControllers = {};
-  Map<Series, TextEditingController> exertionControllers = {};
+  Map<String, TextEditingController> weightControllers = {};
+  Map<String, TextEditingController> repsControllers = {};
+  Map<String, TextEditingController> exertionControllers = {};
 
   @override
   void initState() {
@@ -46,6 +46,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
           name: exercise.name,
           series: exercise.series.map((series) {
             return Series(
+              id: Uuid().v4(),
               previousWeight: series.weight,
               previousReps: series.reps,
               weight: 0, // Iniciamos en 0
@@ -68,6 +69,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
         name: exercise.name,
         series: exercise.series.map((series) {
           return Series(
+            id: series.id,
             previousWeight: series.previousWeight,
             previousReps: series.previousReps,
             weight: series.weight,
@@ -85,20 +87,20 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
       for (var series in exercise.series) {
         if (appState.savedRoutineState != null) {
           // Restaurando rutina minimizada: inicializamos los controladores con los valores ingresados
-          weightControllers[series] = TextEditingController(
+          weightControllers[series.id] = TextEditingController(
             text: series.weight > 0 ? series.weight.toString() : '',
           );
-          repsControllers[series] = TextEditingController(
+          repsControllers[series.id] = TextEditingController(
             text: series.reps > 0 ? series.reps.toString() : '',
           );
-          exertionControllers[series] = TextEditingController(
+          exertionControllers[series.id] = TextEditingController(
             text: series.perceivedExertion > 0 ? series.perceivedExertion.toString() : '',
           );
         } else {
           // Nueva rutina: inicializamos los controladores sin texto
-          weightControllers[series] = TextEditingController();
-          repsControllers[series] = TextEditingController();
-          exertionControllers[series] = TextEditingController();
+          weightControllers[series.id] = TextEditingController();
+          repsControllers[series.id] = TextEditingController();
+          exertionControllers[series.id] = TextEditingController();
         }
       }
     }
@@ -217,36 +219,35 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
     return false;
   }
 
-void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
-  if (updateRoutine && widget.routine != null) {
-    // Actualizar la rutina en AppState y en la base de datos
-    Routine updatedRoutine = widget.routine!.copyWith(
+  void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
+    if (updateRoutine && widget.routine != null) {
+      // Actualizar la rutina en AppState y en la base de datos
+      Routine updatedRoutine = widget.routine!.copyWith(
+        exercises: exercises,
+      );
+      appState.updateRoutine(updatedRoutine);
+    }
+
+    // Guardar la rutina completada sin modificar la original
+    Routine completedRoutine = widget.routine!.copyWith(
       exercises: exercises,
     );
-    appState.updateRoutine(updatedRoutine);
+
+    try {
+      appState.completeRoutine(completedRoutine, _displayDuration.value);
+    } catch (e) {
+      print("Error al completar la rutina: $e");
+      // Opcional: Mostrar un mensaje de error al usuario
+    }
+    appState.restoreRoutine();
+
+    // Navegar de vuelta a la pantalla principal
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => MainNavigationScreen()),
+      (route) => false,
+    );
   }
-
-  // Guardar la rutina completada sin modificar la original
-  Routine completedRoutine = widget.routine!.copyWith(
-    exercises: exercises,
-  );
-
-  try {
-    appState.completeRoutine(completedRoutine, _displayDuration.value);
-  } catch (e) {
-    print("Error al completar la rutina: $e");
-    // Opcional: Mostrar un mensaje de error al usuario
-  }
-  appState.restoreRoutine();
-
-  // Navegar de vuelta a la pantalla principal
-  Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(builder: (context) => MainNavigationScreen()),
-    (route) => false,
-  );
-}
-
 
   bool _areAllSeriesCompleted() {
     for (var exercise in exercises) {
@@ -321,6 +322,7 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
           name: selectedExercise['name'],
           series: [
             Series(
+              id: Uuid().v4(), // Asignar un ID único
               previousWeight: null,
               previousReps: null,
               weight: 0,
@@ -332,11 +334,11 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
         );
         exercises.add(exercise);
 
-        // Inicializar controladores sin texto
+        // Inicializar controladores para la nueva serie
         for (var series in exercise.series) {
-          weightControllers[series] = TextEditingController();
-          repsControllers[series] = TextEditingController();
-          exertionControllers[series] = TextEditingController();
+          weightControllers[series.id] = TextEditingController();
+          repsControllers[series.id] = TextEditingController();
+          exertionControllers[series.id] = TextEditingController();
         }
       });
     }
@@ -345,22 +347,21 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
   void _addSeriesToExercise(Exercise exercise) {
     setState(() {
       Series newSeries = Series(
-        previousWeight: exercise.series.isNotEmpty ? exercise.series.last.weight : null,
-        previousReps: exercise.series.isNotEmpty ? exercise.series.last.reps : null,
+        id: Uuid().v4(),
+        previousWeight: null,
+        previousReps: null,
         weight: 0,
         reps: 0,
         perceivedExertion: 0,
-        lastSavedPerceivedExertion: exercise.series.isNotEmpty
-            ? exercise.series.last.perceivedExertion
-            : null,
+        lastSavedPerceivedExertion: null,
         isCompleted: false,
       );
       exercise.series.add(newSeries);
 
       // Inicializar controladores sin texto
-      weightControllers[newSeries] = TextEditingController();
-      repsControllers[newSeries] = TextEditingController();
-      exertionControllers[newSeries] = TextEditingController();
+      weightControllers[newSeries.id] = TextEditingController();
+      repsControllers[newSeries.id] = TextEditingController();
+      exertionControllers[newSeries.id] = TextEditingController();
     });
   }
 
@@ -369,12 +370,12 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
       Series seriesToRemove = exercise.series[seriesIndex];
 
       // Liberar y eliminar los controladores asociados
-      weightControllers[seriesToRemove]?.dispose();
-      weightControllers.remove(seriesToRemove);
-      repsControllers[seriesToRemove]?.dispose();
-      repsControllers.remove(seriesToRemove);
-      exertionControllers[seriesToRemove]?.dispose();
-      exertionControllers.remove(seriesToRemove);
+      weightControllers[seriesToRemove.id]?.dispose();
+      weightControllers.remove(seriesToRemove.id);
+      repsControllers[seriesToRemove.id]?.dispose();
+      repsControllers.remove(seriesToRemove.id);
+      exertionControllers[seriesToRemove.id]?.dispose();
+      exertionControllers.remove(seriesToRemove.id);
 
       exercise.series.removeAt(seriesIndex);
     });
@@ -384,12 +385,12 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
     setState(() {
       // Liberar controladores asociados a las series del ejercicio
       for (var series in exercise.series) {
-        weightControllers[series]?.dispose();
-        weightControllers.remove(series);
-        repsControllers[series]?.dispose();
-        repsControllers.remove(series);
-        exertionControllers[series]?.dispose();
-        exertionControllers.remove(series);
+        weightControllers[series.id]?.dispose();
+        weightControllers.remove(series.id);
+        repsControllers[series.id]?.dispose();
+        repsControllers.remove(series.id);
+        exertionControllers[series.id]?.dispose();
+        exertionControllers.remove(series.id);
       }
       exercises.remove(exercise);
     });
@@ -405,12 +406,12 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
       setState(() {
         // Eliminar controladores del ejercicio antiguo
         for (var series in oldExercise.series) {
-          weightControllers[series]?.dispose();
-          weightControllers.remove(series);
-          repsControllers[series]?.dispose();
-          repsControllers.remove(series);
-          exertionControllers[series]?.dispose();
-          exertionControllers.remove(series);
+          weightControllers[series.id]?.dispose();
+          weightControllers.remove(series.id);
+          repsControllers[series.id]?.dispose();
+          repsControllers.remove(series.id);
+          exertionControllers[series.id]?.dispose();
+          exertionControllers.remove(series.id);
         }
         int index = exercises.indexOf(oldExercise);
 
@@ -420,6 +421,7 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
           name: selectedExercise['name'],
           series: [
             Series(
+              id: Uuid().v4(),
               previousWeight: null,
               previousReps: null,
               weight: 0,
@@ -435,9 +437,9 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
 
         // Inicializar controladores para el nuevo ejercicio
         for (var series in newExercise.series) {
-          weightControllers[series] = TextEditingController();
-          repsControllers[series] = TextEditingController();
-          exertionControllers[series] = TextEditingController();
+          weightControllers[series.id] = TextEditingController();
+          repsControllers[series.id] = TextEditingController();
+          exertionControllers[series.id] = TextEditingController();
         }
       });
     }
@@ -447,15 +449,15 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
     setState(() {
       if (series.weight == 0 && series.previousWeight != null) {
         series.weight = series.previousWeight!;
-        weightControllers[series]?.text = series.weight.toString();
+        weightControllers[series.id]?.text = series.weight.toString();
       }
       if (series.reps == 0 && series.previousReps != null) {
         series.reps = series.previousReps!;
-        repsControllers[series]?.text = series.reps.toString();
+        repsControllers[series.id]?.text = series.reps.toString();
       }
       if (series.perceivedExertion == 0 && series.lastSavedPerceivedExertion != null) {
         series.perceivedExertion = series.lastSavedPerceivedExertion!;
-        exertionControllers[series]?.text = series.perceivedExertion.toString();
+        exertionControllers[series.id]?.text = series.perceivedExertion.toString();
       }
       series.isCompleted = true;
     });
@@ -575,7 +577,7 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
                                     SizedBox(
                                       width: 50,
                                       child: TextField(
-                                        controller: weightControllers[series],
+                                        controller: weightControllers[series.id],
                                         keyboardType: TextInputType.number,
                                         decoration: InputDecoration(
                                           hintText: series.previousWeight != null
@@ -591,7 +593,7 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
                                     SizedBox(
                                       width: 50,
                                       child: TextField(
-                                        controller: repsControllers[series],
+                                        controller: repsControllers[series.id],
                                         keyboardType: TextInputType.number,
                                         decoration: InputDecoration(
                                           hintText: series.previousReps != null
@@ -607,7 +609,7 @@ void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
                                     SizedBox(
                                       width: 50,
                                       child: TextField(
-                                        controller: exertionControllers[series],
+                                        controller: exertionControllers[series.id],
                                         keyboardType: TextInputType.number,
                                         decoration: InputDecoration(
                                           hintText: series.lastSavedPerceivedExertion != null

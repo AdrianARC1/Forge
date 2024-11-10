@@ -322,6 +322,7 @@ Future<void> insertRoutine(Routine routine, String userId) async {
 
     for (var seriesItem in seriesData) {
       seriesList.add(Series(
+        id: seriesItem['id']?.toString() ?? uuid.v4(),
         previousWeight: seriesItem['previousWeight'] as int?,
         previousReps: seriesItem['previousReps'] as int?,
         lastSavedWeight: seriesItem['lastSavedWeight'] as int?,

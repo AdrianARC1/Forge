@@ -1,7 +1,9 @@
+// lib/screens/routine/create_routine_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../exercice_selection_screen.dart';
 import '../../app_state.dart';
+import 'package:uuid/uuid.dart';
 
 class CreateRoutineScreen extends StatefulWidget {
   @override
@@ -12,6 +14,11 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   final TextEditingController _routineNameController = TextEditingController();
   final FocusNode _routineNameFocusNode = FocusNode();
   List<Exercise> selectedExercises = [];
+
+  // Mapas para mantener los controladores de cada Serie usando IDs únicos
+  Map<String, TextEditingController> weightControllers = {};
+  Map<String, TextEditingController> repsControllers = {};
+  Map<String, TextEditingController> exertionControllers = {};
 
   Future<void> _addExercise() async {
     final selectedExercise = await Navigator.push(
@@ -26,8 +33,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
           name: selectedExercise['name'],
           series: [
             Series(
-              previousWeight: null,
-              previousReps: null,
+              id: Uuid().v4(), // Asignar ID único
               weight: 0,
               reps: 0,
               perceivedExertion: 0,
@@ -36,28 +42,51 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
           ],
         );
         selectedExercises.add(exercise);
+
+        // Inicializar controladores para la nueva serie
+        for (var series in exercise.series) {
+          weightControllers[series.id] = TextEditingController();
+          repsControllers[series.id] = TextEditingController();
+          exertionControllers[series.id] = TextEditingController();
+        }
       });
-      // Quitar el enfoque del campo de nombre y ponerlo en el primer campo de la serie
-      FocusScope.of(context).unfocus();
+      // Evitar que el enfoque se mueva al título
+      // FocusScope.of(context).unfocus();
     }
   }
 
   void _addSeriesToExercise(Exercise exercise) {
     setState(() {
-      exercise.series.add(
-        Series(
-          weight: 0,
-          reps: 0,
-          perceivedExertion: 0,
-          isCompleted: false,
-        ),
+      Series newSeries = Series(
+        id: Uuid().v4(), // Asignar ID único
+        weight: 0,
+        reps: 0,
+        perceivedExertion: 0,
+        isCompleted: false,
       );
+      exercise.series.add(newSeries);
+
+      // Inicializar controladores
+      weightControllers[newSeries.id] = TextEditingController();
+      repsControllers[newSeries.id] = TextEditingController();
+      exertionControllers[newSeries.id] = TextEditingController();
     });
-    FocusScope.of(context).unfocus(); // Quita el enfoque del campo de nombre
+    // Evitar que el enfoque se mueva al título
+    // FocusScope.of(context).unfocus();
   }
 
   void _deleteSeries(Exercise exercise, int seriesIndex) {
     setState(() {
+      Series seriesToRemove = exercise.series[seriesIndex];
+
+      // Liberar y eliminar controladores
+      weightControllers[seriesToRemove.id]?.dispose();
+      weightControllers.remove(seriesToRemove.id);
+      repsControllers[seriesToRemove.id]?.dispose();
+      repsControllers.remove(seriesToRemove.id);
+      exertionControllers[seriesToRemove.id]?.dispose();
+      exertionControllers.remove(seriesToRemove.id);
+
       exercise.series.removeAt(seriesIndex);
     });
   }
@@ -114,6 +143,16 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   }
 
   @override
+  void dispose() {
+    _routineNameController.dispose();
+    _routineNameFocusNode.dispose();
+    weightControllers.values.forEach((controller) => controller.dispose());
+    repsControllers.values.forEach((controller) => controller.dispose());
+    exertionControllers.values.forEach((controller) => controller.dispose());
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -127,7 +166,8 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
         ],
       ),
       body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+        // Evitar que el enfoque se pierda al tocar fuera
+        // onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -183,49 +223,43 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text("${seriesIndex + 1}"),
-                                  Expanded(
+                                  SizedBox(
+                                    width: 60,
                                     child: TextField(
+                                      controller: weightControllers[series.id],
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
                                         hintText: 'KG',
                                         hintStyle: TextStyle(color: Colors.grey),
                                       ),
-                                      controller: TextEditingController()
-                                        ..text = series.weight > 0
-                                            ? series.weight.toString()
-                                            : '',
                                       onChanged: (value) => series.weight =
-                                          int.tryParse(value) ?? series.weight,
+                                          int.tryParse(value) ?? 0,
                                     ),
                                   ),
-                                  Expanded(
+                                  SizedBox(
+                                    width: 60,
                                     child: TextField(
+                                      controller: repsControllers[series.id],
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
                                         hintText: 'Reps',
                                         hintStyle: TextStyle(color: Colors.grey),
                                       ),
-                                      controller: TextEditingController()
-                                        ..text = series.reps > 0
-                                            ? series.reps.toString()
-                                            : '',
                                       onChanged: (value) => series.reps =
-                                          int.tryParse(value) ?? series.reps,
+                                          int.tryParse(value) ?? 0,
                                     ),
                                   ),
-                                  Expanded(
+                                  SizedBox(
+                                    width: 60,
                                     child: TextField(
+                                      controller: exertionControllers[series.id],
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
                                         hintText: "RIR",
                                         hintStyle: TextStyle(color: Colors.grey),
                                       ),
-                                      controller: TextEditingController()
-                                        ..text = series.perceivedExertion > 0
-                                            ? series.perceivedExertion.toString()
-                                            : '',
                                       onChanged: (value) => series.perceivedExertion =
-                                          int.tryParse(value) ?? series.perceivedExertion,
+                                          int.tryParse(value) ?? 0,
                                     ),
                                   ),
                                   Checkbox(
@@ -234,7 +268,8 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                                       setState(() {
                                         series.isCompleted = value ?? false;
                                       });
-                                      FocusScope.of(context).unfocus(); // Quita el enfoque del campo de nombre
+                                      // Evitar que el enfoque se mueva al título
+                                      // FocusScope.of(context).unfocus();
                                     },
                                   ),
                                 ],

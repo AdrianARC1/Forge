@@ -10,6 +10,7 @@ import 'dart:convert';
 const uuid = Uuid();
 
 class Series {
+  String id;
   int? previousWeight;
   int? previousReps;
   int? lastSavedWeight;
@@ -21,6 +22,7 @@ class Series {
   bool isCompleted;
 
   Series({
+    required this.id,
     this.previousWeight,
     this.previousReps,
     this.lastSavedWeight,
