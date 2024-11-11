@@ -532,15 +532,15 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("SERIE"),
-                              Text("ANTERIOR"),
-                              Text("KG"),
-                              Text("REPS"),
-                              Text("RIR"),
+                              Expanded(child: Center(child: Text("SERIE"))),
+                              Expanded(child: Center(child: Text("ANTERIOR"))),
+                              Expanded(child: Center(child: Text("KG"))),
+                              Expanded(child: Center(child: Text("REPS"))),
+                              Expanded(child: Center(child: Text("RIR"))),
+                              Expanded(child: Center(child: Icon(Icons.check))),
                             ],
                           ),
                         ),
@@ -560,78 +560,109 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> {
                                 child: Icon(Icons.delete, color: Colors.white),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text("${seriesIndex + 1}"),
-                                    GestureDetector(
-                                      onTap: () {
-                                        _autofillSeries(series);
-                                      },
-                                      child: Text(
-                                        "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 50,
-                                      child: TextField(
-                                        controller: weightControllers[series.id],
-                                        keyboardType: TextInputType.number,
-                                        decoration: InputDecoration(
-                                          hintText: series.previousWeight != null
-                                              ? series.previousWeight.toString()
-                                              : 'KG',
-                                          hintStyle: TextStyle(color: Colors.grey),
+                                    Expanded(child: Center(child: Text("${seriesIndex + 1}"))),
+                                    Expanded(
+                                      child: Center(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            _autofillSeries(series);
+                                          },
+                                          child: Text(
+                                            "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
+                                            style: TextStyle(color: Colors.grey),
+                                          ),
                                         ),
-                                        onChanged: (value) {
-                                          series.weight = int.tryParse(value) ?? 0;
-                                        },
                                       ),
                                     ),
-                                    SizedBox(
-                                      width: 50,
-                                      child: TextField(
-                                        controller: repsControllers[series.id],
-                                        keyboardType: TextInputType.number,
-                                        decoration: InputDecoration(
-                                          hintText: series.previousReps != null
-                                              ? series.previousReps.toString()
-                                              : 'Reps',
-                                          hintStyle: TextStyle(color: Colors.grey),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                                        child: TextField(
+                                          controller: weightControllers[series.id],
+                                          keyboardType: TextInputType.number,
+                                          textAlign: TextAlign.center,
+                                          decoration: InputDecoration(
+                                            hintText: series.previousWeight != null
+                                                ? series.previousWeight.toString()
+                                                : 'KG',
+                                            hintStyle: TextStyle(color: Colors.grey),
+                                            isDense: true, // Reduce el espacio vertical
+                                          ),
+                                          onChanged: (value) {
+                                            series.weight = int.tryParse(value) ?? 0;
+                                          },
                                         ),
-                                        onChanged: (value) {
-                                          series.reps = int.tryParse(value) ?? 0;
-                                        },
                                       ),
                                     ),
-                                    SizedBox(
-                                      width: 50,
-                                      child: TextField(
-                                        controller: exertionControllers[series.id],
-                                        keyboardType: TextInputType.number,
-                                        decoration: InputDecoration(
-                                          hintText: series.lastSavedPerceivedExertion != null
-                                              ? series.lastSavedPerceivedExertion.toString()
-                                              : 'RIR',
-                                          hintStyle: TextStyle(color: Colors.grey),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: TextField(
+                                          controller: repsControllers[series.id],
+                                          keyboardType: TextInputType.number,
+                                          textAlign: TextAlign.center,
+                                          decoration: InputDecoration(
+                                            hintText: series.previousReps != null
+                                                ? series.previousReps.toString()
+                                                : 'Reps',
+                                            hintStyle: TextStyle(color: Colors.grey),
+                                            isDense: true,
+                                          ),
+                                          onChanged: (value) {
+                                            series.reps = int.tryParse(value) ?? 0;
+                                          },
                                         ),
-                                        onChanged: (value) {
-                                          series.perceivedExertion = int.tryParse(value) ?? 0;
-                                        },
                                       ),
                                     ),
-                                    Checkbox(
-                                      value: series.isCompleted,
-                                      onChanged: (value) {
-                                        if (value == true) {
-                                          _autofillSeries(series);
-                                        }
-                                        setState(() {
-                                          series.isCompleted = value ?? false;
-                                        });
-                                      },
+                                    Expanded(
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+    child: DropdownButton<int>(
+      value: series.perceivedExertion > 0 ? series.perceivedExertion : null,
+      isExpanded: true,
+      alignment: Alignment.center, // Alineación centrada del DropdownButton
+      hint: Center( // Centrar el texto en el modo hint
+        child: Text(
+          series.lastSavedPerceivedExertion != null
+              ? series.lastSavedPerceivedExertion.toString()
+              : 'RIR',
+          style: TextStyle(color: Colors.grey),
+        ),
+      ),
+      items: List.generate(10, (index) => index + 1).map((int value) {
+        return DropdownMenuItem<int>(
+          value: value,
+          child: Align( // Centrar el texto de las opciones
+            alignment: Alignment.center,
+            child: Text(value.toString()),
+          ),
+        );
+      }).toList(),
+      onChanged: (int? newValue) {
+        setState(() {
+          series.perceivedExertion = newValue!;
+        });
+      },
+    ),
+  ),
+),
+                                    Expanded(
+                                      child: Center(
+                                        child: Checkbox(
+                                          value: series.isCompleted,
+                                          onChanged: (value) {
+                                            if (value == true) {
+                                              _autofillSeries(series);
+                                            }
+                                            setState(() {
+                                              series.isCompleted = value ?? false;
+                                            });
+                                          },
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),

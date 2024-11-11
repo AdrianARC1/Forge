@@ -149,14 +149,14 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                         subtitle: Text("Series: ${exercise.series.length}"),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("SERIE"),
-                            Text("KG"),
-                            Text("REPS"),
-                            Text("RIR"),
+                            Expanded(child: Center(child: Text("SERIE"))),
+                            Expanded(child: Center(child: Text("KG"))),
+                            Expanded(child: Center(child: Text("REPS"))),
+                            Expanded(child: Center(child: Text("RIR"))),
+                            Expanded(child: Center(child: Icon(Icons.check))),
                           ],
                         ),
                       ),
@@ -176,64 +176,77 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                               child: Icon(Icons.delete, color: Colors.white),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("${seriesIndex + 1}"),
-                                  SizedBox(
-                                    width: 50,
-                                    child: TextField(
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        hintText: 'KG',
-                                        hintStyle: TextStyle(color: Colors.grey),
+                                  Expanded(child: Center(child: Text("${seriesIndex + 1}"))),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: TextField(
+                                        keyboardType: TextInputType.number,
+                                        textAlign: TextAlign.center,
+                                        decoration: InputDecoration(
+                                          hintText: 'KG',
+                                          hintStyle: TextStyle(color: Colors.grey),
+                                          isDense: true, // Reduce el espacio vertical
+                                        ),
+                                        controller: TextEditingController()
+                                          ..text = series.weight > 0 ? series.weight.toString() : '',
+                                        onChanged: (value) => series.weight =
+                                            int.tryParse(value) ?? series.weight,
                                       ),
-                                      controller: TextEditingController()
-                                        ..text = series.weight > 0 ? series.weight.toString() : '',
-                                      onChanged: (value) => series.weight =
-                                          int.tryParse(value) ?? series.weight,
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: 50,
-                                    child: TextField(
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        hintText: 'Reps',
-                                        hintStyle: TextStyle(color: Colors.grey),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: TextField(
+                                        keyboardType: TextInputType.number,
+                                        textAlign: TextAlign.center,
+                                        decoration: InputDecoration(
+                                          hintText: 'Reps',
+                                          hintStyle: TextStyle(color: Colors.grey),
+                                          isDense: true,
+                                        ),
+                                        controller: TextEditingController()
+                                          ..text = series.reps > 0 ? series.reps.toString() : '',
+                                        onChanged: (value) => series.reps =
+                                            int.tryParse(value) ?? series.reps,
                                       ),
-                                      controller: TextEditingController()
-                                        ..text = series.reps > 0 ? series.reps.toString() : '',
-                                      onChanged: (value) => series.reps =
-                                          int.tryParse(value) ?? series.reps,
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: 50,
-                                    child: DropdownButton<int>(
-                                      value: series.perceivedExertion,
-                                      isExpanded: false,
-                                      items: List.generate(10, (index) => index + 1).map((int value) {
-                                        return DropdownMenuItem<int>(
-                                          value: value,
-                                          child: Text(value.toString()),
-                                        );
-                                      }).toList(),
-                                      onChanged: (int? newValue) {
-                                        setState(() {
-                                          series.perceivedExertion = newValue!;
-                                        });
-                                      },
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: DropdownButton<int>(
+                                        value: series.perceivedExertion,
+                                        isExpanded: true,
+                                        items: List.generate(10, (index) => index + 1).map((int value) {
+                                          return DropdownMenuItem<int>(
+                                            value: value,
+                                            child: Center(child: Text(value.toString())),
+                                          );
+                                        }).toList(),
+                                        onChanged: (int? newValue) {
+                                          setState(() {
+                                            series.perceivedExertion = newValue!;
+                                          });
+                                        },
+                                      ),
                                     ),
                                   ),
-                                  Checkbox(
-                                    value: series.isCompleted,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        series.isCompleted = value ?? false;
-                                      });
-                                    },
+                                  Expanded(
+                                    child: Center(
+                                      child: Checkbox(
+                                        value: series.isCompleted,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            series.isCompleted = value ?? false;
+                                          });
+                                        },
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),

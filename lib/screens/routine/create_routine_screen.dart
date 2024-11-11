@@ -18,7 +18,6 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
   // Mapas para mantener los controladores de cada Serie usando IDs únicos
   Map<String, TextEditingController> weightControllers = {};
   Map<String, TextEditingController> repsControllers = {};
-  Map<String, TextEditingController> exertionControllers = {};
 
   Future<void> _addExercise() async {
     final selectedExercise = await Navigator.push(
@@ -33,10 +32,10 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
           name: selectedExercise['name'],
           series: [
             Series(
-              id: Uuid().v4(), // Asignar ID único
+              id: Uuid().v4(),
               weight: 0,
               reps: 0,
-              perceivedExertion: 0,
+              perceivedExertion: 1,
               isCompleted: false,
             ),
           ],
@@ -47,21 +46,18 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
         for (var series in exercise.series) {
           weightControllers[series.id] = TextEditingController();
           repsControllers[series.id] = TextEditingController();
-          exertionControllers[series.id] = TextEditingController();
         }
       });
-      // Evitar que el enfoque se mueva al título
-      // FocusScope.of(context).unfocus();
     }
   }
 
   void _addSeriesToExercise(Exercise exercise) {
     setState(() {
       Series newSeries = Series(
-        id: Uuid().v4(), // Asignar ID único
+        id: Uuid().v4(),
         weight: 0,
         reps: 0,
-        perceivedExertion: 0,
+        perceivedExertion: 1,
         isCompleted: false,
       );
       exercise.series.add(newSeries);
@@ -69,10 +65,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
       // Inicializar controladores
       weightControllers[newSeries.id] = TextEditingController();
       repsControllers[newSeries.id] = TextEditingController();
-      exertionControllers[newSeries.id] = TextEditingController();
     });
-    // Evitar que el enfoque se mueva al título
-    // FocusScope.of(context).unfocus();
   }
 
   void _deleteSeries(Exercise exercise, int seriesIndex) {
@@ -84,8 +77,6 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
       weightControllers.remove(seriesToRemove.id);
       repsControllers[seriesToRemove.id]?.dispose();
       repsControllers.remove(seriesToRemove.id);
-      exertionControllers[seriesToRemove.id]?.dispose();
-      exertionControllers.remove(seriesToRemove.id);
 
       exercise.series.removeAt(seriesIndex);
     });
@@ -148,7 +139,6 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
     _routineNameFocusNode.dispose();
     weightControllers.values.forEach((controller) => controller.dispose());
     repsControllers.values.forEach((controller) => controller.dispose());
-    exertionControllers.values.forEach((controller) => controller.dispose());
     super.dispose();
   }
 
@@ -166,8 +156,7 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
         ],
       ),
       body: GestureDetector(
-        // Evitar que el enfoque se pierda al tocar fuera
-        // onTap: () => FocusScope.of(context).unfocus(),
+        onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -191,14 +180,14 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                         title: Text(exercise.name),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("SERIE"),
-                            Text("KG"),
-                            Text("REPS"),
-                            Text("RIR"),
+                            Expanded(child: Center(child: Text("SERIE"))),
+                            Expanded(child: Center(child: Text("KG"))),
+                            Expanded(child: Center(child: Text("REPS"))),
+                            Expanded(child: Center(child: Text("RIR"))),
+                            Expanded(child: Center(child: Icon(Icons.check))),
                           ],
                         ),
                       ),
@@ -218,59 +207,75 @@ class _CreateRoutineScreenState extends State<CreateRoutineScreen> {
                               child: Icon(Icons.delete, color: Colors.white),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 3.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("${seriesIndex + 1}"),
-                                  SizedBox(
-                                    width: 60,
-                                    child: TextField(
-                                      controller: weightControllers[series.id],
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        hintText: 'KG',
-                                        hintStyle: TextStyle(color: Colors.grey),
+                                  Expanded(child: Center(child: Text("${seriesIndex + 1}"))),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: TextField(
+                                        controller: weightControllers[series.id],
+                                        keyboardType: TextInputType.number,
+                                        textAlign: TextAlign.center,
+                                        decoration: InputDecoration(
+                                          hintText: 'KG',
+                                          hintStyle: TextStyle(color: Colors.grey),
+                                          isDense: true,
+                                        ),
+                                        onChanged: (value) =>
+                                            series.weight = int.tryParse(value) ?? 0,
                                       ),
-                                      onChanged: (value) => series.weight =
-                                          int.tryParse(value) ?? 0,
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: 60,
-                                    child: TextField(
-                                      controller: repsControllers[series.id],
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        hintText: 'Reps',
-                                        hintStyle: TextStyle(color: Colors.grey),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: TextField(
+                                        controller: repsControllers[series.id],
+                                        keyboardType: TextInputType.number,
+                                        textAlign: TextAlign.center,
+                                        decoration: InputDecoration(
+                                          hintText: 'Reps',
+                                          hintStyle: TextStyle(color: Colors.grey),
+                                          isDense: true,
+                                        ),
+                                        onChanged: (value) =>
+                                            series.reps = int.tryParse(value) ?? 0,
                                       ),
-                                      onChanged: (value) => series.reps =
-                                          int.tryParse(value) ?? 0,
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: 60,
-                                    child: TextField(
-                                      controller: exertionControllers[series.id],
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        hintText: "RIR",
-                                        hintStyle: TextStyle(color: Colors.grey),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                      child: DropdownButton<int>(
+                                        value: series.perceivedExertion,
+                                        isExpanded: true,
+                                        items: List.generate(10, (index) => index + 1).map((int value) {
+                                          return DropdownMenuItem<int>(
+                                            value: value,
+                                            child: Center(child: Text(value.toString())),
+                                          );
+                                        }).toList(),
+                                        onChanged: (int? newValue) {
+                                          setState(() {
+                                            series.perceivedExertion = newValue!;
+                                          });
+                                        },
                                       ),
-                                      onChanged: (value) => series.perceivedExertion =
-                                          int.tryParse(value) ?? 0,
                                     ),
                                   ),
-                                  Checkbox(
-                                    value: series.isCompleted,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        series.isCompleted = value ?? false;
-                                      });
-                                      // Evitar que el enfoque se mueva al título
-                                      // FocusScope.of(context).unfocus();
-                                    },
+                                  Expanded(
+                                    child: Center(
+                                      child: Checkbox(
+                                        value: series.isCompleted,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            series.isCompleted = value ?? false;
+                                          });
+                                        },
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
