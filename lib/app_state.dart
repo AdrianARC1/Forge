@@ -1,3 +1,5 @@
+// lib/app_state.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
@@ -6,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'dart:math';
 
 const uuid = Uuid();
 
@@ -86,7 +89,6 @@ class Routine {
   }
 }
 
-
 class AppState with ChangeNotifier {
   List<Routine> _routines = [];
   List<Routine> _completedRoutines = [];
@@ -119,17 +121,16 @@ class AppState with ChangeNotifier {
   List<Map<String, dynamic>> get muscleGroups => _muscleGroups;
   List<Map<String, dynamic>> get equipment => _equipment;
 
-   AppState() {
+  AppState() {
     _initializeApp();
   }
 
-Future<void> _initializeApp() async {
-  await Future.delayed(Duration(seconds: 2)); // Espera 2 segundos
-  await _loadUserSession();
-  _isLoading = false;
-  notifyListeners();
-}
-
+  Future<void> _initializeApp() async {
+    await Future.delayed(Duration(seconds: 2)); // Espera 2 segundos
+    await _loadUserSession();
+    _isLoading = false;
+    notifyListeners();
+  }
 
   Future<void> _loadUserSession() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -145,15 +146,38 @@ Future<void> _initializeApp() async {
     notifyListeners();
   }
 
-  String hashPassword(String password) {
-    return sha256.convert(utf8.encode(password)).toString();
+  /// Genera un salt aleatorio
+  String generateSalt([int length = 16]) {
+    final Random random = Random.secure();
+    final List<int> saltBytes = List<int>.generate(length, (_) => random.nextInt(256));
+    return base64Url.encode(saltBytes);
+  }
+
+  /// Hash de la contraseña con salt
+  String hashPassword(String password, String salt) {
+    final bytes = utf8.encode(password + salt);
+    return sha256.convert(bytes).toString();
   }
 
   Future<bool> register(String username, String password) async {
-    String hashedPassword = hashPassword(password);
-    bool success = await _dbHelper.registerUser(username, hashedPassword);
+    String trimmedUsername = username.trim();
+    String trimmedPassword = password.trim();
+
+    // Validaciones adicionales
+    if (trimmedUsername.isEmpty || trimmedPassword.isEmpty) {
+      return false;
+    }
+
+    if (trimmedPassword.length < 6) {
+      // Puedes ajustar la longitud mínima según tus necesidades
+      return false;
+    }
+
+    String salt = generateSalt();
+    String hashedPassword = hashPassword(trimmedPassword, salt);
+    bool success = await _dbHelper.registerUser(trimmedUsername, hashedPassword, salt);
     if (success) {
-      await login(username, password);
+      await login(trimmedUsername, trimmedPassword);
       _showTutorial = true;
       return true;
     } else {
@@ -162,23 +186,39 @@ Future<void> _initializeApp() async {
   }
 
   Future<bool> login(String username, String password) async {
-    String hashedPassword = hashPassword(password);
-    final user = await _dbHelper.loginUser(username, hashedPassword);
+    String trimmedUsername = username.trim();
+    String trimmedPassword = password.trim();
+
+    if (trimmedUsername.isEmpty || trimmedPassword.isEmpty) {
+      return false;
+    }
+
+    final user = await _dbHelper.loginUser(trimmedUsername);
     if (user != null) {
-      _userId = user['id'] as String;
-      _username = user['username'] as String;
+      String storedHashedPassword = user['password'] as String;
+      String salt = user['salt'] as String;
+      String hashedInputPassword = hashPassword(trimmedPassword, salt);
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userId', _userId!);
-      await prefs.setString('username', _username!);
+      if (hashedInputPassword == storedHashedPassword) {
+        _userId = user['id'] as String;
+        _username = user['username'] as String;
 
-      await _loadRoutines();
-      await _loadCompletedRoutines();
-      loadMuscleGroups();
-      loadEquipment();
-      notifyListeners();
-      return true;
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', _userId!);
+        await prefs.setString('username', _username!);
+
+        await _loadRoutines();
+        await _loadCompletedRoutines();
+        loadMuscleGroups();
+        loadEquipment();
+        notifyListeners();
+        return true;
+      } else {
+        print("Contraseña incorrecta para usuario: $trimmedUsername");
+        return false;
+      }
     } else {
+      print("Usuario no encontrado: $trimmedUsername");
       return false;
     }
   }
@@ -279,7 +319,7 @@ Future<void> _initializeApp() async {
 
   Future<void> completeRoutine(Routine routine, Duration duration) async {
     int totalVolume = calculateTotalVolume(routine);
-   print("Antes de completar la rutina, userId: $_userId");
+    print("Antes de completar la rutina, userId: $_userId");
 
     // Crear una copia de la rutina con un nuevo ID y marcarla como completada
     Routine completedRoutine = routine.copyWith(
@@ -298,7 +338,6 @@ Future<void> _initializeApp() async {
 
     print("Rutina completada: ${completedRoutine.name} con duración de ${duration.inMinutes} minutos y volumen total de $totalVolume kg");
     print("Después de completar la rutina, userId: $_userId");
-
   }
 
   Future<void> saveRoutine(Routine routine) async {

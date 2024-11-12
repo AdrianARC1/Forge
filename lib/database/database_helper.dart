@@ -27,14 +27,15 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3, // Incrementamos la versión a 3
+      version: 4, // Incrementamos la versión a 4 para añadir 'salt'
       onCreate: (db, version) async {
-        // Tabla de usuarios
+        // Tabla de usuarios con salting y restricciones NOT NULL
         await db.execute('''
           CREATE TABLE users (
             id TEXT PRIMARY KEY,
-            username TEXT UNIQUE,
-            password TEXT
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            salt TEXT NOT NULL
           )
         ''');
 
@@ -42,9 +43,9 @@ class DatabaseHelper {
         await db.execute('''
           CREATE TABLE routines (
             id TEXT PRIMARY KEY,
-            userId TEXT,
-            name TEXT,
-            dateCreated TEXT,
+            userId TEXT NOT NULL,
+            name TEXT NOT NULL,
+            dateCreated TEXT NOT NULL,
             dateCompleted TEXT,
             duration INTEGER,
             totalVolume INTEGER,
@@ -57,8 +58,8 @@ class DatabaseHelper {
         await db.execute('''
           CREATE TABLE exercises (
             id TEXT PRIMARY KEY,
-            routineId TEXT,
-            name TEXT,
+            routineId TEXT NOT NULL,
+            name TEXT NOT NULL,
             FOREIGN KEY (routineId) REFERENCES routines (id) ON DELETE CASCADE
           )
         ''');
@@ -67,40 +68,42 @@ class DatabaseHelper {
         await db.execute('''
           CREATE TABLE series (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            exerciseId TEXT,
+            exerciseId TEXT NOT NULL,
             previousWeight INTEGER,
             previousReps INTEGER,
             lastSavedWeight INTEGER,
             lastSavedReps INTEGER,
-            weight INTEGER,
-            reps INTEGER,
-            perceivedExertion INTEGER,
-            isCompleted INTEGER,
+            weight INTEGER NOT NULL,
+            reps INTEGER NOT NULL,
+            perceivedExertion INTEGER NOT NULL,
+            isCompleted INTEGER NOT NULL,
             FOREIGN KEY (exerciseId) REFERENCES exercises (id) ON DELETE CASCADE
           )
         ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 3) {
-          // Si la versión anterior es menor que 3, realizamos las migraciones necesarias
-          // Agregar columnas a la tabla routines
-          await db.execute('ALTER TABLE routines ADD COLUMN userId TEXT');
-          await db.execute('ALTER TABLE routines ADD COLUMN dateCompleted TEXT');
-          await db.execute('ALTER TABLE routines ADD COLUMN duration INTEGER');
-          await db.execute('ALTER TABLE routines ADD COLUMN totalVolume INTEGER');
-          await db.execute('ALTER TABLE routines ADD COLUMN isCompleted INTEGER DEFAULT 0');
-
-          // Crear tabla de usuarios si no existe
+        if (oldVersion < 4) {
+          // Añadir 'salt' a la tabla de usuarios
           await db.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-              id TEXT PRIMARY KEY,
-              username TEXT UNIQUE,
-              password TEXT
-            )
+            ALTER TABLE users ADD COLUMN salt TEXT
           ''');
 
-          // Eliminar la tabla routines_completed si existe
-          await db.execute('DROP TABLE IF EXISTS routines_completed');
+          // Actualizar existentes sin 'salt' (esto requiere definir cómo manejar usuarios existentes)
+          // Por simplicidad, puedes optar por eliminar y recrear la tabla si estás en desarrollo
+          // **Advertencia:** Este paso eliminará todos los datos existentes en la tabla 'users'
+          
+          await db.execute('DROP TABLE IF EXISTS users');
+          await db.execute('''
+            CREATE TABLE users (
+              id TEXT PRIMARY KEY,
+              username TEXT UNIQUE NOT NULL,
+              password TEXT NOT NULL,
+              salt TEXT NOT NULL
+            )
+          ''');
+          
+          
+          // Nota: En producción, deberías migrar los datos adecuadamente.
         }
       },
     );
@@ -108,14 +111,20 @@ class DatabaseHelper {
 
   // Métodos para manejar usuarios
 
-  /// Registra un nuevo usuario
-  Future<bool> registerUser(String username, String password) async {
+  /// Registra un nuevo usuario con salting
+  Future<bool> registerUser(String username, String password, String salt) async {
+    if (username.trim().isEmpty || password.trim().isEmpty) {
+      print("Error: Usuario o contraseña vacíos.");
+      return false;
+    }
+
     final db = await database;
     try {
       await db.insert('users', {
         'id': uuid.v4(),
-        'username': username,
-        'password': password,
+        'username': username.trim(),
+        'password': password.trim(),
+        'salt': salt.trim(),
       });
       print("Usuario registrado: $username");
       return true;
@@ -125,44 +134,43 @@ class DatabaseHelper {
     }
   }
 
-  /// Autentica un usuario
-  Future<Map<String, dynamic>?> loginUser(String username, String password) async {
+  /// Autentica un usuario y retorna sus datos incluyendo el salt
+  Future<Map<String, dynamic>?> loginUser(String username) async {
     final db = await database;
     final result = await db.query(
       'users',
-      where: 'username = ? AND password = ?',
-      whereArgs: [username, password],
+      where: 'username = ?',
+      whereArgs: [username],
     );
     if (result.isNotEmpty) {
-      print("Usuario autenticado: $username");
+      print("Usuario encontrado: $username");
       return result.first;
     }
-    print("Error de autenticación para usuario: $username");
+    print("Usuario no encontrado: $username");
     return null;
   }
 
   // Métodos CRUD para Rutinas
 
   /// Inserta una nueva rutina
-Future<void> insertRoutine(Routine routine, String userId) async {
-  final db = await database;
-  await db.insert('routines', {
-    'id': routine.id,
-    'userId': userId,
-    'name': routine.name,
-    'dateCreated': routine.dateCreated.toIso8601String(),
-    'dateCompleted': routine.dateCompleted?.toIso8601String(),
-    'duration': routine.duration.inSeconds,
-    'totalVolume': routine.totalVolume,
-    'isCompleted': routine.isCompleted ? 1 : 0,
-  });
-  print("Rutina guardada: ${routine.name}");
+  Future<void> insertRoutine(Routine routine, String userId) async {
+    final db = await database;
+    await db.insert('routines', {
+      'id': routine.id,
+      'userId': userId,
+      'name': routine.name,
+      'dateCreated': routine.dateCreated.toIso8601String(),
+      'dateCompleted': routine.dateCompleted?.toIso8601String(),
+      'duration': routine.duration.inSeconds,
+      'totalVolume': routine.totalVolume,
+      'isCompleted': routine.isCompleted ? 1 : 0,
+    });
+    print("Rutina guardada: ${routine.name}");
 
-  for (var exercise in routine.exercises) {
-    await insertExercise(exercise, routine.id);
+    for (var exercise in routine.exercises) {
+      await insertExercise(exercise, routine.id);
+    }
   }
-}
-
 
   /// Actualiza una rutina existente
   Future<void> updateRoutine(Routine routine, String userId) async {
