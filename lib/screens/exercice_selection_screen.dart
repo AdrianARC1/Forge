@@ -1,3 +1,5 @@
+// lib/screens/exercise_selection_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
@@ -11,42 +13,47 @@ class ExerciseSelectionScreen extends StatefulWidget {
 
 class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   String searchQuery = "";
-  int? selectedMuscleGroup;
-  int? selectedEquipment;
+  String? selectedMuscleGroup;
+  String? selectedEquipment;
   ScrollController _scrollController = ScrollController();
-  int _currentPage = 1;
-  bool _isLoadingMore = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     final appState = Provider.of<AppState>(context, listen: false);
-    appState.fetchExercises();
+    appState.fetchAllExercises();
+    appState.loadMuscleGroups();
+    appState.loadEquipment();
     _scrollController.addListener(_onScroll);
   }
 
   void _onScroll() {
-    if (!_scrollController.hasClients || _isLoadingMore) return;
-    final thresholdReached = _scrollController.position.extentAfter < 200;
-    if (thresholdReached) {
-      _loadMoreExercises();
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      // Cargar más ejercicios al acercarse al final
+      Provider.of<AppState>(context, listen: false).loadMoreExercises();
     }
   }
 
-  Future<void> _loadMoreExercises() async {
+  void _filterExercises() async {
     setState(() {
-      _isLoadingMore = true;
+      _isLoading = true;
     });
-    _currentPage++;
     final appState = Provider.of<AppState>(context, listen: false);
-    await appState.fetchExercises(
+    appState.applyFilters(
       muscleGroup: selectedMuscleGroup,
       equipment: selectedEquipment,
-      page: _currentPage,
     );
     setState(() {
-      _isLoadingMore = false;
+      _isLoading = false;
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,82 +85,86 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
               ),
               onChanged: (query) {
                 setState(() {
-                  searchQuery = query.toLowerCase();
+                  searchQuery = query;
                 });
+                appState.filterExercises(query);
               },
             ),
           ),
-          // Filtros de músculo y equipo dinámicos
+          // Filtros de músculo y equipo
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Para el filtro de músculo
-              DropdownButton<int>(
+              // Filtro de músculo
+              DropdownButton<String>(
                 hint: Text("Músculo"),
                 value: selectedMuscleGroup,
                 onChanged: (value) {
                   setState(() {
                     selectedMuscleGroup = value;
-                    _currentPage = 1; // Reiniciar paginación
+                    selectedEquipment = null; // Reiniciamos el filtro de equipo
+                    searchQuery = ""; // Reiniciamos la búsqueda
                   });
-                  appState.fetchExercises(muscleGroup: value, equipment: selectedEquipment);
+                  _filterExercises();
                 },
-                items: appState.muscleGroups.map<DropdownMenuItem<int>>((group) {
-                  return DropdownMenuItem<int>(
-                    value: group['id'] as int,
-                    child: Text(group['name']),
+                items: appState.muscleGroups.map<DropdownMenuItem<String>>((group) {
+                  return DropdownMenuItem<String>(
+                    value: group,
+                    child: Text(group),
                   );
                 }).toList(),
               ),
-
-              // Para el filtro de equipo
-              DropdownButton<int>(
+              // Filtro de equipo
+              DropdownButton<String>(
                 hint: Text("Equipo"),
                 value: selectedEquipment,
                 onChanged: (value) {
                   setState(() {
                     selectedEquipment = value;
-                    _currentPage = 1; // Reiniciar paginación
+                    selectedMuscleGroup = null; // Reiniciamos el filtro de músculo
+                    searchQuery = ""; // Reiniciamos la búsqueda
                   });
-                  appState.fetchExercises(muscleGroup: selectedMuscleGroup, equipment: value);
+                  _filterExercises();
                 },
-                items: appState.equipment.map<DropdownMenuItem<int>>((equip) {
-                  return DropdownMenuItem<int>(
-                    value: equip['id'] as int,
-                    child: Text(equip['name']),
+                items: appState.equipment.map<DropdownMenuItem<String>>((equip) {
+                  return DropdownMenuItem<String>(
+                    value: equip,
+                    child: Text(equip),
                   );
                 }).toList(),
               ),
             ],
           ),
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: appState.exercises.length + 1,
-              itemBuilder: (context, index) {
-                if (index == appState.exercises.length) {
-                  return _isLoadingMore
-                      ? Center(child: CircularProgressIndicator())
-                      : SizedBox();
-                }
+            child: _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    controller: _scrollController,
+                    itemCount: appState.exercises.length,
+                    itemBuilder: (context, index) {
+                      final exercise = appState.exercises[index];
+                      final exerciseName = exercise['name'] as String;
 
-                final exercise = appState.exercises[index];
-                final exerciseName = exercise['name'].toLowerCase();
-
-                // Filtra los ejercicios según el término de búsqueda
-                if (!exerciseName.contains(searchQuery)) return Container();
-
-                return ListTile(
-                  leading: exercise['image'] != null
-                      ? Image.network(exercise['image'], width: 50, height: 50)
-                      : Icon(Icons.image_not_supported),
-                  title: Text(exercise['name']),
-                  onTap: () {
-                    Navigator.pop(context, exercise); // Devuelve el ejercicio seleccionado
-                  },
-                );
-              },
-            ),
+                      return ListTile(
+                        leading: exercise['gifUrl'] != null
+                            ? Image.network(
+                                exercise['gifUrl'],
+                                width: 50,
+                                height: 50,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(Icons.image_not_supported);
+                                },
+                              )
+                            : Icon(Icons.image_not_supported),
+                        title: Text(exerciseName),
+                        subtitle: Text(
+                            'Músculo: ${exercise['target']}\nEquipo: ${exercise['equipment']}'),
+                        onTap: () {
+                          Navigator.pop(context, exercise); // Devuelve el ejercicio seleccionado
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),

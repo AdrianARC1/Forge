@@ -3,7 +3,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
-import 'api/wger_api_service.dart';
+// Importamos el nuevo servicio de API
+import 'api/exercise_db_api_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -41,9 +42,19 @@ class Series {
 class Exercise {
   String? id;
   final String name;
+  final String? muscleGroup;
+  final String? equipment;
+  final String? imageUrl;
   List<Series> series;
 
-  Exercise({this.id, required this.name, this.series = const []});
+  Exercise({
+    this.id,
+    required this.name,
+    this.muscleGroup,
+    this.equipment,
+    this.imageUrl,
+    this.series = const [],
+  });
 }
 
 class Routine {
@@ -92,14 +103,20 @@ class Routine {
 class AppState with ChangeNotifier {
   List<Routine> _routines = [];
   List<Routine> _completedRoutines = [];
-  List<Map<String, dynamic>> _exercises = [];
-  List<Map<String, dynamic>> _muscleGroups = [];
-  List<Map<String, dynamic>> _equipment = [];
+  // Listas para manejar los ejercicios
+  List<Map<String, dynamic>> _allExercises = []; // Lista completa de ejercicios
+  List<Map<String, dynamic>> _filteredExercises = []; // Ejercicios filtrados
+  List<Map<String, dynamic>> _visibleExercises = []; // Ejercicios visibles en la lista
+  int _exercisesPerPage = 20; // Número de ejercicios a cargar por página
+  int _currentPage = 0; // Página actual para el lazy loading
+
+  List<String> _muscleGroups = [];
+  List<String> _equipment = [];
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
   final DatabaseHelper _dbHelper = DatabaseHelper();
-  final WgerApiService _apiService = WgerApiService();
+  final ExerciseDbApiService _apiService = ExerciseDbApiService();
 
   Routine? minimizedRoutine;
   Routine? savedRoutineState; // Guarda el estado de la rutina minimizada
@@ -117,9 +134,9 @@ class AppState with ChangeNotifier {
 
   List<Routine> get routines => _routines;
   List<Routine> get completedRoutines => _completedRoutines;
-  List<Map<String, dynamic>> get exercises => _exercises;
-  List<Map<String, dynamic>> get muscleGroups => _muscleGroups;
-  List<Map<String, dynamic>> get equipment => _equipment;
+  List<Map<String, dynamic>> get exercises => _visibleExercises; // Retornamos ejercicios visibles
+  List<String> get muscleGroups => _muscleGroups;
+  List<String> get equipment => _equipment;
 
   AppState() {
     _initializeApp();
@@ -127,9 +144,6 @@ class AppState with ChangeNotifier {
 
   Future<void> _initializeApp() async {
     try {
-      // Remueve la espera artificial si no es necesaria
-      // await Future.delayed(Duration(seconds: 2)); // Espera 2 segundos
-
       await _loadUserSession();
     } catch (e) {
       print("Error durante la inicialización de la aplicación: $e");
@@ -151,6 +165,7 @@ class AppState with ChangeNotifier {
         await _loadCompletedRoutines();
         await loadMuscleGroups();
         await loadEquipment();
+        await fetchAllExercises(); // Cargamos todos los ejercicios al iniciar
       }
     } catch (e) {
       print("Error al cargar la sesión del usuario: $e");
@@ -224,6 +239,7 @@ class AppState with ChangeNotifier {
         await _loadCompletedRoutines();
         await loadMuscleGroups();
         await loadEquipment();
+        await fetchAllExercises(); // Cargamos todos los ejercicios al iniciar sesión
         notifyListeners();
         return true;
       } else {
@@ -245,6 +261,10 @@ class AppState with ChangeNotifier {
     _username = null;
     _routines = [];
     _completedRoutines = [];
+    _allExercises = [];
+    _filteredExercises = [];
+    _visibleExercises = [];
+    _currentPage = 0;
     notifyListeners();
   }
 
@@ -293,14 +313,63 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchExercises({int? muscleGroup, int? equipment, int page = 1}) async {
+  // Carga todos los ejercicios y los prepara para el lazy loading
+  Future<void> fetchAllExercises() async {
     try {
-      _exercises = await _apiService.fetchExercises(muscleGroup: muscleGroup, equipment: equipment, page: page);
-      notifyListeners();
+      if (_allExercises.isEmpty) {
+        _allExercises = await _apiService.fetchExercises();
+        _filteredExercises = _allExercises;
+        _visibleExercises.clear();
+        _currentPage = 0;
+        _loadMoreExercises(); // Cargamos la primera página
+        notifyListeners();
+      }
     } catch (e) {
       print("Error al obtener ejercicios: $e");
-      // Manejar el error según sea necesario
     }
+  }
+
+  void _loadMoreExercises() {
+    int startIndex = _currentPage * _exercisesPerPage;
+    int endIndex = startIndex + _exercisesPerPage;
+    if (startIndex < _filteredExercises.length) {
+      _visibleExercises.addAll(
+          _filteredExercises.sublist(startIndex, endIndex.clamp(0, _filteredExercises.length)));
+      _currentPage++;
+      notifyListeners();
+    }
+  }
+
+  // Método para que la UI solicite cargar más ejercicios al hacer scroll
+  void loadMoreExercises() {
+    _loadMoreExercises();
+  }
+
+  // Método para filtrar ejercicios por búsqueda
+  void filterExercises(String query) {
+    if (query.isEmpty) {
+      _filteredExercises = _allExercises;
+    } else {
+      _filteredExercises = _allExercises
+          .where((exercise) =>
+              (exercise['name'] as String).toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+    _visibleExercises.clear();
+    _currentPage = 0;
+    _loadMoreExercises();
+  }
+
+  // Método para aplicar filtros (músculo y equipo)
+  void applyFilters({String? muscleGroup, String? equipment}) {
+    _filteredExercises = _allExercises.where((exercise) {
+      bool matchesMuscle = muscleGroup == null || (exercise['target'] == muscleGroup);
+      bool matchesEquipment = equipment == null || (exercise['equipment'] == equipment);
+      return matchesMuscle && matchesEquipment;
+    }).toList();
+    _visibleExercises.clear();
+    _currentPage = 0;
+    _loadMoreExercises();
   }
 
   Future<void> loadMuscleGroups() async {
@@ -309,17 +378,15 @@ class AppState with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Error al cargar grupos musculares: $e");
-      // Manejar el error según sea necesario
     }
   }
 
   Future<void> loadEquipment() async {
     try {
-      _equipment = await _apiService.fetchEquipment();
+      _equipment = await _apiService.fetchEquipmentList();
       notifyListeners();
     } catch (e) {
       print("Error al cargar equipo: $e");
-      // Manejar el error según sea necesario
     }
   }
 

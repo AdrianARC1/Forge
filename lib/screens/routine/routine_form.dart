@@ -56,31 +56,34 @@ class _RoutineFormState extends State<RoutineForm> {
       MaterialPageRoute(builder: (context) => ExerciseSelectionScreen()),
     );
 
-    if (selectedExercise != null) {
-      setState(() {
-        final exercise = Exercise(
-          id: selectedExercise['id'].toString(),
-          name: selectedExercise['name'],
-          series: [
-            Series(
-              id: Uuid().v4(),
-              weight: 0,
-              reps: 0,
-              perceivedExertion: 0,
-              isCompleted: false,
-            ),
-          ],
-        );
-        selectedExercises.add(exercise);
+if (selectedExercise != null) {
+  setState(() {
+    final exercise = Exercise(
+      id: selectedExercise['id'].toString(),
+      name: selectedExercise['name'],
+      // Puedes almacenar información adicional si lo deseas
+      muscleGroup: selectedExercise['target'], // Nuevo campo opcional
+      equipment: selectedExercise['equipment'], // Nuevo campo opcional
+      series: [
+        Series(
+          id: Uuid().v4(),
+          weight: 0,
+          reps: 0,
+          perceivedExertion: 0,
+          isCompleted: false,
+        ),
+      ],
+    );
+    selectedExercises.add(exercise);
 
-        // Inicializar controladores para la nueva serie
-        for (var series in exercise.series) {
-          weightControllers[series.id] = TextEditingController();
-          repsControllers[series.id] = TextEditingController();
-          exertionControllers[series.id] = TextEditingController();
-        }
-      });
+    // Inicializar controladores para la nueva serie
+    for (var series in exercise.series) {
+      weightControllers[series.id] = TextEditingController();
+      repsControllers[series.id] = TextEditingController();
+      exertionControllers[series.id] = TextEditingController();
     }
+  });
+}
   }
 
   void _addSeriesToExercise(Exercise exercise) {
