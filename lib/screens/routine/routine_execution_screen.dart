@@ -1,4 +1,3 @@
-// lib/screens/routine/routine_execution_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forge/screens/navigation/main_navigation_screen.dart';
@@ -134,9 +133,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       return;
     }
 
-    // Pausar el temporizador
-    _localTimer?.cancel();
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -226,9 +222,18 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     }
 
     // Guardar la rutina completada sin modificar la original
-    Routine completedRoutine = widget.routine!.copyWith(
-      exercises: exercises,
-    );
+    Routine completedRoutine = widget.routine != null
+        ? widget.routine!.copyWith(
+            exercises: exercises,
+          )
+        : Routine(
+            id: uuid.v4(),
+            name: routineName,
+            dateCreated: DateTime.now(),
+            exercises: exercises,
+            duration: _displayDuration.value,
+            isCompleted: true,
+          );
 
     try {
       appState.completeRoutine(completedRoutine, _displayDuration.value);
