@@ -104,22 +104,79 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
               ),
             ),
             SizedBox(height: 10),
-            AnimatedSwitcher(
-              duration: Duration(milliseconds: 300),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return SizeTransition(
-                  sizeFactor: animation,
-                  axisAlignment: -1.0,
-                  child: child,
-                );
-              },
-              child: _isExpanded
-                  ? Column(
-                      key: ValueKey(true),
-                      children: [
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
+            // Envuelve el AnimatedSwitcher en un Expanded y ClipRect para limitar el movimiento
+            Expanded(
+              child: ClipRect(
+                child: AnimatedSwitcher(
+                  duration: Duration(milliseconds: 300), // Duración total para expansión
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
+                    if (child.key == ValueKey(true)) {
+                      // Widget entrando: desliza desde arriba con 400ms
+                      final inAnimation = Tween<Offset>(
+                        begin: Offset(0, -0.2),
+                        end: Offset(0, 0),
+                      ).animate(CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeInOut,
+                      ));
+                      return SlideTransition(
+                        position: inAnimation,
+                        child: FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        ),
+                      );
+                    } else {
+                      // Widget saliendo: desliza hacia abajo con 100ms (25% de 400ms)
+                      final outAnimation = Tween<Offset>(
+                        begin: Offset(0, 0),
+                        end: Offset(0, 0.2),
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Interval(
+                            0.0,
+                            0.25, // 25% del tiempo total (100ms)
+                            curve: Curves.easeInOut,
+                          ),
+                        ),
+                      );
+                      final fadeOut = Tween<double>(
+                        begin: 1.0,
+                        end: 0.0,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Interval(
+                            0.0,
+                            0.25, // 25% del tiempo total (100ms)
+                            curve: Curves.easeInOut,
+                          ),
+                        ),
+                      );
+                      return SlideTransition(
+                        position: outAnimation,
+                        child: FadeTransition(
+                          opacity: fadeOut,
+                          child: child,
+                        ),
+                      );
+                    }
+                  },
+                  layoutBuilder:
+                      (Widget? currentChild, List<Widget> previousChildren) {
+                    return Stack(
+                      alignment: Alignment.topCenter,
+                      children: <Widget>[
+                        ...previousChildren,
+                        if (currentChild != null) currentChild,
+                      ],
+                    );
+                  },
+                  child: _isExpanded
+                      ? ListView.builder(
+                          key: ValueKey(true),
                           itemCount: appState.routines.length,
                           itemBuilder: (context, index) {
                             final routine = appState.routines[index];
@@ -180,7 +237,8 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                                 ),
                                                 PopupMenuItem(
                                                   value: 'delete',
-                                                  child: Text('Eliminar Rutina'),
+                                                  child:
+                                                      Text('Eliminar Rutina'),
                                                 ),
                                               ];
                                             },
@@ -188,14 +246,17 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                         ],
                                       ),
                                       SizedBox(height: 5),
-                                        Text(
-                                          routine.exercises.map((exercise) => exercise.name).join(", "),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                          ),
+                                      Text(
+                                        routine.exercises
+                                            .map((exercise) =>
+                                                exercise.name)
+                                            .join(", "),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
                                         ),
+                                      ),
                                       SizedBox(height: 10),
                                       SizedBox(
                                         width: double.infinity,
@@ -226,12 +287,12 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                               ),
                             );
                           },
+                        )
+                      : SizedBox.shrink(
+                          key: ValueKey(false),
                         ),
-                      ],
-                    )
-                  : Container(
-                      key: ValueKey(false),
-                    ),
+                ),
+              ),
             ),
           ],
         ),
