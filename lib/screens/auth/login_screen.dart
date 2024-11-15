@@ -1,5 +1,3 @@
-// lib/screens/login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app_state.dart';
@@ -14,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>(); // Clave para el formulario
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -26,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // Limpiar cualquier SnackBar existente cuando se inicializa la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      _formKey.currentState?.reset(); // Reiniciar el formulario
+      _formKey.currentState?.reset();
       _usernameController.clear();
       _passwordController.clear();
     });
@@ -41,32 +39,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // **Eliminar o comentar este bloque para evitar reiniciar el formulario y limpiar los campos en cada reconstrucción**
-    /*
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      _formKey.currentState?.reset(); // Reiniciar el formulario
-      _usernameController.clear();
-      _passwordController.clear();
-    });
-    */
-
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
-      backgroundColor: GlobalStyles.backgroundColor, // Fondo oscuro de la pantalla
+      backgroundColor: GlobalStyles.backgroundColor,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
-            child: Form( // Utilizar Form
+            child: Form(
               key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
-                    'assets/icon/icon.png', // Reemplaza con la ruta de tu logo
+                    'assets/icon/icon.png',
                     height: 100,
                   ),
                   SizedBox(height: 60),
@@ -110,8 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     text: 'Acceder',
                     isLoading: _isLoggingIn,
                     enabled: !_isLoggingIn,
+                    padding: EdgeInsets.symmetric(horizontal: 60, vertical: 20),
                     onPressed: _isLoggingIn ? () {} : () async {
-                      if (_formKey.currentState!.validate()) { // Validar el formulario
+                      if (_formKey.currentState!.validate()) {
                         setState(() {
                           _isLoggingIn = true;
                         });

@@ -56,11 +56,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     return Scaffold(
       backgroundColor: GlobalStyles.backgroundColor,
-      appBar: AppBar(
-        title: Text('Registrarse'),
-        backgroundColor: GlobalStyles.backgroundColor,
-        elevation: 0,
-      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -68,19 +63,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             child: Form(
               key: _formKey,
               child: Column(
+                // Alineamos al centro y eliminamos textos adicionales
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
                     'assets/icon/icon.png', // Reemplaza con la ruta de tu logo
                     height: 100,
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 60), // Ajustamos el espaciado
+
                   Text(
-                    'Crea tu Cuenta',
+                    'FORGE',
                     style: GlobalStyles.titleStyle,
                   ),
                   SizedBox(height: 10),
                   Text(
-                    'Organiza tus rutinas diarias, semanales o mensuales',
+                    'Organiza tus rutinas diarias\nsemanal o mensualmente',
                     textAlign: TextAlign.center,
                     style: GlobalStyles.subtitleStyle,
                   ),
@@ -133,6 +132,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     text: 'Registrarse',
                     isLoading: _isRegistering,
                     enabled: !_isRegistering,
+                    padding: EdgeInsets.symmetric(horizontal: 60, vertical: 20), // Padding personalizado
                     onPressed: _isRegistering ? () {} : () async {
                       if (_formKey.currentState!.validate()) { // Validar el formulario
                         setState(() {
@@ -163,7 +163,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     },
                   ),
                   SharedWidgets.buildLinkButton(
-                    text: 'Volver al Iniciar Sesión',
+                    text: 'Iniciar Sesión',
                     enabled: !_isRegistering,
                     onPressed: !_isRegistering
                         ? () {
