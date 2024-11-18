@@ -88,10 +88,7 @@ class DatabaseHelper {
             ALTER TABLE users ADD COLUMN salt TEXT
           ''');
 
-          // Actualizar existentes sin 'salt' (esto requiere definir cómo manejar usuarios existentes)
-          // Por simplicidad, puedes optar por eliminar y recrear la tabla si estás en desarrollo
-          // **Advertencia:** Este paso eliminará todos los datos existentes en la tabla 'users'
-          
+          // Eliminar y recrear la tabla de usuarios
           await db.execute('DROP TABLE IF EXISTS users');
           await db.execute('''
             CREATE TABLE users (
@@ -101,9 +98,6 @@ class DatabaseHelper {
               salt TEXT NOT NULL
             )
           ''');
-          
-          
-          // Nota: En producción, deberías migrar los datos adecuadamente.
         }
       },
     );
@@ -148,6 +142,17 @@ class DatabaseHelper {
     }
     print("Usuario no encontrado: $username");
     return null;
+  }
+
+  /// Actualiza el nombre de usuario
+  Future<void> updateUsername(String userId, String newUsername) async {
+    final db = await database;
+    await db.update(
+      'users',
+      {'username': newUsername},
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
   }
 
   // Métodos CRUD para Rutinas

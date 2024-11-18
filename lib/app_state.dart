@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:io';
 
 const uuid = Uuid();
 
@@ -115,6 +116,14 @@ class AppState with ChangeNotifier {
   bool _showTutorial = false;
   bool get showTutorial => _showTutorial;
 
+  // Imagen de perfil
+  String? _profileImagePath;
+  String? get profileImagePath => _profileImagePath;
+
+  // Notificaciones
+  bool _notificationsEnabled = false;
+  bool get notificationsEnabled => _notificationsEnabled;
+
   List<Routine> get routines => _routines;
   List<Routine> get completedRoutines => _completedRoutines;
   List<Map<String, dynamic>> get exercises => _exercises;
@@ -127,13 +136,9 @@ class AppState with ChangeNotifier {
 
   Future<void> _initializeApp() async {
     try {
-      // Remueve la espera artificial si no es necesaria
-      // await Future.delayed(Duration(seconds: 2)); // Espera 2 segundos
-
       await _loadUserSession();
     } catch (e) {
       print("Error durante la inicialización de la aplicación: $e");
-      // Manejar el error según sea necesario
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -145,6 +150,8 @@ class AppState with ChangeNotifier {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       _userId = prefs.getString('userId');
       _username = prefs.getString('username');
+      _profileImagePath = prefs.getString('profileImagePath');
+      _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? false;
 
       if (_userId != null) {
         await _loadRoutines();
@@ -154,7 +161,6 @@ class AppState with ChangeNotifier {
       }
     } catch (e) {
       print("Error al cargar la sesión del usuario: $e");
-      // Manejar el error según sea necesario
     }
   }
 
@@ -243,6 +249,7 @@ class AppState with ChangeNotifier {
 
     _userId = null;
     _username = null;
+    _profileImagePath = null;
     _routines = [];
     _completedRoutines = [];
     notifyListeners();
@@ -299,7 +306,6 @@ class AppState with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Error al obtener ejercicios: $e");
-      // Manejar el error según sea necesario
     }
   }
 
@@ -309,7 +315,6 @@ class AppState with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Error al cargar grupos musculares: $e");
-      // Manejar el error según sea necesario
     }
   }
 
@@ -319,7 +324,6 @@ class AppState with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Error al cargar equipo: $e");
-      // Manejar el error según sea necesario
     }
   }
 
@@ -333,7 +337,6 @@ class AppState with ChangeNotifier {
         }
       } catch (e) {
         print("Error al cargar rutinas: $e");
-        // Manejar el error según sea necesario
       }
       notifyListeners();
     }
@@ -349,7 +352,6 @@ class AppState with ChangeNotifier {
         }
       } catch (e) {
         print("Error al cargar rutinas completadas: $e");
-        // Manejar el error según sea necesario
       }
       notifyListeners();
     }
@@ -379,7 +381,6 @@ class AppState with ChangeNotifier {
       print("Después de completar la rutina, userId: $_userId");
     } catch (e) {
       print("Error al completar la rutina: $e");
-      // Manejar el error según sea necesario
     }
   }
 
@@ -392,7 +393,6 @@ class AppState with ChangeNotifier {
         notifyListeners();
       } catch (e) {
         print("Error al guardar la rutina: $e");
-        // Manejar el error según sea necesario
       }
     }
   }
@@ -409,7 +409,6 @@ class AppState with ChangeNotifier {
         }
       } catch (e) {
         print("Error al actualizar la rutina: $e");
-        // Manejar el error según sea necesario
       }
     }
   }
@@ -423,7 +422,6 @@ class AppState with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Error al añadir ejercicio a la rutina: $e");
-      // Manejar el error según sea necesario
     }
   }
 
@@ -439,7 +437,6 @@ class AppState with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Error al añadir serie al ejercicio: $e");
-      // Manejar el error según sea necesario
     }
   }
 
@@ -451,7 +448,6 @@ class AppState with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Error al actualizar la duración de la rutina: $e");
-      // Manejar el error según sea necesario
     }
   }
 
@@ -463,7 +459,6 @@ class AppState with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Error al eliminar la rutina: $e");
-      // Manejar el error según sea necesario
     }
   }
 
@@ -476,5 +471,73 @@ class AppState with ChangeNotifier {
     }
     print("Volumen total calculado para rutina ${routine.name}: $totalVolume kg");
     return totalVolume;
+  }
+
+  // Actualizar imagen de perfil
+  Future<void> updateProfileImage(String imagePath) async {
+    _profileImagePath = imagePath;
+
+    // Guardar la ruta en SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('profileImagePath', imagePath);
+
+    notifyListeners();
+  }
+
+  // Actualizar nombre de usuario
+  Future<void> updateUsername(String newUsername) async {
+    if (_userId != null) {
+      await _dbHelper.updateUsername(_userId!, newUsername);
+      _username = newUsername;
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('username', newUsername);
+
+      notifyListeners();
+    }
+  }
+
+  // Obtener mejores marcas personales
+  Map<String, int> getPersonalRecords() {
+    Map<String, int> records = {};
+
+    for (var routine in _completedRoutines) {
+      for (var exercise in routine.exercises) {
+        for (var series in exercise.series) {
+          if (!records.containsKey(exercise.name) || series.weight > records[exercise.name]!) {
+            records[exercise.name] = series.weight;
+          }
+        }
+      }
+    }
+
+    return records;
+  }
+
+  // Estadísticas de frecuencia
+  int getWorkoutsThisWeek() {
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+
+    return _completedRoutines.where((routine) {
+      return routine.dateCompleted != null && routine.dateCompleted!.isAfter(startOfWeek);
+    }).length;
+  }
+
+  int getWorkoutsThisMonth() {
+    DateTime now = DateTime.now();
+    DateTime startOfMonth = DateTime(now.year, now.month, 1);
+
+    return _completedRoutines.where((routine) {
+      return routine.dateCompleted != null && routine.dateCompleted!.isAfter(startOfMonth);
+    }).length;
+  }
+
+  // Manejo de notificaciones
+  void setNotificationsEnabled(bool value) async {
+    _notificationsEnabled = value;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificationsEnabled', value);
+    notifyListeners();
   }
 }
