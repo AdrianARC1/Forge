@@ -42,7 +42,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
           name: exercise.name,
           series: exercise.series.map((series) {
             return Series(
-              id: Uuid().v4(),
+              id: series.id,
               previousWeight: series.weight,
               previousReps: series.reps,
               weight: 0,
@@ -68,6 +68,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
             id: series.id,
             previousWeight: series.previousWeight,
             previousReps: series.previousReps,
+            lastSavedWeight: series.lastSavedWeight,
+            lastSavedReps: series.lastSavedReps,
             weight: series.weight,
             reps: series.reps,
             perceivedExertion: series.perceivedExertion,
@@ -171,13 +173,16 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     bool routineChanged = _hasRoutineChanged();
 
     if (routineChanged) {
+      // Obtener descripción de los cambios
+      String changeDescription = _getRoutineChanges();
+
       // Mostrar diálogo para actualizar la rutina
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text("Actualizar Rutina"),
-            content: Text("Has realizado cambios en la rutina. ¿Deseas actualizarla con estos cambios?"),
+            content: Text("$changeDescription\n¿Deseas actualizarla con estos cambios?"),
             actions: [
               TextButton(
                 onPressed: () {
@@ -387,4 +392,81 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       ),
     );
   }
+String _getRoutineChanges() {
+  int exercisesAdded = 0;
+  int exercisesRemoved = 0;
+  int seriesAdded = 0;
+  int seriesRemoved = 0;
+
+  // Mapear ejercicios originales y actuales por ID
+  Map<String, Exercise> originalExercisesMap = {
+    for (var exercise in originalExercises) exercise.id: exercise
+  };
+  Map<String, Exercise> currentExercisesMap = {
+    for (var exercise in exercises) exercise.id: exercise
+  };
+
+  // Detectar ejercicios añadidos y eliminados
+  for (var exercise in exercises) {
+    if (!originalExercisesMap.containsKey(exercise.id)) {
+      exercisesAdded += 1;
+      seriesAdded += exercise.series.length;
+    }
+  }
+
+  for (var exercise in originalExercises) {
+    if (!currentExercisesMap.containsKey(exercise.id)) {
+      exercisesRemoved += 1;
+      seriesRemoved += exercise.series.length;
+    }
+  }
+
+  // Comparar series dentro de los ejercicios existentes
+  for (var exercise in exercises) {
+    if (originalExercisesMap.containsKey(exercise.id)) {
+      var originalExercise = originalExercisesMap[exercise.id]!;
+
+      Map<String, Series> originalSeriesMap = {
+        for (var series in originalExercise.series) series.id: series
+      };
+      Map<String, Series> currentSeriesMap = {
+        for (var series in exercise.series) series.id: series
+      };
+
+      for (var series in exercise.series) {
+        if (!originalSeriesMap.containsKey(series.id)) {
+          seriesAdded += 1;
+        }
+      }
+
+      for (var series in originalExercise.series) {
+        if (!currentSeriesMap.containsKey(series.id)) {
+          seriesRemoved += 1;
+        }
+      }
+    }
+  }
+
+  // Construir la descripción de cambios
+  List<String> changes = [];
+
+  if (exercisesAdded > 0) {
+    changes.add('Has añadido $exercisesAdded nuevo(s) ejercicio(s).');
+  }
+  if (exercisesRemoved > 0) {
+    changes.add('Has eliminado $exercisesRemoved ejercicio(s).');
+  }
+  if (seriesAdded > 0) {
+    changes.add('Has añadido $seriesAdded nueva(s) serie(s).');
+  }
+  if (seriesRemoved > 0) {
+    changes.add('Has eliminado $seriesRemoved serie(s).');
+  }
+  if (changes.isEmpty) {
+    return 'No hay cambios en la rutina.';
+  } else {
+    return changes.join('\n');
+  }
+}
+
 }

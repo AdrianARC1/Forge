@@ -39,11 +39,11 @@ class Series {
 }
 
 class Exercise {
-  String? id;
+  String id;
   final String name;
   List<Series> series;
 
-  Exercise({this.id, required this.name, this.series = const []});
+  Exercise({required this.id, required this.name, this.series = const []});
 }
 
 class Routine {
