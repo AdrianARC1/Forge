@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4, // Incrementamos la versión a 4 para añadir 'salt'
+      version: 5, // Actualizado a versión 5
       onCreate: (db, version) async {
         // Tabla de usuarios con salting y restricciones NOT NULL
         await db.execute('''
@@ -80,31 +80,35 @@ class DatabaseHelper {
             FOREIGN KEY (exerciseId) REFERENCES exercises (id) ON DELETE CASCADE
           )
         ''');
+
+        // Nueva tabla para registros de ejercicios
+        await db.execute('''
+          CREATE TABLE exercise_records (
+            id TEXT PRIMARY KEY,
+            userId TEXT NOT NULL,
+            exerciseName TEXT NOT NULL,
+            maxWeight INTEGER NOT NULL,
+            maxReps INTEGER NOT NULL,
+            max1RM REAL NOT NULL,
+            FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
+          )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 4) {
-          // Añadir 'salt' a la tabla de usuarios
+        if (oldVersion < 5) {
           await db.execute('''
-            ALTER TABLE users ADD COLUMN salt TEXT
-          ''');
-
-          // Actualizar existentes sin 'salt' (esto requiere definir cómo manejar usuarios existentes)
-          // Por simplicidad, puedes optar por eliminar y recrear la tabla si estás en desarrollo
-          // **Advertencia:** Este paso eliminará todos los datos existentes en la tabla 'users'
-          
-          await db.execute('DROP TABLE IF EXISTS users');
-          await db.execute('''
-            CREATE TABLE users (
+            CREATE TABLE IF NOT EXISTS exercise_records (
               id TEXT PRIMARY KEY,
-              username TEXT UNIQUE NOT NULL,
-              password TEXT NOT NULL,
-              salt TEXT NOT NULL
+              userId TEXT NOT NULL,
+              exerciseName TEXT NOT NULL,
+              maxWeight INTEGER NOT NULL,
+              maxReps INTEGER NOT NULL,
+              max1RM REAL NOT NULL,
+              FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
             )
           ''');
-          
-          
-          // Nota: En producción, deberías migrar los datos adecuadamente.
         }
+        // Manejar otras actualizaciones si es necesario
       },
     );
   }
@@ -350,6 +354,67 @@ class DatabaseHelper {
     final db = await database;
     await db.delete('series', where: 'id = ?', whereArgs: [id]);
     print("Serie eliminada: ID $id");
+  }
+
+  // Métodos para manejar los registros máximos de ejercicios
+
+  /// Obtiene el registro máximo de un ejercicio para un usuario
+  Future<Map<String, dynamic>?> getExerciseRecord(String userId, String exerciseName) async {
+    final db = await database;
+    final result = await db.query(
+      'exercise_records',
+      where: 'userId = ? AND exerciseName = ?',
+      whereArgs: [userId, exerciseName],
+    );
+    if (result.isNotEmpty) {
+      return result.first;
+    } else {
+      return null;
+    }
+  }
+
+  /// Actualiza el registro máximo de un ejercicio para un usuario
+  Future<void> updateExerciseRecord(String userId, String exerciseName, int weight, int reps) async {
+    final db = await database;
+    double new1RM = weight * (1 + reps / 30);
+    final existingRecord = await getExerciseRecord(userId, exerciseName);
+    if (existingRecord == null) {
+      await db.insert('exercise_records', {
+        'id': uuid.v4(),
+        'userId': userId,
+        'exerciseName': exerciseName,
+        'maxWeight': weight,
+        'maxReps': reps,
+        'max1RM': new1RM,
+      });
+      print("Nuevo récord guardado para $exerciseName: $weight kg x $reps reps");
+    } else {
+      double existing1RM = existingRecord['max1RM'] as double;
+      if (new1RM > existing1RM) {
+        await db.update(
+          'exercise_records',
+          {
+            'maxWeight': weight,
+            'maxReps': reps,
+            'max1RM': new1RM,
+          },
+          where: 'id = ?',
+          whereArgs: [existingRecord['id']],
+        );
+        print("Récord actualizado para $exerciseName: $weight kg x $reps reps");
+      }
+    }
+  }
+
+  /// Obtiene todos los registros máximos de ejercicios para un usuario
+  Future<List<Map<String, dynamic>>> getAllExerciseRecords(String userId) async {
+    final db = await database;
+    final result = await db.query(
+      'exercise_records',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
+    return result;
   }
 
   /// Reinicia la base de datos (solo para propósitos de desarrollo)

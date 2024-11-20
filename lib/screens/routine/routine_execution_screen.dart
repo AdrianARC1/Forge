@@ -1,3 +1,5 @@
+// lib/screens/routine_execution_screen.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forge/screens/navigation/main_navigation_screen.dart';
@@ -166,7 +168,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     Navigator.of(context).pop();
   }
 
-  void _saveRoutine() {
+  Future<void> _saveRoutine() async {
     final appState = Provider.of<AppState>(context, listen: false);
 
     // Verificar si hay cambios en la rutina
@@ -227,13 +229,13 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     return false;
   }
 
-  void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
+  void _finalizeRoutine(AppState appState, {required bool updateRoutine}) async {
     if (updateRoutine && widget.routine != null) {
       // Actualizar la rutina en AppState y en la base de datos
       Routine updatedRoutine = widget.routine!.copyWith(
         exercises: exercises,
       );
-      appState.updateRoutine(updatedRoutine);
+      await appState.updateRoutine(updatedRoutine);
     }
 
     // Guardar la rutina completada sin modificar la original
@@ -251,7 +253,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
           );
 
     try {
-      appState.completeRoutine(completedRoutine, _displayDuration.value);
+      await appState.completeRoutine(completedRoutine, _displayDuration.value);
     } catch (e) {
       print("Error al completar la rutina: $e");
     }
@@ -327,6 +329,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    
     return WillPopScope(
       onWillPop: () async {
         _minimizeRoutine();
@@ -365,6 +369,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
               child: SingleChildScrollView(
                 child: Column(
                   children: exercises.map((exercise) {
+                    final maxRecord = appState.maxExerciseRecords[exercise.name];
+
                     return ExerciseFormWidget(
                       exercise: exercise,
                       onAddSeries: () => addSeriesToExercise(exercise),
@@ -376,6 +382,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                       onDeleteExercise: () => deleteExercise(exercise),
                       onReplaceExercise: () => replaceExercise(exercise),
                       onAutofillSeries: autofillSeries,
+                      maxRecord: maxRecord, // Pasamos el registro máximo
                     );
                   }).toList(),
                 ),
@@ -402,6 +409,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       ),
     );
   }
+
 String _getRoutineChanges() {
   int exercisesAdded = 0;
   int exercisesRemoved = 0;
@@ -478,5 +486,4 @@ String _getRoutineChanges() {
     return changes.join('\n');
   }
 }
-
 }

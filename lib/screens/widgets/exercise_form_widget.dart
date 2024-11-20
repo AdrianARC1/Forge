@@ -13,6 +13,7 @@ class ExerciseFormWidget extends StatefulWidget {
   final VoidCallback? onDeleteExercise;
   final Future<void> Function()? onReplaceExercise;
   final Function(Series)? onAutofillSeries;
+  final Map<String, dynamic>? maxRecord; // Agregamos el parámetro maxRecord
 
   ExerciseFormWidget({
     required this.exercise,
@@ -25,13 +26,14 @@ class ExerciseFormWidget extends StatefulWidget {
     this.onDeleteExercise,
     this.onReplaceExercise,
     this.onAutofillSeries,
+    this.maxRecord,
   });
 
   @override
   _ExerciseFormWidgetState createState() => _ExerciseFormWidgetState();
 }
 
-class _ExerciseFormWidgetState extends State<ExerciseFormWidget> {
+class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTickerProviderStateMixin {
   // Mapa para almacenar los GlobalKeys de cada serie
   Map<String, GlobalKey> seriesRowKeys = {};
 
@@ -47,6 +49,13 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> {
   // ID de la serie que actualmente tiene el Slider activo
   String? activeSliderSeriesId;
 
+  // Propiedades para manejar el nuevo récord
+  bool isNewRecord = false;
+  late AnimationController _animationController;
+  double currentMax1RM = 0.0;
+  int currentMaxWeight = 0;
+  int currentMaxReps = 0;
+
   @override
   void initState() {
     super.initState();
@@ -54,12 +63,49 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> {
     for (var series in widget.exercise.series) {
       seriesRowKeys[series.id] = GlobalKey();
     }
+
+    // Inicializar el controlador de animación
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 1),
+    );
+
+    // Inicializar los valores actuales del máximo histórico
+    _initializeMaxRecord();
+  }
+
+  // Método para inicializar los valores del máximo histórico
+  void _initializeMaxRecord() {
+    if (widget.maxRecord != null) {
+      currentMax1RM = widget.maxRecord!['max1RM'] as double;
+      currentMaxWeight = widget.maxRecord!['maxWeight'] as int;
+      currentMaxReps = widget.maxRecord!['maxReps'] as int;
+    } else {
+      currentMax1RM = 0.0;
+      currentMaxWeight = 0;
+      currentMaxReps = 0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ExerciseFormWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.maxRecord != oldWidget.maxRecord) {
+      setState(() {
+        _initializeMaxRecord();
+        isNewRecord = false; // Reiniciamos la animación del trofeo
+      });
+    }
   }
 
   @override
   void dispose() {
     // Asegurarse de eliminar cualquier OverlayEntry activo al destruir el widget
     activeOverlay?.remove();
+
+    _animationController.dispose();
+
     super.dispose();
   }
 
@@ -171,6 +217,31 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> {
     Overlay.of(context)!.insert(activeOverlay!);
   }
 
+  // Método para verificar si hay un nuevo récord al marcar la serie como completada
+  void _checkForNewRecord(Series series) {
+    final weightController = widget.weightControllers[series.id];
+    final repsController = widget.repsControllers[series.id];
+
+    int weight = int.tryParse(weightController?.text ?? '') ?? 0;
+    int reps = int.tryParse(repsController?.text ?? '') ?? 0;
+
+    if (weight > 0 && reps > 0) {
+      double estimated1RM = weight * (1 + reps / 30);
+
+      if (estimated1RM > currentMax1RM) {
+        setState(() {
+          isNewRecord = true;
+          currentMax1RM = estimated1RM;
+          currentMaxWeight = weight;
+          currentMaxReps = reps;
+
+          // Iniciar la animación del trofeo
+          _animationController.forward(from: 0);
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Determinar si mostrar el campo de RPE y la casilla de verificación
@@ -180,8 +251,10 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ListTile(
-          title: Text(widget.exercise.name),
-          subtitle: widget.isExecution ? Text("Series: ${widget.exercise.series.length}") : null,
+          title: Text(
+            widget.exercise.name,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           trailing: widget.isExecution
               ? PopupMenuButton<String>(
                   onSelected: (value) {
@@ -205,6 +278,48 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> {
                   },
                 )
               : null,
+        ),
+        // Mostrar máximo histórico
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            children: [
+              Text(
+                '${currentMaxWeight}kg x ${currentMaxReps} reps',
+                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+              ),
+              IconButton(
+                icon: Icon(Icons.info_outline),
+                onPressed: () {
+                  // Mostrar explicación
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Máximo Histórico'),
+                      content: Text('Este es tu mejor rendimiento registrado en este ejercicio.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              if (isNewRecord)
+                AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return Icon(
+                      Icons.emoji_events,
+                      color: Colors.amber.withOpacity(_animationController.value),
+                      size: 24 + _animationController.value * 8,
+                    );
+                  },
+                ),
+            ],
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -341,12 +456,20 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> {
                           value: series.isCompleted,
                           onChanged: (value) {
                             setState(() {
-                              if (value == true &&
-                                  widget.isExecution &&
-                                  widget.onAutofillSeries != null) {
-                                widget.onAutofillSeries!(series);
+                              if (value == true) {
+                                series.isCompleted = true;
+
+                                // Autorellenar datos si es ejecución y la función está disponible
+                                if (widget.isExecution && widget.onAutofillSeries != null) {
+                                  widget.onAutofillSeries!(series);
+                                }
+
+                                // Verificar si hay un nuevo récord al completar la serie
+                                _checkForNewRecord(series);
+
+                              } else {
+                                series.isCompleted = false;
                               }
-                              series.isCompleted = value ?? false;
                             });
                           },
                         ),
