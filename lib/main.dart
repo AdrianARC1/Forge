@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import 'app_state.dart';
 import 'screens/navigation/main_navigation_screen.dart';
 import 'screens/auth/login_screen.dart';
-// Importa la librería para manejar la splash screen nativa
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import './styles/global_styles.dart'; // Asegúrate de importar el archivo de estilos
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +37,16 @@ class MyApp extends StatelessWidget {
 
           return MaterialApp(
             title: 'Forge',
-            theme: ThemeData(primarySwatch: Colors.blue),
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+              scaffoldBackgroundColor: GlobalStyles.backgroundColor, // Color de fondo general
+              bottomNavigationBarTheme: GlobalStyles.bottomNavBarTheme, // Tema de la barra de navegación
+              appBarTheme: AppBarTheme(
+                backgroundColor: GlobalStyles.navigationBarColor,
+                centerTitle: true,
+                foregroundColor: Colors.white
+              )
+            ),
             home: appState.isLoading
                 ? Container() // Pantalla vacía mientras carga
                 : appState.userId == null

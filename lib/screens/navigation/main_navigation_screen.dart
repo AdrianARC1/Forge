@@ -1,3 +1,4 @@
+// main_navigation_screen.dart
 import 'package:flutter/material.dart';
 import 'package:forge/screens/profile_screen.dart';
 import 'package:provider/provider.dart';
@@ -5,6 +6,7 @@ import '../../app_state.dart';
 import '../routine/routine_list_screen.dart';
 import '../history_screen.dart';
 import '../routine/routine_execution_screen.dart';
+import '../../styles/global_styles.dart'; // Importa el archivo de estilos
 
 class MainNavigationScreen extends StatefulWidget {
   @override
@@ -31,6 +33,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
+      backgroundColor: GlobalStyles.backgroundColor, // Usa el color de fondo global
       body: Stack(
         children: [
           _screens[_currentIndex],
@@ -95,24 +98,52 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: "Historial",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center),
-            label: "Entrenamiento",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Perfil",
-          ),
-        ],
-      ),
+    bottomNavigationBar: Container(
+      height: 70,
+      child: BottomNavigationBar(
+currentIndex: _currentIndex,
+  onTap: _onTabTapped,
+  backgroundColor: GlobalStyles.bottomNavBarTheme.backgroundColor,
+  selectedItemColor: GlobalStyles.bottomNavBarTheme.selectedItemColor, // Color de ítem seleccionado
+  unselectedItemColor: GlobalStyles.bottomNavBarTheme.unselectedItemColor, // Color de ítem no seleccionado
+  type: BottomNavigationBarType.fixed, // Tipo de barra (fija o shifting)
+  showUnselectedLabels: true, // Mostrar etiquetas para los no seleccionados
+  showSelectedLabels: true, // Mostrar etiquetas para los seleccionados
+
+  // Estilos de íconos
+  selectedIconTheme: IconThemeData(
+    size: 30, // Tamaño de los íconos seleccionados
+  ),
+  unselectedIconTheme: IconThemeData(
+    size: 24, // Tamaño de los íconos no seleccionados
+  ),
+
+  // Estilos de texto (labels)
+  selectedLabelStyle: TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+  ),
+  unselectedLabelStyle: TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+  ),
+
+  items: [
+    BottomNavigationBarItem(
+      icon: Icon(Icons.history),
+      label: "Historial",
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.fitness_center),
+      label: "Entrenamiento",
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.person),
+      label: "Perfil",
+    ),
+  ],
+),
+    ),
     );
   }
 

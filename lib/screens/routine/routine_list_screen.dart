@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:forge/screens/routine/create_routine_screen.dart';
+import 'package:forge/styles/global_styles.dart';
 import 'package:provider/provider.dart';
 import '../../app_state.dart';
 import 'edit_routine_screen.dart';
@@ -23,13 +24,13 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
         title: Text("Entrenamiento"),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0), // Padding general
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -38,12 +39,22 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                     ),
                   );
                 },
-                icon: Icon(Icons.play_arrow),
-                label: Text("Empezar Entrenamiento Vacío"),
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 15),
-                  textStyle: TextStyle(fontSize: 16),
-                  backgroundColor: Colors.grey[400],
+                  padding: EdgeInsets.symmetric(vertical: 15), // Padding interno del botón
+                  alignment: Alignment.centerLeft, // Alineación del contenido a la izquierda
+                  backgroundColor: GlobalStyles.inputBackgroundColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: 20), // Padding izquierdo
+                      child: Icon(Icons.play_arrow),
+                    ),
+                    SizedBox(width: 10), // Espaciado entre ícono y texto
+                    Text("Empezar entrenamiento vacío"),
+                  ],
                 ),
               ),
             ),
@@ -58,13 +69,17 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton.icon(
+              Padding(
+              padding: const EdgeInsets.only(top: 15, bottom: 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2, // Controla cuánto espacio ocupa el botón
+                    child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -75,9 +90,19 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                       },
                       icon: Icon(Icons.add),
                       label: Text("Nueva Rutina"),
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20), // Padding interno (vertical y horizontal)
+                        alignment: Alignment.centerLeft, // Alinea el contenido hacia la izquierda
+                        backgroundColor: GlobalStyles.inputBackgroundColor,
+                        foregroundColor: Colors.white,
+                        textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                  Spacer(flex: 2), // Añade espacio proporcional después del botón
+                ],
+              ),
+            ),
               ],
             ),
             SizedBox(height: 20),
@@ -90,21 +115,21 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
               child: Row(
                 children: [
                   Icon(
-                    _isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                    color: Colors.black,
+                    _isExpanded ? Icons.arrow_drop_down : Icons.arrow_right,
+                    color: Colors.white,
                   ),
                   Text(
                     "Mis rutinas (${appState.routines.length})",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white
                     ),
                   ),
                 ],
               ),
             ),
             SizedBox(height: 10),
-            // Envuelve el AnimatedSwitcher en un Expanded y ClipRect para limitar el movimiento
             Expanded(
               child: ClipRect(
                 child: AnimatedSwitcher(
@@ -112,7 +137,6 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                   transitionBuilder:
                       (Widget child, Animation<double> animation) {
                     if (child.key == ValueKey(true)) {
-                      // Widget entrando: desliza desde arriba con 400ms
                       final inAnimation = Tween<Offset>(
                         begin: Offset(0, -0.2),
                         end: Offset(0, 0),
@@ -128,7 +152,6 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                         ),
                       );
                     } else {
-                      // Widget saliendo: desliza hacia abajo con 100ms (25% de 400ms)
                       final outAnimation = Tween<Offset>(
                         begin: Offset(0, 0),
                         end: Offset(0, 0.2),
@@ -191,100 +214,105 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                 );
                               },
                               child: Card(
-                                margin: EdgeInsets.symmetric(vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            routine.name,
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          PopupMenuButton<String>(
-                                            onSelected: (value) {
-                                              if (value == 'edit') {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        EditRoutineScreen(
-                                                            routine: routine),
-                                                  ),
-                                                );
-                                              } else if (value == 'delete') {
-                                                appState.deleteRoutine(
-                                                    routine.id);
-                                              }
-                                            },
-                                            itemBuilder:
-                                                (BuildContext context) {
-                                              return [
-                                                PopupMenuItem(
-                                                  value: 'edit',
-                                                  child: Text('Editar Rutina'),
-                                                ),
-                                                PopupMenuItem(
-                                                  value: 'delete',
-                                                  child:
-                                                      Text('Eliminar Rutina'),
-                                                ),
-                                              ];
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 5),
-                                      Text(
-                                        routine.exercises
-                                            .map((exercise) =>
-                                                exercise.name)
-                                            .join(", "),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    RoutineExecutionScreen(
-                                                        routine: routine),
-                                              ),
-                                            );
-                                          },
-                                          child: Text("Empezar Rutina"),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.blue,
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 15),
-                                            textStyle:
-                                                TextStyle(fontSize: 16),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+  margin: EdgeInsets.symmetric(vertical: 8),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(10.0), // Bordes redondeados
+  ),
+  color: GlobalStyles.inputBackgroundColor, // Color del fondo de la tarjeta
+  child: Padding(
+    padding: const EdgeInsets.all(16.0), // Padding interno de la tarjeta
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              routine.name,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            PopupMenuButton<String>(
+              offset: const Offset(0.0, 40.0),
+              color: Colors.white,
+              
+              onSelected: (value) {
+                if (value == 'edit') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditRoutineScreen(routine: routine),
+                    ),
+                  );
+                } else if (value == 'delete') {
+                  appState.deleteRoutine(routine.id);
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Text('Editar Rutina'),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Eliminar Rutina'),
+                  ),
+                ];
+              },
+            ),
+          ],
+        ),
+        SizedBox(height: 5),
+        Text(
+          routine.exercises.map((exercise) => exercise.name).join(", "),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+
+          ),
+        ),
+        SizedBox(height: 10),
+        Row(
+          children: [
+            Spacer(), // Empuja el botón hacia la derecha
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RoutineExecutionScreen(routine: routine),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15), // Tamaño más compacto
+                backgroundColor: GlobalStyles.backgroundButtonsColor, // Color del botón
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0), // Bordes del botón
+                ),
+                textStyle: TextStyle(
+                  fontSize: 15, // Tamaño de texto más pequeño
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              child: Text("Empezar Rutina"),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ),
+),
+
+
                             );
                           },
                         )
@@ -299,4 +327,5 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
       ),
     );
   }
+
 }
