@@ -401,7 +401,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
                               decoration: InputDecoration(
-                                hintText: 'KG',
+                                hintText: series.previousWeight != null ? "${series.previousWeight} kg" : 'KG',
                                 hintStyle: TextStyle(color: Colors.grey),
                                 isDense: true,
                               ),
@@ -426,7 +426,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
                               decoration: InputDecoration(
-                                hintText: 'Reps',
+                                hintText: series.previousReps != null ? "${series.previousReps} reps" : 'Reps',
                                 hintStyle: TextStyle(color: Colors.grey),
                                 isDense: true,
                               ),

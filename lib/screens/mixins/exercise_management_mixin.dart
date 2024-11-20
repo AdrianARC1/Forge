@@ -19,11 +19,11 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
     if (selectedExercise != null) {
       setState(() {
         final exercise = Exercise(
-          id: selectedExercise['id'].toString(),
+          id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
           name: selectedExercise['name'],
           series: [
             Series(
-              id: Uuid().v4(),
+              id: Uuid().v4(), // Genera un nuevo UUID para la serie
               weight: 0,
               reps: 0,
               perceivedExertion: 1,
@@ -46,7 +46,7 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
   void addSeriesToExercise(Exercise exercise) {
     setState(() {
       Series newSeries = Series(
-        id: Uuid().v4(),
+        id: Uuid().v4(), // Genera un nuevo UUID para la serie
         weight: 0,
         reps: 0,
         perceivedExertion: 1,

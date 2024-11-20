@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 5, // Actualizado a versión 5
+      version: 6, // Actualizado a versión 6
       onCreate: (db, version) async {
         // Tabla de usuarios con salting y restricciones NOT NULL
         await db.execute('''
@@ -67,7 +67,7 @@ class DatabaseHelper {
         // Tabla de series
         await db.execute('''
           CREATE TABLE series (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT PRIMARY KEY,
             exerciseId TEXT NOT NULL,
             previousWeight INTEGER,
             previousReps INTEGER,
@@ -95,21 +95,41 @@ class DatabaseHelper {
         ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 5) {
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS exercise_records (
-              id TEXT PRIMARY KEY,
-              userId TEXT NOT NULL,
-              exerciseName TEXT NOT NULL,
-              maxWeight INTEGER NOT NULL,
-              maxReps INTEGER NOT NULL,
-              max1RM REAL NOT NULL,
-              FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
-            )
-          ''');
-        }
-        // Manejar otras actualizaciones si es necesario
-      },
+  if (oldVersion < 6) {
+    // Renombrar la tabla existente
+    await db.execute('''
+      ALTER TABLE series RENAME TO series_old;
+    ''');
+
+    // Crear la nueva tabla 'series' con 'id' como TEXT PRIMARY KEY
+    await db.execute('''
+      CREATE TABLE series (
+        id TEXT PRIMARY KEY,
+        exerciseId TEXT NOT NULL,
+        previousWeight INTEGER,
+        previousReps INTEGER,
+        lastSavedWeight INTEGER,
+        lastSavedReps INTEGER,
+        weight INTEGER NOT NULL,
+        reps INTEGER NOT NULL,
+        perceivedExertion INTEGER NOT NULL,
+        isCompleted INTEGER NOT NULL,
+        FOREIGN KEY (exerciseId) REFERENCES exercises (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Migrar los datos de la tabla antigua a la nueva
+    await db.execute('''
+      INSERT INTO series (id, exerciseId, previousWeight, previousReps, lastSavedWeight, lastSavedReps, weight, reps, perceivedExertion, isCompleted)
+      SELECT id, exerciseId, previousWeight, previousReps, lastSavedWeight, lastSavedReps, weight, reps, perceivedExertion, isCompleted
+      FROM series_old;
+    ''');
+
+    // Eliminar la tabla antigua
+    await db.execute('DROP TABLE series_old;');
+  }
+  // Manejar otras actualizaciones si es necesario
+},
     );
   }
 
@@ -313,6 +333,7 @@ class DatabaseHelper {
   Future<void> insertSeries(Series series, String exerciseId) async {
     final db = await database;
     await db.insert('series', {
+      'id': series.id, // Usa el ID proporcionado
       'exerciseId': exerciseId,
       'previousWeight': series.previousWeight,
       'previousReps': series.previousReps,
