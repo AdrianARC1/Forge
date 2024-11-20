@@ -168,57 +168,64 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     Navigator.of(context).pop();
   }
 
-  Future<void> _saveRoutine() async {
+  void _saveRoutine() async {
     final appState = Provider.of<AppState>(context, listen: false);
 
-    // Verificar si hay cambios en la rutina
-    bool routineChanged = _hasRoutineChanged();
-
-    if (routineChanged) {
-      // Obtener descripción de los cambios
-      String changeDescription = _getRoutineChanges();
-
-      // Mostrar diálogo para actualizar la rutina
+    if (widget.routine == null) {
+      // Es un entrenamiento vacío
+      // Preguntar si desea guardar como nueva rutina
+      String newRoutineName = "Nueva Rutina";
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Actualizar Rutina"),
-            content: Text("$changeDescription\n¿Deseas actualizarla con estos cambios?"),
+            title: Text("Guardar Rutina"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("¿Deseas guardar esta rutina como una nueva rutina?"),
+                TextField(
+                  onChanged: (value) {
+                    newRoutineName = value;
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Nombre de la nueva rutina",
+                  ),
+                ),
+              ],
+            ),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  _finalizeRoutine(appState, updateRoutine: false);
-                },
-                child: Text("No"),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _finalizeRoutine(appState, updateRoutine: true);
+                  _finalizeRoutine(appState, saveAsNewRoutine: true, newRoutineName: newRoutineName);
                 },
                 child: Text("Sí"),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // Simplemente cierra el diálogo
-                  // No se realiza ninguna acción adicional
+                  Navigator.of(context).pop();
+                  _finalizeRoutine(appState, saveAsNewRoutine: false);
                 },
-                child: Text(
-                  "Cancelar",
-                  style: TextStyle(color: Colors.red), // Opcional: Resaltar el botón de cancelar
-                ),
+                child: Text("No"),
               ),
             ],
           );
         },
       );
     } else {
-      // No hay cambios, finalizar rutina
+      // Rutina existente: lógica actual
+      bool routineChanged = _hasRoutineChanged();
+
+      if (routineChanged) {
+        String changeDescription = _getRoutineChanges();
+        // Mostrar diálogo para actualizar la rutina
+        // (Mantén el código existente aquí)
+      } else {
       _finalizeRoutine(appState, updateRoutine: false);
     }
   }
+}
 
   bool _hasRoutineChanged() {
     if (originalExercises.length != exercises.length) return true;
@@ -229,28 +236,36 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     return false;
   }
 
-  void _finalizeRoutine(AppState appState, {required bool updateRoutine}) async {
+  void _finalizeRoutine(AppState appState, {bool updateRoutine = false, bool saveAsNewRoutine = false, String? newRoutineName}) async {
+    if (saveAsNewRoutine && newRoutineName != null) {
+      // Guardar la rutina como nueva rutina
+      Routine newRoutine = Routine(
+        id: uuid.v4(),
+        name: newRoutineName,
+        dateCreated: DateTime.now(),
+        exercises: exercises,
+        duration: _displayDuration.value,
+      );
+      await appState.saveRoutine(newRoutine);
+    }
+
     if (updateRoutine && widget.routine != null) {
-      // Actualizar la rutina en AppState y en la base de datos
+      // Actualizar la rutina existente
       Routine updatedRoutine = widget.routine!.copyWith(
         exercises: exercises,
       );
       await appState.updateRoutine(updatedRoutine);
     }
 
-    // Guardar la rutina completada sin modificar la original
-    Routine completedRoutine = widget.routine != null
-        ? widget.routine!.copyWith(
-            exercises: exercises,
-          )
-        : Routine(
-            id: uuid.v4(),
-            name: routineName,
-            dateCreated: DateTime.now(),
-            exercises: exercises,
-            duration: _displayDuration.value,
-            isCompleted: true,
-          );
+    // Guardar la rutina completada en el historial
+    Routine completedRoutine = Routine(
+      id: uuid.v4(),
+      name: routineName,
+      dateCreated: DateTime.now(),
+      exercises: exercises,
+      duration: _displayDuration.value,
+      isCompleted: true,
+    );
 
     try {
       await appState.completeRoutine(completedRoutine, _displayDuration.value);
