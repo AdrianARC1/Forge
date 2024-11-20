@@ -1,11 +1,12 @@
 // lib/screens/widgets/exercise_form_widget.dart
+
 import 'package:flutter/material.dart';
 import '../../app_state.dart';
 
 class ExerciseFormWidget extends StatefulWidget {
   final Exercise exercise;
-  final VoidCallback onAddSeries;
-  final Function(int) onDeleteSeries;
+  final VoidCallback? onAddSeries;
+  final Function(int)? onDeleteSeries;
   final Map<String, TextEditingController> weightControllers;
   final Map<String, TextEditingController> repsControllers;
   final Map<String, TextEditingController> exertionControllers;
@@ -14,11 +15,13 @@ class ExerciseFormWidget extends StatefulWidget {
   final Future<void> Function()? onReplaceExercise;
   final Function(Series)? onAutofillSeries;
   final Map<String, dynamic>? maxRecord; // Agregamos el parámetro maxRecord
+  final bool allowEditing;
+  final bool isReadOnly;
 
   ExerciseFormWidget({
     required this.exercise,
-    required this.onAddSeries,
-    required this.onDeleteSeries,
+    this.onAddSeries,
+    this.onDeleteSeries,
     required this.weightControllers,
     required this.repsControllers,
     required this.exertionControllers,
@@ -27,6 +30,8 @@ class ExerciseFormWidget extends StatefulWidget {
     this.onReplaceExercise,
     this.onAutofillSeries,
     this.maxRecord,
+    this.allowEditing = false,
+    this.isReadOnly = false,
   });
 
   @override
@@ -247,6 +252,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
     // Determinar si mostrar el campo de RPE y la casilla de verificación
     bool showRPEAndCheckbox = widget.isExecution;
 
+    // Determinar si mostrar las opciones de edición
+    bool showEditOptions = widget.isExecution || widget.allowEditing;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -255,7 +263,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
             widget.exercise.name,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          trailing: widget.isExecution
+          trailing: showEditOptions
               ? PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'delete') {
@@ -270,10 +278,11 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                         value: 'delete',
                         child: Text('Eliminar Ejercicio'),
                       ),
-                      PopupMenuItem(
-                        value: 'replace',
-                        child: Text('Reemplazar Ejercicio'),
-                      ),
+                      if (widget.isExecution || widget.allowEditing)
+                        PopupMenuItem(
+                          value: 'replace',
+                          child: Text('Reemplazar Ejercicio'),
+                        ),
                     ];
                   },
                 )
@@ -321,6 +330,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
             ],
           ),
         ),
+        // Cabecera de las columnas
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
@@ -343,6 +353,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
             ],
           ),
         ),
+        // Series
         Column(
           children: widget.exercise.series.asMap().entries.map((entry) {
             int seriesIndex = entry.key;
@@ -376,46 +387,54 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                   else
                     SizedBox(),
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextField(
-                        controller: widget.weightControllers[series.id],
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                          hintText: widget.isExecution && series.previousWeight != null
-                              ? series.previousWeight.toString()
-                              : 'KG',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          isDense: true,
-                        ),
-                        onChanged: (value) {
-                          series.weight = int.tryParse(value) ?? 0;
-                          // No llamamos a setState aquí
-                        },
-                      ),
-                    ),
+                    child: widget.isReadOnly
+                        ? Center(
+                            child: Text(
+                              series.weight.toString(),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: TextField(
+                              controller: widget.weightControllers[series.id],
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                hintText: 'KG',
+                                hintStyle: TextStyle(color: Colors.grey),
+                                isDense: true,
+                              ),
+                              onChanged: (value) {
+                                series.weight = int.tryParse(value) ?? 0;
+                              },
+                            ),
+                          ),
                   ),
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextField(
-                        controller: widget.repsControllers[series.id],
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                          hintText: widget.isExecution && series.previousReps != null
-                              ? series.previousReps.toString()
-                              : 'Reps',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          isDense: true,
-                        ),
-                        onChanged: (value) {
-                          series.reps = int.tryParse(value) ?? 0;
-                          // No llamamos a setState aquí
-                        },
-                      ),
-                    ),
+                    child: widget.isReadOnly
+                        ? Center(
+                            child: Text(
+                              series.reps.toString(),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: TextField(
+                              controller: widget.repsControllers[series.id],
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                hintText: 'Reps',
+                                hintStyle: TextStyle(color: Colors.grey),
+                                isDense: true,
+                              ),
+                              onChanged: (value) {
+                                series.reps = int.tryParse(value) ?? 0;
+                              },
+                            ),
+                          ),
                   ),
                   if (showRPEAndCheckbox)
                     Expanded(
@@ -482,13 +501,14 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
             );
           }).toList(),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: ElevatedButton(
-            onPressed: widget.onAddSeries,
-            child: Text("+ Agregar Serie"),
+        if (!widget.isReadOnly)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: ElevatedButton(
+              onPressed: widget.onAddSeries,
+              child: Text("+ Agregar Serie"),
+            ),
           ),
-        ),
         Divider(),
       ],
     );

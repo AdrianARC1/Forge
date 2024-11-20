@@ -1,5 +1,7 @@
 // lib/screens/routine/routine_form.dart
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../exercice_selection_screen.dart';
 import '../../app_state.dart';
 import 'package:uuid/uuid.dart';
@@ -117,6 +119,23 @@ class _RoutineFormState extends State<RoutineForm> {
     });
   }
 
+  void _deleteExercise(Exercise exercise) {
+    setState(() {
+      // Liberar controladores de todas las series del ejercicio
+      for (var series in exercise.series) {
+        weightControllers[series.id]?.dispose();
+        weightControllers.remove(series.id);
+        repsControllers[series.id]?.dispose();
+        repsControllers.remove(series.id);
+        exertionControllers[series.id]?.dispose();
+        exertionControllers.remove(series.id);
+      }
+
+      selectedExercises.remove(exercise);
+    });
+  }
+
+
   void _cancel() {
     widget.onCancel();
   }
@@ -124,7 +143,9 @@ class _RoutineFormState extends State<RoutineForm> {
   bool _areAllSeriesCompleted() {
     for (var exercise in selectedExercises) {
       for (var series in exercise.series) {
-        if (series.weight == 0 || series.reps == 0) return false;
+        int weight = int.tryParse(weightControllers[series.id]?.text ?? '') ?? 0;
+        int reps = int.tryParse(repsControllers[series.id]?.text ?? '') ?? 0;
+        if (weight == 0 || reps == 0) return false;
       }
     }
     return true;
@@ -155,6 +176,14 @@ class _RoutineFormState extends State<RoutineForm> {
       return;
     }
 
+    // Actualizar los valores de weight y reps en las series
+    for (var exercise in selectedExercises) {
+      for (var series in exercise.series) {
+        series.weight = int.tryParse(weightControllers[series.id]?.text ?? '') ?? 0;
+        series.reps = int.tryParse(repsControllers[series.id]?.text ?? '') ?? 0;
+      }
+    }
+
     final newRoutine = Routine(
       id: widget.routine?.id ?? Uuid().v4(),
       name: routineName,
@@ -177,6 +206,8 @@ class _RoutineFormState extends State<RoutineForm> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -208,6 +239,8 @@ class _RoutineFormState extends State<RoutineForm> {
               // Lista de ejercicios
               Column(
                 children: selectedExercises.map((exercise) {
+                  final maxRecord = appState.maxExerciseRecords[exercise.name];
+
                   return ExerciseFormWidget(
                     exercise: exercise,
                     onAddSeries: () => _addSeriesToExercise(exercise),
@@ -216,6 +249,10 @@ class _RoutineFormState extends State<RoutineForm> {
                     repsControllers: repsControllers,
                     exertionControllers: exertionControllers,
                     isExecution: false,
+                    onDeleteExercise: () => _deleteExercise(exercise),
+                    onReplaceExercise: () => _replaceExercise(exercise),
+                    maxRecord: maxRecord,
+                    allowEditing: true,
                   );
                 }).toList(),
               ),
@@ -240,4 +277,53 @@ class _RoutineFormState extends State<RoutineForm> {
       ),
     );
   }
+  // Dentro de routine_form.dart, agrega el siguiente método dentro de la clase _RoutineFormState
+
+Future<void> _replaceExercise(Exercise oldExercise) async {
+  final selectedExercise = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => ExerciseSelectionScreen()),
+  );
+
+  if (selectedExercise != null) {
+    setState(() {
+      // Eliminar controladores del ejercicio antiguo
+      for (var series in oldExercise.series) {
+        weightControllers[series.id]?.dispose();
+        weightControllers.remove(series.id);
+        repsControllers[series.id]?.dispose();
+        repsControllers.remove(series.id);
+        exertionControllers[series.id]?.dispose();
+        exertionControllers.remove(series.id);
+      }
+      int index = selectedExercises.indexOf(oldExercise);
+
+      // Crear nuevo ejercicio
+      final newExercise = Exercise(
+        id: selectedExercise['id'].toString(),
+        name: selectedExercise['name'],
+        series: [
+          Series(
+            id: Uuid().v4(),
+            weight: 0,
+            reps: 0,
+            perceivedExertion: 0,
+            isCompleted: false,
+          ),
+        ],
+      );
+
+      // Reemplazar en la lista
+      selectedExercises[index] = newExercise;
+
+      // Inicializar controladores para el nuevo ejercicio
+      for (var series in newExercise.series) {
+        weightControllers[series.id] = TextEditingController();
+        repsControllers[series.id] = TextEditingController();
+        exertionControllers[series.id] = TextEditingController();
+      }
+    });
+  }
+}
+
 }
