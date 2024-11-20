@@ -198,6 +198,16 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                 },
                 child: Text("Sí"),
               ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Simplemente cierra el diálogo
+                  // No se realiza ninguna acción adicional
+                },
+                child: Text(
+                  "Cancelar",
+                  style: TextStyle(color: Colors.red), // Opcional: Resaltar el botón de cancelar
+                ),
+              ),
             ],
           );
         },

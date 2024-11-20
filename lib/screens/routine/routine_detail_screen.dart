@@ -87,7 +87,7 @@ class RoutineDetailScreen extends StatelessWidget {
                         children: [
                           Text("SERIE", style: TextStyle(fontWeight: FontWeight.bold)),
                           Text("KGxREPS", style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text("RIR", style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text("RPE", style: TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -101,7 +101,7 @@ class RoutineDetailScreen extends StatelessWidget {
                             children: [
                               Text("${seriesIndex + 1}"), // Número de serie
                               Text("${series.weight} kg x ${series.reps}"), // Peso x Repeticiones
-                              Text("${series.perceivedExertion}"), // RIR
+                              Text("${series.perceivedExertion}"), // RPE
                             ],
                           ),
                         );

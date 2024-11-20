@@ -32,10 +32,149 @@ class ExerciseFormWidget extends StatefulWidget {
 }
 
 class _ExerciseFormWidgetState extends State<ExerciseFormWidget> {
+  // Mapa para almacenar los GlobalKeys de cada serie
+  Map<String, GlobalKey> seriesRowKeys = {};
+
+  // OverlayEntry activo
+  OverlayEntry? activeOverlay;
+
+  // Mapa para almacenar los valores temporales de RPE mientras se edita
+  Map<String, double> tempRPEValues = {};
+
+  // Mapa para almacenar los valores originales de RPE antes de editar
+  Map<String, double> originalRPEValues = {};
+
+  // ID de la serie que actualmente tiene el Slider activo
+  String? activeSliderSeriesId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializar los GlobalKeys para cada serie
+    for (var series in widget.exercise.series) {
+      seriesRowKeys[series.id] = GlobalKey();
+    }
+  }
+
+  @override
+  void dispose() {
+    // Asegurarse de eliminar cualquier OverlayEntry activo al destruir el widget
+    activeOverlay?.remove();
+    super.dispose();
+  }
+
+  void showRPEOverlay(BuildContext context, Series series) {
+    // Remover cualquier Overlay existente
+    activeOverlay?.remove();
+
+    // Obtener la RenderBox del row de la serie
+    RenderBox renderBox = seriesRowKeys[series.id]!.currentContext!.findRenderObject() as RenderBox;
+    Offset position = renderBox.localToGlobal(Offset.zero);
+    Size size = renderBox.size;
+
+    // Crear el OverlayEntry
+    activeOverlay = OverlayEntry(
+      builder: (context) => Positioned(
+        top: position.dy + size.height + 10, // 10 es un margen
+        left: position.dx,
+        width: size.width,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 4.0,
+                  offset: Offset(2, 2),
+                ),
+              ],
+            ),
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setOverlayState) {
+                double currentValue = tempRPEValues[series.id] ??
+                    (series.perceivedExertion > 0 ? series.perceivedExertion.toDouble() : 1.0);
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Slider(
+                      value: currentValue,
+                      min: 1,
+                      max: 10,
+                      divisions: 9, // Pasos enteros de 1 a 10
+                      label: currentValue.round().toString(),
+                      activeColor: Colors.blue,
+                      inactiveColor: Colors.grey,
+                      onChanged: (double newValue) {
+                        setOverlayState(() {
+                          tempRPEValues[series.id] = newValue;
+                          series.perceivedExertion = newValue.round();
+                        });
+                        // Llamar a setState del widget principal para actualizar el RPE Text
+                        setState(() {});
+                      },
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            // Cancelar: remover Overlay sin guardar cambios
+                            activeOverlay?.remove();
+                            activeOverlay = null;
+                            setState(() {
+                              // Revertir el valor de RPE a su valor original
+                              if (originalRPEValues.containsKey(series.id)) {
+                                series.perceivedExertion = originalRPEValues[series.id]!.round();
+                                originalRPEValues.remove(series.id);
+                              }
+                              tempRPEValues.remove(series.id);
+                              activeSliderSeriesId = null;
+                            });
+                          },
+                          child: Text(
+                            'Cancelar',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Guardar: remover Overlay
+                            activeOverlay?.remove();
+                            activeOverlay = null;
+                            setState(() {
+                              // No es necesario revertir el valor ya que se actualizó en tiempo real
+                              originalRPEValues.remove(series.id);
+                              tempRPEValues.remove(series.id);
+                              activeSliderSeriesId = null;
+                            });
+                          },
+                          child: Text('Guardar'),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Insertar el OverlayEntry en el Overlay
+    Overlay.of(context)!.insert(activeOverlay!);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Determinar si mostrar el campo de RIR y la casilla de verificación
-    bool showRIRAndCheckbox = widget.isExecution;
+    // Determinar si mostrar el campo de RPE y la casilla de verificación
+    bool showRPEAndCheckbox = widget.isExecution;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,152 +217,144 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> {
                 SizedBox(),
               Expanded(child: Center(child: Text("KG"))),
               Expanded(child: Center(child: Text("REPS"))),
-              if (showRIRAndCheckbox)
-                Expanded(child: Center(child: Text("RIR")))
+              if (showRPEAndCheckbox)
+                Expanded(child: Center(child: Text("RPE")))
               else
                 SizedBox(),
-              if (showRIRAndCheckbox)
+              if (showRPEAndCheckbox)
                 Expanded(child: Center(child: Icon(Icons.check)))
               else
                 SizedBox(),
             ],
           ),
         ),
-Column(
+        Column(
           children: widget.exercise.series.asMap().entries.map((entry) {
             int seriesIndex = entry.key;
             Series series = entry.value;
 
-            return Dismissible(
-              key: ValueKey(series.id),
-              direction: DismissDirection.endToStart,
-              onDismissed: (direction) => widget.onDeleteSeries(seriesIndex),
-              background: Container(
-                color: Colors.red,
-                alignment: Alignment.centerRight,
-                padding: EdgeInsets.symmetric(horizontal: 20.0),
-                child: Icon(Icons.delete, color: Colors.white),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
-                child: Row(
-                  children: [
-                    Expanded(child: Center(child: Text("${seriesIndex + 1}"))),
-                    if (widget.isExecution)
-                      Expanded(
-                        child: Center(
-                          child: GestureDetector(
-                            onTap: () {
-                              if (widget.onAutofillSeries != null) {
+            bool isActive = activeSliderSeriesId == series.id;
+            double currentRPE = tempRPEValues[series.id]?.toDouble() ?? series.perceivedExertion.toDouble();
+
+            return Padding(
+              key: seriesRowKeys[series.id], // Asignar un GlobalKey único
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
+              child: Row(
+                children: [
+                  Expanded(child: Center(child: Text("${seriesIndex + 1}"))),
+                  if (widget.isExecution)
+                    Expanded(
+                      child: Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            if (widget.onAutofillSeries != null) {
+                              widget.onAutofillSeries!(series);
+                            }
+                          },
+                          child: Text(
+                            "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    SizedBox(),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: TextField(
+                        controller: widget.weightControllers[series.id],
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          hintText: widget.isExecution && series.previousWeight != null
+                              ? series.previousWeight.toString()
+                              : 'KG',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          isDense: true,
+                        ),
+                        onChanged: (value) {
+                          series.weight = int.tryParse(value) ?? 0;
+                          // No llamamos a setState aquí
+                        },
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: TextField(
+                        controller: widget.repsControllers[series.id],
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          hintText: widget.isExecution && series.previousReps != null
+                              ? series.previousReps.toString()
+                              : 'Reps',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          isDense: true,
+                        ),
+                        onChanged: (value) {
+                          series.reps = int.tryParse(value) ?? 0;
+                          // No llamamos a setState aquí
+                        },
+                      ),
+                    ),
+                  ),
+                  if (showRPEAndCheckbox)
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (isActive) {
+                              // Cerrar el Slider y guardar el valor
+                              activeOverlay?.remove();
+                              activeOverlay = null;
+                              tempRPEValues.remove(series.id);
+                              originalRPEValues.remove(series.id);
+                              activeSliderSeriesId = null;
+                            } else {
+                              // Abrir el Slider
+                              activeSliderSeriesId = series.id;
+                              originalRPEValues[series.id] = series.perceivedExertion.toDouble();
+                              tempRPEValues[series.id] = series.perceivedExertion > 0
+                                  ? series.perceivedExertion.toDouble()
+                                  : 1.0;
+                              showRPEOverlay(context, series);
+                            }
+                          });
+                        },
+                        child: Text(
+                          series.perceivedExertion > 0 ? series.perceivedExertion.toString() : '-',
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  else
+                    SizedBox(),
+                  if (showRPEAndCheckbox)
+                    Expanded(
+                      child: Center(
+                        child: Checkbox(
+                          value: series.isCompleted,
+                          onChanged: (value) {
+                            setState(() {
+                              if (value == true &&
+                                  widget.isExecution &&
+                                  widget.onAutofillSeries != null) {
                                 widget.onAutofillSeries!(series);
                               }
-                            },
-                            child: Text(
-                              "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: TextField(
-                          controller: widget.weightControllers[series.id],
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            hintText: widget.isExecution && series.previousWeight != null
-                                ? series.previousWeight.toString()
-                                : 'KG',
-                            hintStyle: TextStyle(color: Colors.grey),
-                            isDense: true,
-                          ),
-                          onChanged: (value) {
-                            series.weight = int.tryParse(value) ?? 0;
-                            // No llamamos a setState aquí
+                              series.isCompleted = value ?? false;
+                            });
                           },
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: TextField(
-                          controller: widget.repsControllers[series.id],
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            hintText: widget.isExecution && series.previousReps != null
-                                ? series.previousReps.toString()
-                                : 'Reps',
-                            hintStyle: TextStyle(color: Colors.grey),
-                            isDense: true,
-                          ),
-                          onChanged: (value) {
-                            series.reps = int.tryParse(value) ?? 0;
-                            // No llamamos a setState aquí
-                          },
-                        ),
-                      ),
-                    ),
-                    if (showRIRAndCheckbox)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: DropdownButton<int>(
-                            value: series.perceivedExertion > 0 ? series.perceivedExertion : null,
-                            isExpanded: true,
-                            alignment: Alignment.center,
-                            hint: Center(
-                              child: Text(
-                                widget.isExecution && series.lastSavedPerceivedExertion != null
-                                    ? series.lastSavedPerceivedExertion.toString()
-                                    : 'RIR',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ),
-                            items: List.generate(10, (index) => index + 1).map((int value) {
-                              return DropdownMenuItem<int>(
-                                value: value,
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text(value.toString()),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (int? newValue) {
-                              setState(() {
-                                series.perceivedExertion = newValue ?? 0;
-                              });
-                            },
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(),
-                    if (showRIRAndCheckbox)
-                      Expanded(
-                        child: Center(
-                          child: Checkbox(
-                            value: series.isCompleted,
-                            onChanged: (value) {
-                              setState(() {
-                                if (value == true && widget.isExecution && widget.onAutofillSeries != null) {
-                                  widget.onAutofillSeries!(series);
-                                }
-                                series.isCompleted = value ?? false;
-                              });
-                            },
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(),
-                  ],
-                ),
+                    )
+                  else
+                    SizedBox(),
+                ],
               ),
             );
           }).toList(),
