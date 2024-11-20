@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4, // Incrementamos la versión a 4 para añadir 'salt'
+      version: 6, // Actualizado a versión 6
       onCreate: (db, version) async {
         // Tabla de usuarios con salting y restricciones NOT NULL
         await db.execute('''
@@ -67,7 +67,7 @@ class DatabaseHelper {
         // Tabla de series
         await db.execute('''
           CREATE TABLE series (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT PRIMARY KEY,
             exerciseId TEXT NOT NULL,
             previousWeight INTEGER,
             previousReps INTEGER,
@@ -80,32 +80,56 @@ class DatabaseHelper {
             FOREIGN KEY (exerciseId) REFERENCES exercises (id) ON DELETE CASCADE
           )
         ''');
+
+        // Nueva tabla para registros de ejercicios
+        await db.execute('''
+          CREATE TABLE exercise_records (
+            id TEXT PRIMARY KEY,
+            userId TEXT NOT NULL,
+            exerciseName TEXT NOT NULL,
+            maxWeight INTEGER NOT NULL,
+            maxReps INTEGER NOT NULL,
+            max1RM REAL NOT NULL,
+            FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
+          )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 4) {
-          // Añadir 'salt' a la tabla de usuarios
-          await db.execute('''
-            ALTER TABLE users ADD COLUMN salt TEXT
-          ''');
+  if (oldVersion < 6) {
+    // Renombrar la tabla existente
+    await db.execute('''
+      ALTER TABLE series RENAME TO series_old;
+    ''');
 
-          // Actualizar existentes sin 'salt' (esto requiere definir cómo manejar usuarios existentes)
-          // Por simplicidad, puedes optar por eliminar y recrear la tabla si estás en desarrollo
-          // **Advertencia:** Este paso eliminará todos los datos existentes en la tabla 'users'
-          
-          await db.execute('DROP TABLE IF EXISTS users');
-          await db.execute('''
-            CREATE TABLE users (
-              id TEXT PRIMARY KEY,
-              username TEXT UNIQUE NOT NULL,
-              password TEXT NOT NULL,
-              salt TEXT NOT NULL
-            )
-          ''');
-          
-          
-          // Nota: En producción, deberías migrar los datos adecuadamente.
-        }
-      },
+    // Crear la nueva tabla 'series' con 'id' como TEXT PRIMARY KEY
+    await db.execute('''
+      CREATE TABLE series (
+        id TEXT PRIMARY KEY,
+        exerciseId TEXT NOT NULL,
+        previousWeight INTEGER,
+        previousReps INTEGER,
+        lastSavedWeight INTEGER,
+        lastSavedReps INTEGER,
+        weight INTEGER NOT NULL,
+        reps INTEGER NOT NULL,
+        perceivedExertion INTEGER NOT NULL,
+        isCompleted INTEGER NOT NULL,
+        FOREIGN KEY (exerciseId) REFERENCES exercises (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Migrar los datos de la tabla antigua a la nueva
+    await db.execute('''
+      INSERT INTO series (id, exerciseId, previousWeight, previousReps, lastSavedWeight, lastSavedReps, weight, reps, perceivedExertion, isCompleted)
+      SELECT id, exerciseId, previousWeight, previousReps, lastSavedWeight, lastSavedReps, weight, reps, perceivedExertion, isCompleted
+      FROM series_old;
+    ''');
+
+    // Eliminar la tabla antigua
+    await db.execute('DROP TABLE series_old;');
+  }
+  // Manejar otras actualizaciones si es necesario
+},
     );
   }
 
@@ -309,6 +333,7 @@ class DatabaseHelper {
   Future<void> insertSeries(Series series, String exerciseId) async {
     final db = await database;
     await db.insert('series', {
+      'id': series.id, // Usa el ID proporcionado
       'exerciseId': exerciseId,
       'previousWeight': series.previousWeight,
       'previousReps': series.previousReps,
@@ -350,6 +375,67 @@ class DatabaseHelper {
     final db = await database;
     await db.delete('series', where: 'id = ?', whereArgs: [id]);
     print("Serie eliminada: ID $id");
+  }
+
+  // Métodos para manejar los registros máximos de ejercicios
+
+  /// Obtiene el registro máximo de un ejercicio para un usuario
+  Future<Map<String, dynamic>?> getExerciseRecord(String userId, String exerciseName) async {
+    final db = await database;
+    final result = await db.query(
+      'exercise_records',
+      where: 'userId = ? AND exerciseName = ?',
+      whereArgs: [userId, exerciseName],
+    );
+    if (result.isNotEmpty) {
+      return result.first;
+    } else {
+      return null;
+    }
+  }
+
+  /// Actualiza el registro máximo de un ejercicio para un usuario
+  Future<void> updateExerciseRecord(String userId, String exerciseName, int weight, int reps) async {
+    final db = await database;
+    double new1RM = weight * (1 + reps / 30);
+    final existingRecord = await getExerciseRecord(userId, exerciseName);
+    if (existingRecord == null) {
+      await db.insert('exercise_records', {
+        'id': uuid.v4(),
+        'userId': userId,
+        'exerciseName': exerciseName,
+        'maxWeight': weight,
+        'maxReps': reps,
+        'max1RM': new1RM,
+      });
+      print("Nuevo récord guardado para $exerciseName: $weight kg x $reps reps");
+    } else {
+      double existing1RM = existingRecord['max1RM'] as double;
+      if (new1RM > existing1RM) {
+        await db.update(
+          'exercise_records',
+          {
+            'maxWeight': weight,
+            'maxReps': reps,
+            'max1RM': new1RM,
+          },
+          where: 'id = ?',
+          whereArgs: [existingRecord['id']],
+        );
+        print("Récord actualizado para $exerciseName: $weight kg x $reps reps");
+      }
+    }
+  }
+
+  /// Obtiene todos los registros máximos de ejercicios para un usuario
+  Future<List<Map<String, dynamic>>> getAllExerciseRecords(String userId) async {
+    final db = await database;
+    final result = await db.query(
+      'exercise_records',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
+    return result;
   }
 
   /// Reinicia la base de datos (solo para propósitos de desarrollo)

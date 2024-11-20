@@ -1,3 +1,5 @@
+// lib/screens/routine_execution_screen.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forge/screens/navigation/main_navigation_screen.dart';
@@ -42,7 +44,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
           name: exercise.name,
           series: exercise.series.map((series) {
             return Series(
-              id: Uuid().v4(),
+              id: series.id,
               previousWeight: series.weight,
               previousReps: series.reps,
               weight: 0,
@@ -68,6 +70,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
             id: series.id,
             previousWeight: series.previousWeight,
             previousReps: series.previousReps,
+            lastSavedWeight: series.lastSavedWeight,
+            lastSavedReps: series.lastSavedReps,
             weight: series.weight,
             reps: series.reps,
             perceivedExertion: series.perceivedExertion,
@@ -154,9 +158,31 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
   }
 
   void _discardRoutine() {
-    final appState = Provider.of<AppState>(context, listen: false);
-    appState.cancelMinimizedRoutine();
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Descartar Entrenamiento"),
+          content: Text("¿Estás seguro de que deseas descartar este entrenamiento? Todos los progresos no guardados se perderán."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: Text("No"),
+            ),
+            TextButton(
+              onPressed: () {
+                final appState = Provider.of<AppState>(context, listen: false);
+                appState.cancelMinimizedRoutine();
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+              child: Text("Sí"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _resumeRoutine() {
@@ -164,42 +190,97 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     Navigator.of(context).pop();
   }
 
-  void _saveRoutine() {
+  void _saveRoutine() async {
     final appState = Provider.of<AppState>(context, listen: false);
 
-    // Verificar si hay cambios en la rutina
-    bool routineChanged = _hasRoutineChanged();
-
-    if (routineChanged) {
-      // Mostrar diálogo para actualizar la rutina
+    if (widget.routine == null) {
+      // Es un entrenamiento vacío
+      // Preguntar si desea guardar como nueva rutina
+      String newRoutineName = "Nueva Rutina";
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Actualizar Rutina"),
-            content: Text("Has realizado cambios en la rutina. ¿Deseas actualizarla con estos cambios?"),
+            title: Text("Guardar Rutina"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("¿Deseas guardar esta rutina como una nueva rutina?"),
+                TextField(
+                  onChanged: (value) {
+                    newRoutineName = value;
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Nombre de la nueva rutina",
+                  ),
+                ),
+              ],
+            ),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  _finalizeRoutine(appState, updateRoutine: false);
+                  _finalizeRoutine(appState, saveAsNewRoutine: true, newRoutineName: newRoutineName);
                 },
-                child: Text("No"),
+                child: Text("Sí"),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  _finalizeRoutine(appState, updateRoutine: true);
+                  _finalizeRoutine(appState, saveAsNewRoutine: false);
                 },
-                child: Text("Sí"),
+                child: Text("No"),
               ),
             ],
           );
         },
       );
     } else {
-      // No hay cambios, finalizar rutina
-      _finalizeRoutine(appState, updateRoutine: false);
+      // Rutina existente: lógica actual
+      bool routineChanged = _hasRoutineChanged();
+
+      if (routineChanged) {
+        String changeDescription = _getRoutineChanges();
+        // Mostrar diálogo para actualizar la rutina
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Actualizar Rutina"),
+              content: Text("$changeDescription\n¿Deseas actualizarla con estos cambios?"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _finalizeRoutine(appState, updateRoutine: false);
+                  },
+                  child: Text("No"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _finalizeRoutine(appState, updateRoutine: true);
+                  },
+                  child: Text("Sí"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Simplemente cierra el diálogo
+                    // No se realiza ninguna acción adicional
+                  },
+                  child: Text(
+                    "Cancelar",
+                    style: TextStyle(color: Colors.red), // Opcional: Resaltar el botón de cancelar
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // No hay cambios, finalizar rutina
+        _finalizeRoutine(appState, updateRoutine: false);
+      }
     }
   }
 
@@ -212,34 +293,96 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     return false;
   }
 
-  void _finalizeRoutine(AppState appState, {required bool updateRoutine}) {
-    if (updateRoutine && widget.routine != null) {
-      // Actualizar la rutina en AppState y en la base de datos
-      Routine updatedRoutine = widget.routine!.copyWith(
-        exercises: exercises,
-      );
-      appState.updateRoutine(updatedRoutine);
-    }
-
-    // Guardar la rutina completada sin modificar la original
-    Routine completedRoutine = widget.routine != null
-        ? widget.routine!.copyWith(
-            exercises: exercises,
-          )
-        : Routine(
-            id: uuid.v4(),
-            name: routineName,
-            dateCreated: DateTime.now(),
-            exercises: exercises,
-            duration: _displayDuration.value,
-            isCompleted: true,
+  void _finalizeRoutine(AppState appState, {bool updateRoutine = false, bool saveAsNewRoutine = false, String? newRoutineName}) async {
+  try {
+    if (saveAsNewRoutine && newRoutineName != null && newRoutineName.trim().isNotEmpty) {
+      // Guardar la rutina como nueva rutina
+      Routine newRoutine = Routine(
+        id: uuid.v4(),
+        name: newRoutineName.trim(),
+        dateCreated: DateTime.now(),
+        exercises: exercises.map((exercise) {
+          return Exercise(
+            id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
+            name: exercise.name,
+            series: exercise.series.map((series) {
+              return Series(
+                id: Uuid().v4(), // Genera un nuevo UUID para la serie
+                previousWeight: series.previousWeight,
+                previousReps: series.previousReps,
+                lastSavedWeight: series.lastSavedWeight,
+                lastSavedReps: series.lastSavedReps,
+                weight: series.weight,
+                reps: series.reps,
+                perceivedExertion: series.perceivedExertion,
+                lastSavedPerceivedExertion: series.lastSavedPerceivedExertion,
+                isCompleted: series.isCompleted,
+              );
+            }).toList(),
           );
-
-    try {
-      appState.completeRoutine(completedRoutine, _displayDuration.value);
-    } catch (e) {
-      print("Error al completar la rutina: $e");
+        }).toList(),
+        duration: _displayDuration.value,
+      );
+      await appState.saveRoutine(newRoutine);
     }
+
+    if (updateRoutine && widget.routine != null) {
+      // Actualizar la rutina existente
+      Routine updatedRoutine = widget.routine!.copyWith(
+        exercises: exercises.map((exercise) {
+          return Exercise(
+            id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
+            name: exercise.name,
+            series: exercise.series.map((series) {
+              return Series(
+                id: Uuid().v4(), // Genera un nuevo UUID para la serie
+                previousWeight: series.previousWeight,
+                previousReps: series.previousReps,
+                lastSavedWeight: series.lastSavedWeight,
+                lastSavedReps: series.lastSavedReps,
+                weight: series.weight,
+                reps: series.reps,
+                perceivedExertion: series.perceivedExertion,
+                lastSavedPerceivedExertion: series.lastSavedPerceivedExertion,
+                isCompleted: series.isCompleted,
+              );
+            }).toList(),
+          );
+        }).toList(),
+      );
+      await appState.updateRoutine(updatedRoutine);
+    }
+
+    // Guardar la rutina completada en el historial con nuevos IDs
+    Routine completedRoutine = Routine(
+      id: uuid.v4(),
+      name: routineName,
+      dateCreated: DateTime.now(),
+      exercises: exercises.map((exercise) {
+        return Exercise(
+          id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
+          name: exercise.name,
+          series: exercise.series.map((series) {
+            return Series(
+              id: Uuid().v4(), // Genera un nuevo UUID para la serie
+              previousWeight: series.previousWeight,
+              previousReps: series.previousReps,
+              lastSavedWeight: series.lastSavedWeight,
+              lastSavedReps: series.lastSavedReps,
+              weight: series.weight,
+              reps: series.reps,
+              perceivedExertion: series.perceivedExertion,
+              lastSavedPerceivedExertion: series.lastSavedPerceivedExertion,
+              isCompleted: series.isCompleted,
+            );
+          }).toList(),
+        );
+      }).toList(),
+      duration: _displayDuration.value,
+      isCompleted: true,
+    );
+
+    await appState.completeRoutine(completedRoutine, _displayDuration.value);
     appState.restoreRoutine();
 
     // Navegar de vuelta a la pantalla principal
@@ -248,7 +391,14 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       MaterialPageRoute(builder: (context) => MainNavigationScreen()),
       (route) => false,
     );
+  } catch (e) {
+    print("Error en _finalizeRoutine: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error al finalizar la rutina: $e")),
+    );
   }
+}
+
 
   bool _areAllSeriesCompleted() {
     for (var exercise in exercises) {
@@ -312,6 +462,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    
     return WillPopScope(
       onWillPop: () async {
         _minimizeRoutine();
@@ -350,6 +502,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
               child: SingleChildScrollView(
                 child: Column(
                   children: exercises.map((exercise) {
+                    final maxRecord = appState.maxExerciseRecords[exercise.name];
+
                     return ExerciseFormWidget(
                       exercise: exercise,
                       onAddSeries: () => addSeriesToExercise(exercise),
@@ -361,6 +515,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                       onDeleteExercise: () => deleteExercise(exercise),
                       onReplaceExercise: () => replaceExercise(exercise),
                       onAutofillSeries: autofillSeries,
+                      maxRecord: maxRecord, // Pasamos el registro máximo
                     );
                   }).toList(),
                 ),
@@ -386,5 +541,82 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         ),
       ),
     );
+  }
+
+  String _getRoutineChanges() {
+    int exercisesAdded = 0;
+    int exercisesRemoved = 0;
+    int seriesAdded = 0;
+    int seriesRemoved = 0;
+
+    // Mapear ejercicios originales y actuales por ID
+    Map<String, Exercise> originalExercisesMap = {
+      for (var exercise in originalExercises) exercise.id: exercise
+    };
+    Map<String, Exercise> currentExercisesMap = {
+      for (var exercise in exercises) exercise.id: exercise
+    };
+
+    // Detectar ejercicios añadidos y eliminados
+    for (var exercise in exercises) {
+      if (!originalExercisesMap.containsKey(exercise.id)) {
+        exercisesAdded += 1;
+        seriesAdded += exercise.series.length;
+      }
+    }
+
+    for (var exercise in originalExercises) {
+      if (!currentExercisesMap.containsKey(exercise.id)) {
+        exercisesRemoved += 1;
+        seriesRemoved += exercise.series.length;
+      }
+    }
+
+    // Comparar series dentro de los ejercicios existentes
+    for (var exercise in exercises) {
+      if (originalExercisesMap.containsKey(exercise.id)) {
+        var originalExercise = originalExercisesMap[exercise.id]!;
+
+        Map<String, Series> originalSeriesMap = {
+          for (var series in originalExercise.series) series.id: series
+        };
+        Map<String, Series> currentSeriesMap = {
+          for (var series in exercise.series) series.id: series
+        };
+
+        for (var series in exercise.series) {
+          if (!originalSeriesMap.containsKey(series.id)) {
+            seriesAdded += 1;
+          }
+        }
+
+        for (var series in originalExercise.series) {
+          if (!currentSeriesMap.containsKey(series.id)) {
+            seriesRemoved += 1;
+          }
+        }
+      }
+    }
+
+    // Construir la descripción de cambios
+    List<String> changes = [];
+
+    if (exercisesAdded > 0) {
+      changes.add('Has añadido $exercisesAdded nuevo(s) ejercicio(s).');
+    }
+    if (exercisesRemoved > 0) {
+      changes.add('Has eliminado $exercisesRemoved ejercicio(s).');
+    }
+    if (seriesAdded > 0) {
+      changes.add('Has añadido $seriesAdded nueva(s) serie(s).');
+    }
+    if (seriesRemoved > 0) {
+      changes.add('Has eliminado $seriesRemoved serie(s).');
+    }
+    if (changes.isEmpty) {
+      return 'No hay cambios en la rutina.';
+    } else {
+      return changes.join('\n');
+    }
   }
 }
