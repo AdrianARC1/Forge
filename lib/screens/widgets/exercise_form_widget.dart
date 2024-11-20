@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../app_state.dart';
+import '../widgets/dismissible_series_item.dart';
 
 class ExerciseFormWidget extends StatefulWidget {
   final Exercise exercise;
@@ -354,19 +355,22 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
           ),
         ),
         // Series
-        Column(
-          children: widget.exercise.series.asMap().entries.map((entry) {
-            int seriesIndex = entry.key;
-            Series series = entry.value;
+Column(
+  children: widget.exercise.series.asMap().entries.map((entry) {
+    int seriesIndex = entry.key;
+    Series series = entry.value;
 
-            bool isActive = activeSliderSeriesId == series.id;
-            double currentRPE = tempRPEValues[series.id]?.toDouble() ?? series.perceivedExertion.toDouble();
+    bool isActive = activeSliderSeriesId == series.id;
+    double currentRPE = tempRPEValues[series.id]?.toDouble() ?? series.perceivedExertion.toDouble();
 
-            return Padding(
-              key: seriesRowKeys[series.id], // Asignar un GlobalKey único
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
-              child: Row(
-                children: [
+    return DismissibleSeriesItem(
+      series: series,
+      onDelete: () => widget.onDeleteSeries?.call(seriesIndex),
+      child: Padding(
+        key: seriesRowKeys[series.id], // Asignar un GlobalKey único
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
+        child: Row(
+          children: [
                   Expanded(child: Center(child: Text("${seriesIndex + 1}"))),
                   if (widget.isExecution)
                     Expanded(
@@ -497,6 +501,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                   else
                     SizedBox(),
                 ],
+                ),
               ),
             );
           }).toList(),
