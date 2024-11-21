@@ -243,7 +243,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
           currentMaxReps = reps;
 
           // Iniciar la animación del trofeo
-          _animationController.forward(from: 0);
+          _animationController.forward(from: 0).then((_) {
+            _animationController.reverse(); // Revertir para volver al estado original
+          });
         });
       }
     }
@@ -299,10 +301,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                             color: Colors.grey[300],
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.info_outline, color: Colors.white, size: 20,), // Ícono blanco
-                          onPressed: () {
-                            // Mostrar explicación
+                        SizedBox(width: 4), // Espacio entre texto y el ícono
+                        GestureDetector(
+                          onTap: () {
                             showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
@@ -317,51 +318,59 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                               ),
                             );
                           },
-                        ),
-                        if (isNewRecord)
-                          AnimatedBuilder(
-                            animation: _animationController,
-                            builder: (context, child) {
-                              return Icon(
-                                Icons.emoji_events,
-                                color: Colors.amber.withOpacity(_animationController.value),
-                                size: 24 + _animationController.value * 8,
-                              );
-                            },
+                          child: Icon(
+                            Icons.info_outline,
+                            color: Colors.white,
+                            size: 20,
                           ),
+                        ),
+                        SizedBox(width: 4), // Espacio entre el ícono de información y la copa
+                        AnimatedBuilder(
+                          animation: _animationController,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: 1.0 + (_animationController.value * 0.5), // Agranda la copa un 50%
+                              child: Icon(
+                                Icons.emoji_events,
+                                color: Colors.amber,
+                                size: 24, // Tamaño base de la copa
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
-                  ],
-                ),
+        ],
+      ),
+    ),
+    // Menú de opciones con ícono blanco
+    if (showEditOptions)
+      PopupMenuButton<String>(
+        offset: const Offset(0.0, 40.0),
+        icon: Icon(Icons.more_vert, color: Colors.white), // Ícono blanco
+        onSelected: (value) {
+          if (value == 'delete') {
+            widget.onDeleteExercise?.call();
+          } else if (value == 'replace') {
+            widget.onReplaceExercise?.call();
+          }
+        },
+        itemBuilder: (BuildContext context) {
+          return [
+            PopupMenuItem(
+              value: 'delete',
+              child: Text('Eliminar Ejercicio'),
+            ),
+            if (widget.isExecution || widget.allowEditing)
+              PopupMenuItem(
+                value: 'replace',
+                child: Text('Reemplazar Ejercicio'),
               ),
-              // Menú de opciones con ícono blanco
-              if (showEditOptions)
-                PopupMenuButton<String>(
-                  offset: const Offset(0.0, 40.0),
-                  icon: Icon(Icons.more_vert, color: Colors.white), // Ícono blanco
-                  onSelected: (value) {
-                    if (value == 'delete') {
-                      widget.onDeleteExercise?.call();
-                    } else if (value == 'replace') {
-                      widget.onReplaceExercise?.call();
-                    }
-                  },
-                  itemBuilder: (BuildContext context) {
-                    return [
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text('Eliminar Ejercicio'),
-                      ),
-                      if (widget.isExecution || widget.allowEditing)
-                        PopupMenuItem(
-                          value: 'replace',
-                          child: Text('Reemplazar Ejercicio'),
-                        ),
-                    ];
-                  },
-                ),
-            ],
-          ),
+          ];
+        },
+      ),
+  ],
+),
         ),
         // Cabecera de las columnas (sin fondo)
         Padding(
