@@ -294,6 +294,20 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                     ),
                     Row(
                       children: [
+                        AnimatedBuilder(
+                          animation: _animationController,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: 1.0 + (_animationController.value * 0.5), // Agranda la copa un 50%
+                              child: Icon(
+                                Icons.emoji_events,
+                                color: Colors.amber,
+                                size: 20, // Tamaño base de la copa
+                              ),
+                            );
+                          },
+                        ),
+                        SizedBox(width: 4), // Espacio entre el ícono de información y la copa
                         Text(
                           '${currentMaxWeight}kg x ${currentMaxReps} reps',
                           style: GlobalStyles.subtitleStyle.copyWith(
@@ -323,20 +337,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                             color: Colors.white,
                             size: 20,
                           ),
-                        ),
-                        SizedBox(width: 4), // Espacio entre el ícono de información y la copa
-                        AnimatedBuilder(
-                          animation: _animationController,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: 1.0 + (_animationController.value * 0.5), // Agranda la copa un 50%
-                              child: Icon(
-                                Icons.emoji_events,
-                                color: Colors.amber,
-                                size: 24, // Tamaño base de la copa
-                              ),
-                            );
-                          },
                         ),
                       ],
                     ),
@@ -389,9 +389,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
               else
                 SizedBox(),
               if (showRPEAndCheckbox)
-                Expanded(child: Center(child: Icon(Icons.check, color: Colors.white)))
-              else
-                SizedBox(),
+                Expanded(
+                  child: Center(child: SizedBox()),
+                )
             ],
           ),
         ),
