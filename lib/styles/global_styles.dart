@@ -8,6 +8,7 @@ class GlobalStyles {
   static const Color navigationBarIconColor = Colors.white; // Color de los iconos y texto
   static const Color buttonColor = Color(0xFFC3C3C3);
   static const Color textColor = Colors.white;
+  static const Color textColorWithOpacity = Color.fromARGB(60, 255, 255, 255);
   static const Color placeholderColor = Colors.white54;
   static const Color errorColor = Colors.red;
   static const Color inputBackgroundColor = Color(0xFF2D2D2D);
@@ -23,13 +24,24 @@ class GlobalStyles {
     letterSpacing: 4,
   );
 
+  static const TextStyle insideAppTitleStyle = TextStyle(
+    color: textColor,
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+  );
   static const TextStyle subtitleStyle = TextStyle(
     color: textColor,
     fontSize: 16,
   );
 
+  static const TextStyle subtitleStyleHighFont= TextStyle(
+    color: textColorWithOpacity,
+    fontSize: 26,
+    fontWeight: FontWeight.w900,
+  );
+
   static const TextStyle buttonTextStyle = TextStyle(
-    color: Color(0xFF373737),
+    color: Color(0xFF000000),
     fontSize: 16,
     fontWeight: FontWeight.bold,
   );
