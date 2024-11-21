@@ -1,6 +1,7 @@
 // lib/screens/widgets/exercise_form_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:forge/styles/global_styles.dart';
 import '../../app_state.dart';
 import '../widgets/dismissible_series_item.dart';
 
@@ -507,14 +508,26 @@ Column(
           }).toList(),
         ),
         if (!widget.isReadOnly)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ElevatedButton(
-              onPressed: widget.onAddSeries,
-              child: Text("+ Agregar Serie"),
-            ),
+  Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Añadido vertical padding para mejor separación
+    child: SizedBox(
+      width: double.infinity, // Hace que el botón llene horizontalmente
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: GlobalStyles.inputBackgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12), // Bordes redondeados
           ),
-        Divider(),
+        ),
+        onPressed: widget.onAddSeries,
+        icon: Icon(Icons.add, color: Colors.white), // Ícono de agregar
+        label: Text(
+          "Agregar Serie",
+          style: GlobalStyles.buttonTextStyleLight,
+        ),
+      ),
+    ),
+  ),
       ],
     );
   }

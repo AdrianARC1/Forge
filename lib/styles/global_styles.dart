@@ -15,6 +15,7 @@ class GlobalStyles {
   static const Color focusedBorderColor = Colors.blueAccent;
   static const Color errorBorderColor = Colors.redAccent;
   static const Color backgroundButtonsColor = Color(0xFFFFAA76);
+  static const Color inputBorderColor = Colors.grey; // Color del borde inferior cuando está habilitado
 
   // Text Styles
   static const TextStyle titleStyle = TextStyle(
@@ -34,7 +35,7 @@ class GlobalStyles {
     fontSize: 16,
   );
 
-  static const TextStyle subtitleStyleHighFont= TextStyle(
+  static const TextStyle subtitleStyleHighFont = TextStyle(
     color: textColorWithOpacity,
     fontSize: 26,
     fontWeight: FontWeight.w900,
@@ -46,6 +47,11 @@ class GlobalStyles {
     fontWeight: FontWeight.bold,
   );
 
+  static const TextStyle buttonTextStyleLight = TextStyle(
+    color: Color(0xFFFFFFFF),
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  );
   static const TextStyle linkTextStyle = TextStyle(
     color: Colors.white70,
     fontSize: 14,

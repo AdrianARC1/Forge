@@ -256,163 +256,192 @@ class _RoutineFormState extends State<RoutineForm> {
   }
 
   // Función auxiliar para construir los botones del AppBar
-Widget _buildAppBarButton(
-  String text,
-  VoidCallback onPressed, {
-  Color? textColor,
-  Color? backgroundColor,
-  EdgeInsetsGeometry? padding, // Nuevo parámetro opcional para padding
-}) {
-  return Padding(
-    padding: padding ?? EdgeInsets.symmetric(horizontal: 0.0), // Padding por defecto
-    child: TextButton(
-      onPressed: onPressed,
-      child: Text(
-        text,
-        style: GlobalStyles.buttonTextStyle.copyWith(
-          color: textColor ?? GlobalStyles.buttonTextStyle.color,
+  Widget _buildAppBarButton(
+    String text,
+    VoidCallback onPressed, {
+    Color? textColor,
+    Color? backgroundColor,
+    EdgeInsetsGeometry? padding, // Nuevo parámetro opcional para padding
+  }) {
+    return Padding(
+      padding: padding ?? EdgeInsets.symmetric(horizontal: 0.0), // Padding por defecto
+      child: TextButton(
+        onPressed: onPressed,
+        child: Text(
+          text,
+          style: GlobalStyles.buttonTextStyle.copyWith(
+            color: textColor ?? GlobalStyles.buttonTextStyle.color,
+          ),
+        ),
+        style: TextButton.styleFrom(
+          backgroundColor: backgroundColor, // Color de fondo opcional
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          minimumSize: Size(50, 36),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12), // Bordes redondeados opcional
+          ),
         ),
       ),
-      style: TextButton.styleFrom(
-        backgroundColor: backgroundColor, // Color de fondo opcional
-        padding: EdgeInsets.symmetric(horizontal: 16.0),
-        minimumSize: Size(50, 36),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12), // Bordes redondeados opcional
-        ),
-      ),
-    ),
-  );
-}
+    );
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
 
-
-
-@override
-Widget build(BuildContext context) {
-  final appState = Provider.of<AppState>(context);
-
-  return BaseScaffold(
-    backgroundColor: GlobalStyles.backgroundColor,
-    appBar: AppBar(
+    return BaseScaffold(
       backgroundColor: GlobalStyles.backgroundColor,
-      elevation: 0,
-      leadingWidth: 100,
-      title: Text(
-        widget.title,
-        style: GlobalStyles.insideAppTitleStyle,
-      ),
-      centerTitle: true,
-      leading: _buildAppBarButton(
-        'Cancelar',
-        _cancel,
-        textColor: GlobalStyles.textColor, // Texto blanco para "Cancelar"
-        backgroundColor: Colors.transparent, // Sin fondo para "Cancelar"
-      ),
-      actions: [
-        _buildAppBarButton(
-          'Guardar',
-          _saveRoutine,
-          textColor: GlobalStyles.buttonTextStyle.color, // Texto oscuro para "Guardar"
-          backgroundColor: GlobalStyles.backgroundButtonsColor, // Fondo definido para "Guardar"
-          padding: EdgeInsets.symmetric(horizontal: 16.0), // Mayor padding para "Guardar"
+      appBar: AppBar(
+        backgroundColor: GlobalStyles.backgroundColor,
+        elevation: 0,
+        leadingWidth: 100,
+        title: Text(
+          widget.title,
+          style: GlobalStyles.insideAppTitleStyle,
         ),
-      ],
-    ),
-    body: GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-              // Campo para el nombre de la rutina
-              TextField(
-                controller: _routineNameController,
-                focusNode: _routineNameFocusNode,
-                decoration: InputDecoration(
-                  hintText: "Nombre de la rutina",
-                  hintStyle: GlobalStyles.subtitleStyle.copyWith(
-                    color: GlobalStyles.placeholderColor,
-                  ),
-                  filled: true,
-                  fillColor: GlobalStyles.inputBackgroundColor,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: GlobalStyles.focusedBorderColor),
-                  ),
-                ),
-                style: GlobalStyles.subtitleStyle,
-              ),
-              // Gestión de ejercicios seleccionados
-              if (selectedExercises.isEmpty) ...[
-                SizedBox(height: 80),
-                Text(
-                  'Introduce algún ejercicio para empezar',
-                  style: GlobalStyles.subtitleStyleHighFont,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity, // Hace que el botón llene horizontalmente
-                  child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlobalStyles.backgroundButtonsColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: _addExercise,
-                  icon: Icon(Icons.add, color: Colors.black),
-                  label: Text(
-                    "Introducir ejercicio",
-                    style: GlobalStyles.buttonTextStyle,
-                  ),
-                ),
-              ),
-            ] else ...[
-                // Lista de ejercicios
+        centerTitle: true,
+        leading: _buildAppBarButton(
+          'Cancelar',
+          _cancel,
+          textColor: GlobalStyles.textColor, // Texto blanco para "Cancelar"
+          backgroundColor: Colors.transparent, // Sin fondo para "Cancelar"
+        ),
+        actions: [
+          _buildAppBarButton(
+            'Guardar',
+            _saveRoutine,
+            textColor: GlobalStyles.buttonTextStyle.color, // Texto oscuro para "Guardar"
+            backgroundColor: GlobalStyles.backgroundButtonsColor, // Fondo definido para "Guardar"
+            padding: EdgeInsets.symmetric(horizontal: 16.0), // Mayor padding para "Guardar"
+          ),
+        ],
+      ),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 0.0), // Sin padding general
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch, // Asegura que los hijos ocupen todo el ancho
+              children: [
+                // Campo para el nombre de la rutina con sombra en el borde inferior
                 Column(
-                  children: selectedExercises.map((exercise) {
-                    final maxRecord =
-                        appState.maxExerciseRecords[exercise.name];
-
-                    return ExerciseFormWidget(
-                      exercise: exercise,
-                      onAddSeries: () => _addSeriesToExercise(exercise),
-                      onDeleteSeries: (seriesIndex) =>
-                          _deleteSeries(exercise, seriesIndex),
-                      weightControllers: weightControllers,
-                      repsControllers: repsControllers,
-                      exertionControllers: exertionControllers,
-                      isExecution: false,
-                      onDeleteExercise: () => _deleteExercise(exercise),
-                      onReplaceExercise: () => _replaceExercise(exercise),
-                      maxRecord: maxRecord,
-                      allowEditing: true,
-                    );
-                  }).toList(),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _routineNameController,
+                      focusNode: _routineNameFocusNode,
+                      decoration: InputDecoration(
+                        hintText: "Nombre de la rutina",
+                        hintStyle: GlobalStyles.subtitleStyle.copyWith(
+                          color: GlobalStyles.placeholderColor,
+                        ),
+                        filled: false, // Eliminamos el fondo relleno
+                        border: InputBorder.none, // Eliminamos los bordes por defecto
+                      ),
+                      style: GlobalStyles.subtitleStyle,
+                    ),
+                    // Línea inferior con sombra
+                    Container(
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: GlobalStyles.inputBorderColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.6), // Sombra sutil
+                            offset: Offset(0, 5), // Posición de la sombra
+                            blurRadius: 2, // Radio de desenfoque
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                // Botón para añadir más ejercicios
-                ElevatedButton(
-                  onPressed: _addExercise,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlobalStyles.backgroundButtonsColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                SizedBox(height: 20), // Espacio entre el TextField y los siguientes widgets
+
+                // Gestión de ejercicios seleccionados
+                if (selectedExercises.isEmpty) ...[
+                  SizedBox(height: 80),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0), // Añade padding solo aquí
+                    child: Text(
+                      'Introduce algún ejercicio para empezar',
+                      style: GlobalStyles.subtitleStyleHighFont,
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                  child: Text(
-                    "Añadir Ejercicio",
-                    style: GlobalStyles.buttonTextStyle,
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    child: SizedBox(
+                      width: double.infinity, // Hace que el botón llene horizontalmente
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GlobalStyles.backgroundButtonsColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _addExercise,
+                        icon: Icon(Icons.add, color: Colors.black),
+                        label: Text(
+                          "Introducir ejercicio",
+                          style: GlobalStyles.buttonTextStyle,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ] else ...[
+                  // Lista de ejercicios
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    child: Column(
+                      children: selectedExercises.map((exercise) {
+                        final maxRecord =
+                            appState.maxExerciseRecords[exercise.name];
+
+                        return ExerciseFormWidget(
+                          exercise: exercise,
+                          onAddSeries: () => _addSeriesToExercise(exercise),
+                          onDeleteSeries: (seriesIndex) =>
+                              _deleteSeries(exercise, seriesIndex),
+                          weightControllers: weightControllers,
+                          repsControllers: repsControllers,
+                          exertionControllers: exertionControllers,
+                          isExecution: false,
+                          onDeleteExercise: () => _deleteExercise(exercise),
+                          onReplaceExercise: () => _replaceExercise(exercise),
+                          maxRecord: maxRecord,
+                          allowEditing: true,
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  // Botón para añadir más ejercicios
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0), // Añade padding solo aquí
+                    child: SizedBox(
+                      width: double.infinity, // Hace que el botón llene horizontalmente
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GlobalStyles.backgroundButtonsColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _addExercise,
+                        icon: Icon(Icons.add, color: Colors.black),
+                        label: Text(
+                          "Introducir ejercicio",
+                          style: GlobalStyles.buttonTextStyle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
