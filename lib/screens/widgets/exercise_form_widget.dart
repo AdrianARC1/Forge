@@ -290,18 +290,17 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4),
                     Row(
                       children: [
                         Text(
                           '${currentMaxWeight}kg x ${currentMaxReps} reps',
                           style: GlobalStyles.subtitleStyle.copyWith(
-                            fontSize: 16,
+                            fontSize: 14,
                             color: Colors.grey[300],
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.info_outline, color: Colors.white), // Ícono blanco
+                          icon: Icon(Icons.info_outline, color: Colors.white, size: 20,), // Ícono blanco
                           onPressed: () {
                             // Mostrar explicación
                             showDialog(
@@ -388,47 +387,54 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
           ),
         ),
         // Series
-        Column(
-          children: widget.exercise.series.asMap().entries.map((entry) {
-            int seriesIndex = entry.key;
-            Series series = entry.value;
+// Series
+      Column(
+        children: widget.exercise.series.asMap().entries.map((entry) {
+          int seriesIndex = entry.key;
+          Series series = entry.value;
 
-            bool isActive = activeSliderSeriesId == series.id;
-            double currentRPE = tempRPEValues[series.id]?.toDouble() ?? series.perceivedExertion.toDouble();
+          bool isActive = activeSliderSeriesId == series.id;
+          double currentRPE = tempRPEValues[series.id]?.toDouble() ?? series.perceivedExertion.toDouble();
 
-            return DismissibleSeriesItem(
-              series: series,
-              onDelete: () => widget.onDeleteSeries?.call(seriesIndex),
+          return DismissibleSeriesItem(
+            series: series,
+            onDelete: () => widget.onDeleteSeries?.call(seriesIndex),
+            child: Container(
+              decoration: BoxDecoration(
+                color: series.isCompleted ? Color(0xFF008922) : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+              ),
               child: Padding(
-                key: seriesRowKeys[series.id], // Asignar un GlobalKey único
-                padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 3.0), // Sin padding izquierdo
+                key: seriesRowKeys[series.id],
+                padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 2.0),
                 child: Row(
                   children: [
                     // SERIE
-Expanded(
-  child: Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8.0), // Padding horizontal externo
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 12.0), // Padding vertical interno
-      decoration: BoxDecoration(
-        color: GlobalStyles.inputBackgroundColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(
-        child: Text(
-          "${seriesIndex + 1}",
-          style: GlobalStyles.subtitleStyle,
-        ),
-      ),
-    ),
-  ),
-),
-
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Añadido vertical padding
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          decoration: BoxDecoration(
+                            color: series.isCompleted
+                                ? Colors.transparent
+                                : GlobalStyles.inputBackgroundColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "${seriesIndex + 1}",
+                              style: GlobalStyles.subtitleStyle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     // ANTERIOR
                     if (widget.isExecution)
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Añadido vertical padding
                           child: GestureDetector(
                             onTap: () {
                               if (widget.onAutofillSeries != null) {
@@ -436,15 +442,18 @@ Expanded(
                               }
                             },
                             child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12.0),
                               decoration: BoxDecoration(
-                                color: GlobalStyles.inputBackgroundColor,
+                                color: series.isCompleted
+                                    ? Colors.transparent
+                                    : GlobalStyles.inputBackgroundColor,
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              padding: EdgeInsets.symmetric(vertical: 12.0),
                               child: Center(
                                 child: Text(
                                   "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
                                   style: GlobalStyles.subtitleStyle.copyWith(color: Colors.grey),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ),
@@ -456,172 +465,213 @@ Expanded(
                     // KG
                     Expanded(
                       child: widget.isReadOnly
-                          ? Center(
-                              child: Text(
-                                series.weight.toString(),
-                                textAlign: TextAlign.center,
-                                style: GlobalStyles.subtitleStyle,
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: series.isCompleted
+                                      ? Colors.transparent
+                                      : GlobalStyles.inputBackgroundColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    series.weight.toString(),
+                                    textAlign: TextAlign.center,
+                                    style: GlobalStyles.subtitleStyle,
+                                  ),
+                                ),
                               ),
                             )
                           : Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: TextField(
-                                controller: widget.weightControllers[series.id],
-                                keyboardType: TextInputType.number,
-                                textAlign: TextAlign.center,
-                                decoration: InputDecoration(
-                                  hintText: series.previousWeight != null ? "${series.previousWeight} kg" : 'KG',
-                                  hintStyle: GlobalStyles.subtitleStyle.copyWith(color: GlobalStyles.placeholderColor),
-                                  isDense: true,
-                                  filled: true, // Campo de entrada con fondo
-                                  fillColor: GlobalStyles.inputBackgroundColor, // Color de fondo
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide.none, // Sin bordes
-                                    borderRadius: BorderRadius.circular(8), // Bordes redondeados
-                                  ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: series.isCompleted
+                                      ? Colors.transparent
+                                      : GlobalStyles.inputBackgroundColor,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                style: GlobalStyles.subtitleStyle,
-                                onChanged: (value) {
-                                  series.weight = int.tryParse(value) ?? 0;
-                                },
+                                child: TextField(
+                                  controller: widget.weightControllers[series.id],
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  decoration: InputDecoration(
+                                    hintText: series.previousWeight != null ? "${series.previousWeight} kg" : 'KG',
+                                    hintStyle: GlobalStyles.subtitleStyle.copyWith(color: GlobalStyles.placeholderColor),
+                                    isDense: true,
+                                    filled: true,
+                                    fillColor: series.isCompleted
+                                        ? Colors.transparent
+                                        : GlobalStyles.inputBackgroundColor,
+                                    contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide.none,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  style: GlobalStyles.subtitleStyle,
+                                  onChanged: (value) {
+                                    series.weight = int.tryParse(value) ?? 0;
+                                  },
+                                ),
                               ),
                             ),
                     ),
                     // REPS
                     Expanded(
                       child: widget.isReadOnly
-                          ? Center(
-                              child: Text(
-                                series.reps.toString(),
-                                textAlign: TextAlign.center,
-                                style: GlobalStyles.subtitleStyle,
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: series.isCompleted
+                                      ? Colors.transparent
+                                      : GlobalStyles.inputBackgroundColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    series.reps.toString(),
+                                    textAlign: TextAlign.center,
+                                    style: GlobalStyles.subtitleStyle,
+                                  ),
+                                ),
                               ),
                             )
                           : Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: TextField(
-                                controller: widget.repsControllers[series.id],
-                                keyboardType: TextInputType.number,
-                                textAlign: TextAlign.center,
-                                decoration: InputDecoration(
-                                  hintText: series.previousReps != null ? "${series.previousReps} reps" : 'Reps',
-                                  hintStyle: GlobalStyles.subtitleStyle.copyWith(color: GlobalStyles.placeholderColor),
-                                  isDense: true,
-                                  filled: true, // Campo de entrada con fondo
-                                  fillColor: GlobalStyles.inputBackgroundColor, // Color de fondo
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide.none, // Sin bordes
-                                    borderRadius: BorderRadius.circular(8), // Bordes redondeados
-                                  ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: series.isCompleted
+                                      ? Colors.transparent
+                                      : GlobalStyles.inputBackgroundColor,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                style: GlobalStyles.subtitleStyle,
-                                onChanged: (value) {
-                                  series.reps = int.tryParse(value) ?? 0;
-                                },
+                                child: TextField(
+                                  controller: widget.repsControllers[series.id],
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  decoration: InputDecoration(
+                                    hintText: series.previousReps != null ? "${series.previousReps} reps" : 'Reps',
+                                    hintStyle: GlobalStyles.subtitleStyle.copyWith(color: GlobalStyles.placeholderColor),
+                                    isDense: true,
+                                    filled: true,
+                                    fillColor: series.isCompleted
+                                        ? Colors.transparent
+                                        : GlobalStyles.inputBackgroundColor,
+                                    contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide.none,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  style: GlobalStyles.subtitleStyle,
+                                  onChanged: (value) {
+                                    series.reps = int.tryParse(value) ?? 0;
+                                  },
+                                ),
                               ),
                             ),
                     ),
                     // RPE
                     if (showRPEAndCheckbox)
                       Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            if (isActive) {
-                              // Cerrar el Slider y guardar el valor
-                              activeOverlay?.remove();
-                              activeOverlay = null;
-                              tempRPEValues.remove(series.id);
-                              originalRPEValues.remove(series.id);
-                              activeSliderSeriesId = null;
-                            } else {
-                              // Abrir el Slider
-                              activeSliderSeriesId = series.id;
-                              originalRPEValues[series.id] = series.perceivedExertion.toDouble();
-                              tempRPEValues[series.id] = series.perceivedExertion > 0
-                                  ? series.perceivedExertion.toDouble()
-                                  : 1.0;
-                              showRPEOverlay(context, series);
-                            }
-                          });
-                        },
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0), // Padding horizontal externo
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12.0), // Padding vertical interno
-                            decoration: BoxDecoration(
-                              color: GlobalStyles.inputBackgroundColor,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: Text(
-                                series.perceivedExertion > 0 ? series.perceivedExertion.toString() : '-',
-                                style: GlobalStyles.subtitleStyle, // Estilo de texto consistente
-                                textAlign: TextAlign.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Añadido vertical padding
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                if (isActive) {
+                                  activeOverlay?.remove();
+                                  activeOverlay = null;
+                                  tempRPEValues.remove(series.id);
+                                  originalRPEValues.remove(series.id);
+                                  activeSliderSeriesId = null;
+                                } else {
+                                  activeSliderSeriesId = series.id;
+                                  originalRPEValues[series.id] = series.perceivedExertion.toDouble();
+                                  tempRPEValues[series.id] = series.perceivedExertion > 0
+                                      ? series.perceivedExertion.toDouble()
+                                      : 1.0;
+                                  showRPEOverlay(context, series);
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              decoration: BoxDecoration(
+                                color: series.isCompleted
+                                    ? Colors.transparent
+                                    : GlobalStyles.inputBackgroundColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  series.perceivedExertion > 0 ? series.perceivedExertion.toString() : '-',
+                                  style: GlobalStyles.subtitleStyle,
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    )
+                      )
                     else
                       SizedBox(),
                     // CHECKBOX
                     if (showRPEAndCheckbox)
-  Expanded(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: GlobalStyles.inputBackgroundColor,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Transform.scale(
-            scale: 1.5, // Aumenta el tamaño del Checkbox
-            child: Checkbox(
-              value: series.isCompleted,
-              onChanged: (value) {
-                setState(() {
-                  if (value == true) {
-                    series.isCompleted = true;
-
-                    // Autorellenar datos si es ejecución y la función está disponible
-                    if (widget.isExecution && widget.onAutofillSeries != null) {
-                      widget.onAutofillSeries!(series);
-                    }
-
-                    // Verificar si hay un nuevo récord al completar la serie
-                    _checkForNewRecord(series);
-                  } else {
-                    series.isCompleted = false;
-                  }
-                });
-              },
-              activeColor: GlobalStyles.buttonColor, // Color cuando está activo
-              checkColor: Colors.white, // Color de la marca de verificación
-              side: BorderSide(
-                color: GlobalStyles.backgroundColor, // Color del borde
-                width: 2.0,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4), // Bordes redondeados
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  )
-
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+                          child: Container(
+                            child: Center(
+                              child: Transform.scale(
+                                scale: 1.2,
+                                child: Checkbox(
+                                  value: series.isCompleted,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      series.isCompleted = value ?? false;
+                                      if (series.isCompleted) {
+                                        if (widget.isExecution && widget.onAutofillSeries != null) {
+                                          widget.onAutofillSeries!(series);
+                                        }
+                                        _checkForNewRecord(series);
+                                      }
+                                    });
+                                  },
+                                  activeColor: Color(0xFF2D753F),
+                                  checkColor: Colors.white,
+                                  side: BorderSide(
+                                    color: Color(0xFF2D753F),
+                                    width: 2.0,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
                     else
                       SizedBox(),
                   ],
                 ),
               ),
-            );
-          }).toList(),
-        ),
+            ),
+          );
+        }).toList(),
+      ),
+
+
+
         if (!widget.isReadOnly)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0), // Sin padding izquierdo
