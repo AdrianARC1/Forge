@@ -420,7 +420,7 @@ class _RoutineFormState extends State<RoutineForm> {
                   ),
                   // Botón para añadir más ejercicios
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0), // Añade padding solo aquí
+                    padding: EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
                     child: SizedBox(
                       width: double.infinity, // Hace que el botón llene horizontalmente
                       child: ElevatedButton.icon(
