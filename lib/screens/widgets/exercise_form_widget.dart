@@ -137,7 +137,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black26,

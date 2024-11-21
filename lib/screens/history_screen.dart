@@ -31,7 +31,7 @@ class HistoryScreen extends StatelessWidget {
 
                 return Card(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: ListTile(
                     title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),

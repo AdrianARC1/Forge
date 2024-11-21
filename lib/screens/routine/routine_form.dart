@@ -337,11 +337,11 @@ Widget build(BuildContext context) {
                   filled: true,
                   fillColor: GlobalStyles.inputBackgroundColor,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: GlobalStyles.focusedBorderColor),
                   ),
                 ),
@@ -349,18 +349,20 @@ Widget build(BuildContext context) {
               ),
               // Gestión de ejercicios seleccionados
               if (selectedExercises.isEmpty) ...[
-                SizedBox(height:80),
+                SizedBox(height: 80),
                 Text(
                   'Introduce algún ejercicio para empezar',
                   style: GlobalStyles.subtitleStyleHighFont,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton.icon(
+                SizedBox(
+                  width: double.infinity, // Hace que el botón llene horizontalmente
+                  child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GlobalStyles.backgroundButtonsColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   onPressed: _addExercise,
@@ -370,7 +372,8 @@ Widget build(BuildContext context) {
                     style: GlobalStyles.buttonTextStyle,
                   ),
                 ),
-              ] else ...[
+              ),
+            ] else ...[
                 // Lista de ejercicios
                 Column(
                   children: selectedExercises.map((exercise) {
@@ -400,7 +403,7 @@ Widget build(BuildContext context) {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GlobalStyles.backgroundButtonsColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: Text(

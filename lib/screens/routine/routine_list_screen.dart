@@ -212,7 +212,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                             child: Card(
                               margin: EdgeInsets.symmetric(vertical: 8),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0), // Bordes redondeados
+                                borderRadius: BorderRadius.circular(12), // Bordes redondeados
                               ),
                               color: GlobalStyles.inputBackgroundColor, // Color del fondo de la tarjeta
                               child: Padding(
@@ -290,7 +290,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                             backgroundColor: GlobalStyles.backgroundButtonsColor, // Color del botón
                                             foregroundColor: Colors.black,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8.0), // Bordes del botón
+                                              borderRadius: BorderRadius.circular(12), // Bordes del botón
                                             ),
                                             textStyle: TextStyle(
                                               fontSize: 15, // Tamaño de texto más pequeño

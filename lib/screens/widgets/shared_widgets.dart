@@ -111,14 +111,14 @@ class SharedWidgets {
             offset: Offset(0, 10),
           ),
         ],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: GlobalStyles.buttonColor,
           padding: padding,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
           elevation: 0,
         ),
