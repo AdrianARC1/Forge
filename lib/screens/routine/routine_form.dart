@@ -8,6 +8,7 @@ import '../../app_state.dart';
 import 'package:uuid/uuid.dart';
 import '../widgets/exercise_form_widget.dart';
 import '../widgets/base_scaffold.dart'; // Importa el BaseScaffold
+import '../widgets/app_bar_button.dart'; // Importa AppBarButton
 
 class RoutineForm extends StatefulWidget {
   final Routine? routine; // Si es null, estamos creando una nueva rutina
@@ -255,37 +256,6 @@ class _RoutineFormState extends State<RoutineForm> {
     }
   }
 
-  // Función auxiliar para construir los botones del AppBar
-  Widget _buildAppBarButton(
-    String text,
-    VoidCallback onPressed, {
-    Color? textColor,
-    Color? backgroundColor,
-    EdgeInsetsGeometry? padding, // Nuevo parámetro opcional para padding
-  }) {
-    return Padding(
-      padding: padding ?? EdgeInsets.symmetric(horizontal: 0.0), // Padding por defecto
-      child: TextButton(
-        onPressed: onPressed,
-        child: Text(
-          text,
-          style: GlobalStyles.buttonTextStyle.copyWith(
-            color: textColor ?? GlobalStyles.buttonTextStyle.color,
-          ),
-        ),
-        style: TextButton.styleFrom(
-          backgroundColor: backgroundColor, // Color de fondo opcional
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          minimumSize: Size(50, 36),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12), // Bordes redondeados opcional
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -301,19 +271,19 @@ class _RoutineFormState extends State<RoutineForm> {
           style: GlobalStyles.insideAppTitleStyle,
         ),
         centerTitle: true,
-        leading: _buildAppBarButton(
-          'Cancelar',
-          _cancel,
-          textColor: GlobalStyles.textColor, // Texto blanco para "Cancelar"
-          backgroundColor: Colors.transparent, // Sin fondo para "Cancelar"
+        leading: AppBarButton(
+          text: 'Cancelar',
+          onPressed: _cancel,
+          textColor: GlobalStyles.textColor,
+          backgroundColor: Colors.transparent,
         ),
         actions: [
-          _buildAppBarButton(
-            'Guardar',
-            _saveRoutine,
-            textColor: GlobalStyles.buttonTextStyle.color, // Texto oscuro para "Guardar"
-            backgroundColor: GlobalStyles.backgroundButtonsColor, // Fondo definido para "Guardar"
-            padding: EdgeInsets.symmetric(horizontal: 16.0), // Mayor padding para "Guardar"
+          AppBarButton(
+            text: 'Guardar',
+            onPressed: _saveRoutine,
+            textColor: GlobalStyles.buttonTextStyle.color,
+            backgroundColor: GlobalStyles.backgroundButtonsColor,
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
           ),
         ],
       ),
@@ -398,8 +368,7 @@ class _RoutineFormState extends State<RoutineForm> {
                     padding: EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
                     child: Column(
                       children: selectedExercises.map((exercise) {
-                        final maxRecord =
-                            appState.maxExerciseRecords[exercise.name];
+                        final maxRecord = appState.maxExerciseRecords[exercise.name];
 
                         return ExerciseFormWidget(
                           exercise: exercise,
