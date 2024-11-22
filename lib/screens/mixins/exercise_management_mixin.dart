@@ -139,7 +139,7 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
     }
   }
 
-  void autofillSeries(Series series) {
+void autofillSeries(Series series, {bool markCompleted = true}) {
     setState(() {
       if (series.weight == 0 && series.previousWeight != null) {
         series.weight = series.previousWeight!;
@@ -153,7 +153,9 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
         series.perceivedExertion = series.lastSavedPerceivedExertion!;
         exertionControllers[series.id]?.text = series.perceivedExertion.toString();
       }
-      series.isCompleted = true;
+      if (markCompleted) {
+        series.isCompleted = true;
+      }
     });
   }
 }

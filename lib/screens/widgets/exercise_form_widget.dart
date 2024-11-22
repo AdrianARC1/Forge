@@ -15,7 +15,7 @@ class ExerciseFormWidget extends StatefulWidget {
   final bool isExecution;
   final VoidCallback? onDeleteExercise;
   final Future<void> Function()? onReplaceExercise;
-  final Function(Series)? onAutofillSeries;
+  final void Function(Series, {bool markCompleted})? onAutofillSeries;
   final Map<String, dynamic>? maxRecord; // Máximo histórico
   final bool allowEditing;
   final bool isReadOnly;
@@ -449,7 +449,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                           child: GestureDetector(
                             onTap: () {
                               if (widget.onAutofillSeries != null) {
-                                widget.onAutofillSeries!(series);
+                                widget.onAutofillSeries!(series, markCompleted: false);
                               }
                             },
                             child: Container(
