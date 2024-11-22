@@ -39,7 +39,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 15), // Padding interno del botón
+                padding: EdgeInsets.symmetric(vertical: 15,), // Padding interno del botón
                 alignment: Alignment.centerLeft, // Alineación del contenido a la izquierda
                 backgroundColor: GlobalStyles.inputBackgroundColor,
                 foregroundColor: Colors.white,

@@ -300,15 +300,15 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (widget.showMaxRecord) // Condicional para mostrar la row del máximo histórico
+                    if (widget.showMaxRecord) // Condicional para mostrar la fila del máximo histórico
                       Row(
                         children: [
                           AnimatedBuilder(
                             animation: _animationController,
                             builder: (context, child) {
                               return Transform.scale(
-                                scale: 1.0 +
-                                    (_animationController.value * 0.5), // Animación
+                                scale:
+                                    1.0 + (_animationController.value * 0.5), // Animación
                                 child: Icon(
                                   Icons.emoji_events,
                                   color: Colors.amber,
@@ -389,40 +389,98 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
           padding: const EdgeInsets.symmetric(horizontal: 0.0),
           child: Row(
             children: [
-              // Ajuste de flex para que coincida con las filas de entrada
+              // SERIE
               Expanded(
-                  flex: 2, // Coincide con SERIE en las filas de entrada
-                  child: Center(
-                      child: Text("SERIE",
-                          style: GlobalStyles.subtitleStyle))),
+                flex: 2, // Coincide con SERIE en las filas de entrada
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 0),
+                    child: Center(
+                      child: Text(
+                        "SERIE",
+                        style: GlobalStyles.subtitleStyle,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // ANTERIOR
               if (widget.isExecution)
                 Expanded(
-                    flex: 3, // Coincide con ANTERIOR en las filas de entrada
-                    child: Center(
-                        child: Text("ANTERIOR",
-                            style: GlobalStyles.subtitleStyle)))
+                  flex: 3, // Coincide con ANTERIOR en las filas de entrada
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 0),
+                      child: Center(
+                        child: Text(
+                          "ANTERIOR",
+                          style: GlobalStyles.subtitleStyle,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
               else
                 SizedBox(),
+              // KG
               Expanded(
-                  flex: 2, // Coincide con KG en las filas de entrada
-                  child: Center(
-                      child: Text("KG", style: GlobalStyles.subtitleStyle))),
+                flex: 2, // Coincide con KG en las filas de entrada
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 0),
+                    child: Center(
+                      child: Text(
+                        "KG",
+                        style: GlobalStyles.subtitleStyle,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // REPS
               Expanded(
-                  flex: 2, // Coincide con REPS en las filas de entrada
-                  child: Center(
-                      child: Text("REPS", style: GlobalStyles.subtitleStyle))),
+                flex: 2, // Coincide con REPS en las filas de entrada
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 0),
+                    child: Center(
+                      child: Text(
+                        "REPS",
+                        style: GlobalStyles.subtitleStyle,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // RPE
               if (showRPEAndCheckbox)
                 Expanded(
-                    flex: 2, // Incrementado a 2 para equilibrar RPE
-                    child: Center(
-                        child: Text("RPE",
-                            style: GlobalStyles.subtitleStyle)))
+                  flex: 2, // Incrementado a 2 para equilibrar RPE
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 0),
+                      child: Center(
+                        child: Text(
+                          "RPE",
+                          style: GlobalStyles.subtitleStyle,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
               else
                 SizedBox(),
+              // CHECKBOX
               if (showRPEAndCheckbox)
-                // Placeholder para el Checkbox para alinear con las filas de entrada
-                SizedBox(
+                Container(
                   width: 40, // Ajusta este valor según el tamaño del Checkbox
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: SizedBox(),
                 )
               else
                 SizedBox(),
@@ -578,8 +636,10 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                     ),
                                     style: GlobalStyles.subtitleStyle,
                                     onChanged: (value) {
-                                      series.weight =
-                                          int.tryParse(value) ?? 0;
+                                      setState(() {
+                                        series.weight =
+                                            int.tryParse(value) ?? 0;
+                                      });
                                     },
                                   ),
                                 ),
@@ -648,7 +708,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                     ),
                                     style: GlobalStyles.subtitleStyle,
                                     onChanged: (value) {
-                                      series.reps = int.tryParse(value) ?? 0;
+                                      setState(() {
+                                        series.reps = int.tryParse(value) ?? 0;
+                                      });
                                     },
                                   ),
                                 ),
@@ -708,48 +770,52 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                         SizedBox(),
                       // CHECKBOX
                       if (showRPEAndCheckbox)
-                        // Remover el Expanded y usar SizedBox con ancho fijo
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              series.isCompleted = !series.isCompleted;
-                              if (series.isCompleted) {
-                                if (widget.isExecution &&
-                                    widget.onAutofillSeries != null) {
-                                  widget.onAutofillSeries!(series);
-                                }
-                                _checkForNewRecord(series);
-                              }
-                            });
-                          },
-                          child: Transform.scale(
-                            scale: 1.2,
-                            child: Checkbox(
-                              value: series.isCompleted,
-                              onChanged: (value) {
-                                setState(() {
-                                  series.isCompleted = value ?? false;
-                                  if (series.isCompleted) {
-                                    if (widget.isExecution &&
-                                        widget.onAutofillSeries != null) {
-                                      widget.onAutofillSeries!(series);
-                                    }
-                                    _checkForNewRecord(series);
+                        Container(
+                          width: 40, // Ajusta este valor según el tamaño del Checkbox
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 4.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                series.isCompleted = !series.isCompleted;
+                                if (series.isCompleted) {
+                                  if (widget.isExecution &&
+                                      widget.onAutofillSeries != null) {
+                                    widget.onAutofillSeries!(series);
                                   }
-                                });
-                              },
-                              activeColor: Color(0xFF2D753F),
-                              checkColor: Colors.white,
-                              side: BorderSide(
-                                color: Color(0xFF2D753F),
-                                width: 2.0,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              visualDensity: VisualDensity(
-                                horizontal: -4,
-                                vertical: -4,
+                                  _checkForNewRecord(series);
+                                }
+                              });
+                            },
+                            child: Transform.scale(
+                              scale: 1.2,
+                              child: Checkbox(
+                                value: series.isCompleted,
+                                onChanged: (value) {
+                                  setState(() {
+                                    series.isCompleted = value ?? false;
+                                    if (series.isCompleted) {
+                                      if (widget.isExecution &&
+                                          widget.onAutofillSeries != null) {
+                                        widget.onAutofillSeries!(series);
+                                      }
+                                      _checkForNewRecord(series);
+                                    }
+                                  });
+                                },
+                                activeColor: Color(0xFF2D753F),
+                                checkColor: Colors.white,
+                                side: BorderSide(
+                                  color: Color(0xFF2D753F),
+                                  width: 2.0,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                visualDensity: VisualDensity(
+                                  horizontal: -4,
+                                  vertical: -4,
+                                ),
                               ),
                             ),
                           ),
@@ -779,7 +845,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                 onPressed: widget.onAddSeries,
                 icon: Icon(Icons.add, color: Colors.white), // Ícono blanco
                 label: Text(
-                  "Agregar Serie",
+                  "Introducir serie",
                   style: GlobalStyles.buttonTextStyle
                       .copyWith(color: Colors.white),
                 ),

@@ -575,30 +575,49 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       child: BaseScaffold(
         backgroundColor: GlobalStyles.backgroundColor,
         appBar: AppBar(
-          backgroundColor: GlobalStyles.backgroundColor,
-          elevation: 0,
-          leadingWidth: 100,
-          title: Text(
-            routineName,
-            style: GlobalStyles.insideAppTitleStyle,
+  backgroundColor: GlobalStyles.backgroundColor,
+  elevation: 0,
+  leadingWidth: 160, // Ajusta el ancho según tus necesidades
+  title: Text(
+    routineName,
+    style: GlobalStyles.insideAppTitleStyle,
+  ),
+  centerTitle: true,
+  leading: Container(
+    padding: const EdgeInsets.only(left: 18.0), // Espaciado al inicio
+    child: Row(
+      children: [
+        GestureDetector(
+          onTap: () {
+          _minimizeRoutine();
+          },
+          child: Icon(
+            Icons.arrow_back,
+            color: GlobalStyles.textColor,
+            size: 24.0, // Ajusta el tamaño según tus necesidades
           ),
-          centerTitle: true,
-          leading: AppBarButton(
-            text: 'Cancelar',
-            onPressed: _cancelExecution,
-            textColor: GlobalStyles.textColor,
-            backgroundColor: Colors.transparent,
-          ),
-          actions: [
-            AppBarButton(
-              text: 'Finalizar',
-              onPressed: _finishRoutine,
-              textColor: GlobalStyles.buttonTextStyle.color,
-              backgroundColor: GlobalStyles.backgroundButtonsColor,
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-            ),
-          ],
         ),
+        AppBarButton(
+          text: 'Cancelar',
+          onPressed: _cancelExecution,
+          textColor: GlobalStyles.textColor,
+          backgroundColor: Colors.transparent,
+        ),
+      ],
+    ),
+  ),
+  actions: [
+    AppBarButton(
+      text: 'Finalizar',
+      onPressed: _finishRoutine,
+      textColor: GlobalStyles.buttonTextStyle.color,
+      backgroundColor: GlobalStyles.backgroundButtonsColor,
+      padding: EdgeInsets.symmetric(horizontal: 18.0),
+    ),
+  ],
+),
+
+
         body: Column(
           children: [
             ValueListenableBuilder<Duration>(

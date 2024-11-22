@@ -30,7 +30,7 @@ class BaseScaffold extends StatelessWidget {
       drawer: drawer,
       backgroundColor: backgroundColor ?? GlobalStyles.backgroundColor, // Uso del backgroundColor si se proporciona
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0), // Padding general
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10), // Padding general
         child: body,
       ),
       floatingActionButton: floatingActionButton,
