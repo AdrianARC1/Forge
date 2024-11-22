@@ -19,6 +19,7 @@ class ExerciseFormWidget extends StatefulWidget {
   final Map<String, dynamic>? maxRecord; // Máximo histórico
   final bool allowEditing;
   final bool isReadOnly;
+  final bool showMaxRecord;
 
   ExerciseFormWidget({
     required this.exercise,
@@ -34,6 +35,7 @@ class ExerciseFormWidget extends StatefulWidget {
     this.maxRecord,
     this.allowEditing = false,
     this.isReadOnly = false,
+    this.showMaxRecord = true,
   });
 
   @override
@@ -251,7 +253,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     // Determinar si mostrar el campo de RPE y la casilla de verificación
     bool showRPEAndCheckbox = widget.isExecution;
@@ -264,7 +266,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
       children: [
         // Encabezado con nombre del ejercicio, máximo histórico y menú de opciones
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0), // Sin padding izquierdo
+          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -292,85 +294,86 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Row(
-                      children: [
-                        AnimatedBuilder(
-                          animation: _animationController,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: 1.0 + (_animationController.value * 0.5), // Agranda la copa un 50%
-                              child: Icon(
-                                Icons.emoji_events,
-                                color: Colors.amber,
-                                size: 20, // Tamaño base de la copa
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(width: 4), // Espacio entre el ícono de información y la copa
-                        Text(
-                          '${currentMaxWeight}kg x ${currentMaxReps} reps',
-                          style: GlobalStyles.subtitleStyle.copyWith(
-                            fontSize: 14,
-                            color: Colors.grey[300],
+                    if (widget.showMaxRecord) // Condicional para mostrar la row del máximo histórico
+                      Row(
+                        children: [
+                          AnimatedBuilder(
+                            animation: _animationController,
+                            builder: (context, child) {
+                              return Transform.scale(
+                                scale: 1.0 + (_animationController.value * 0.5),
+                                child: Icon(
+                                  Icons.emoji_events,
+                                  color: Colors.amber,
+                                  size: 20,
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                        SizedBox(width: 4), // Espacio entre texto y el ícono
-                        GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text('Máximo Histórico'),
-                                content: Text('Este es tu mejor rendimiento registrado en este ejercicio.'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
-                                    child: Text('OK'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          child: Icon(
-                            Icons.info_outline,
-                            color: Colors.white,
-                            size: 20,
+                          SizedBox(width: 4),
+                          Text(
+                            '${currentMaxWeight}kg x ${currentMaxReps} reps',
+                            style: GlobalStyles.subtitleStyle.copyWith(
+                              fontSize: 14,
+                              color: Colors.grey[300],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-        ],
-      ),
-    ),
-    // Menú de opciones con ícono blanco
-    if (showEditOptions)
-      PopupMenuButton<String>(
-        offset: const Offset(0.0, 40.0),
-        icon: Icon(Icons.more_vert, color: Colors.white), // Ícono blanco
-        onSelected: (value) {
-          if (value == 'delete') {
-            widget.onDeleteExercise?.call();
-          } else if (value == 'replace') {
-            widget.onReplaceExercise?.call();
-          }
-        },
-        itemBuilder: (BuildContext context) {
-          return [
-            PopupMenuItem(
-              value: 'delete',
-              child: Text('Eliminar Ejercicio'),
-            ),
-            if (widget.isExecution || widget.allowEditing)
-              PopupMenuItem(
-                value: 'replace',
-                child: Text('Reemplazar Ejercicio'),
+                          SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Máximo Histórico'),
+                                  content: Text('Este es tu mejor rendimiento registrado en este ejercicio.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            child: Icon(
+                              Icons.info_outline,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
               ),
-          ];
-        },
-      ),
-  ],
-),
+              // Menú de opciones con ícono blanco
+              if (showEditOptions)
+                PopupMenuButton<String>(
+                  offset: const Offset(0.0, 40.0),
+                  icon: Icon(Icons.more_vert, color: Colors.white),
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      widget.onDeleteExercise?.call();
+                    } else if (value == 'replace') {
+                      widget.onReplaceExercise?.call();
+                    }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text('Eliminar Ejercicio'),
+                      ),
+                      if (widget.isExecution || widget.allowEditing)
+                        PopupMenuItem(
+                          value: 'replace',
+                          child: Text('Reemplazar Ejercicio'),
+                        ),
+                    ];
+                  },
+                ),
+            ],
+          ),
         ),
         // Cabecera de las columnas (sin fondo)
         Padding(
@@ -396,7 +399,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
           ),
         ),
         // Series
-// Series
       Column(
         children: widget.exercise.series.asMap().entries.map((entry) {
           int seriesIndex = entry.key;

@@ -404,8 +404,7 @@ class _RoutineFormState extends State<RoutineForm> {
                         return ExerciseFormWidget(
                           exercise: exercise,
                           onAddSeries: () => _addSeriesToExercise(exercise),
-                          onDeleteSeries: (seriesIndex) =>
-                              _deleteSeries(exercise, seriesIndex),
+                          onDeleteSeries: (seriesIndex) => _deleteSeries(exercise, seriesIndex),
                           weightControllers: weightControllers,
                           repsControllers: repsControllers,
                           exertionControllers: exertionControllers,
@@ -414,6 +413,7 @@ class _RoutineFormState extends State<RoutineForm> {
                           onReplaceExercise: () => _replaceExercise(exercise),
                           maxRecord: maxRecord,
                           allowEditing: true,
+                          showMaxRecord: widget.routine != null, // Mostrar en edición, ocultar en creación
                         );
                       }).toList(),
                     ),

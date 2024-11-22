@@ -515,7 +515,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                       onDeleteExercise: () => deleteExercise(exercise),
                       onReplaceExercise: () => replaceExercise(exercise),
                       onAutofillSeries: autofillSeries,
-                      maxRecord: maxRecord, // Pasamos el registro máximo
+                      maxRecord: maxRecord,
+                      showMaxRecord: true,
                     );
                   }).toList(),
                 ),
