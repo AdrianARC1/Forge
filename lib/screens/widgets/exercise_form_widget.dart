@@ -502,8 +502,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
               onDelete: () => widget.onDeleteSeries?.call(seriesIndex),
               child: Container(
                 decoration: BoxDecoration(
-                  color:
-                      series.isCompleted ? Color(0xFF008922) : Colors.transparent,
+                  color: (series.isCompleted && !widget.isReadOnly)
+                      ? Color(0xFF008922)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Padding(

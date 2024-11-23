@@ -128,6 +128,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         _displayDuration.value += Duration(seconds: 1);
         final appState = Provider.of<AppState>(context, listen: false);
         appState.minimizedRoutineDuration = _displayDuration.value;
+        print("Duración actual: ${_displayDuration.value.inSeconds} segundos");
       });
     }
   }
@@ -370,6 +371,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
               }).toList(),
             );
           }).toList(),
+          duration: _displayDuration.value,
         );
         await appState.updateRoutine(updatedRoutine);
       }
@@ -402,6 +404,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         duration: _displayDuration.value,
         isCompleted: true,
       );
+
+      print("Duración antes de completar la rutina: ${_displayDuration.value.inSeconds} segundos");
 
       await appState.completeRoutine(completedRoutine, _displayDuration.value);
       appState.restoreRoutine();
@@ -566,7 +570,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    
+
     return WillPopScope(
       onWillPop: () async {
         _minimizeRoutine();
@@ -575,49 +579,47 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       child: BaseScaffold(
         backgroundColor: GlobalStyles.backgroundColor,
         appBar: AppBar(
-  backgroundColor: GlobalStyles.backgroundColor,
-  elevation: 0,
-  leadingWidth: 160, // Ajusta el ancho según tus necesidades
-  title: Text(
-    routineName,
-    style: GlobalStyles.insideAppTitleStyle,
-  ),
-  centerTitle: true,
-  leading: Container(
-    padding: const EdgeInsets.only(left: 18.0), // Espaciado al inicio
-    child: Row(
-      children: [
-        GestureDetector(
-          onTap: () {
-          _minimizeRoutine();
-          },
-          child: Icon(
-            Icons.arrow_back,
-            color: GlobalStyles.textColor,
-            size: 24.0, // Ajusta el tamaño según tus necesidades
+          backgroundColor: GlobalStyles.backgroundColor,
+          elevation: 0,
+          leadingWidth: 160, // Ajusta el ancho según tus necesidades
+          title: Text(
+            routineName,
+            style: GlobalStyles.insideAppTitleStyle,
           ),
+          centerTitle: true,
+          leading: Container(
+            padding: const EdgeInsets.only(left: 18.0), // Espaciado al inicio
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    _minimizeRoutine();
+                  },
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: GlobalStyles.textColor,
+                    size: 24.0, // Ajusta el tamaño según tus necesidades
+                  ),
+                ),
+                AppBarButton(
+                  text: 'Cancelar',
+                  onPressed: _cancelExecution,
+                  textColor: GlobalStyles.textColor,
+                  backgroundColor: Colors.transparent,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            AppBarButton(
+              text: 'Finalizar',
+              onPressed: _finishRoutine,
+              textColor: GlobalStyles.buttonTextStyle.color,
+              backgroundColor: GlobalStyles.backgroundButtonsColor,
+              padding: EdgeInsets.symmetric(horizontal: 18.0),
+            ),
+          ],
         ),
-        AppBarButton(
-          text: 'Cancelar',
-          onPressed: _cancelExecution,
-          textColor: GlobalStyles.textColor,
-          backgroundColor: Colors.transparent,
-        ),
-      ],
-    ),
-  ),
-  actions: [
-    AppBarButton(
-      text: 'Finalizar',
-      onPressed: _finishRoutine,
-      textColor: GlobalStyles.buttonTextStyle.color,
-      backgroundColor: GlobalStyles.backgroundButtonsColor,
-      padding: EdgeInsets.symmetric(horizontal: 18.0),
-    ),
-  ],
-),
-
-
         body: Column(
           children: [
             ValueListenableBuilder<Duration>(
@@ -656,10 +658,10 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                           showMaxRecord: true,
                         );
                       }).toList(),
-                      SizedBox(height: 2), // Reducido de 16 a 8
+                      SizedBox(height: 2),
                       // Botón "Añadir Ejercicio" similar a "Introducir ejercicio" en routine_form.dart
                       SizedBox(
-                        width: double.infinity, // Hace que el botón llene horizontalmente
+                        width: double.infinity,
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: GlobalStyles.backgroundButtonsColor,
@@ -675,7 +677,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                           ),
                         ),
                       ),
-                      SizedBox(height: 4), // Reducido de 8 a 4
+                      SizedBox(height: 4),
                     ],
                   ),
                 ),
@@ -683,8 +685,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
             ),
           ],
         ),
-        // Eliminar el floatingActionButton
-        // floatingActionButton: ... (Removido)
       ),
     );
   }

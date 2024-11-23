@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 6, // Actualizado a versión 6
+      version: 7, // Incrementado a versión 7
       onCreate: (db, version) async {
         // Tabla de usuarios con salting y restricciones NOT NULL
         await db.execute('''
@@ -95,41 +95,44 @@ class DatabaseHelper {
         ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-  if (oldVersion < 6) {
-    // Renombrar la tabla existente
-    await db.execute('''
-      ALTER TABLE series RENAME TO series_old;
-    ''');
+        if (oldVersion < 6) {
+          // Actualizaciones de la versión 6
+          await db.execute('''
+            ALTER TABLE series RENAME TO series_old;
+          ''');
 
-    // Crear la nueva tabla 'series' con 'id' como TEXT PRIMARY KEY
-    await db.execute('''
-      CREATE TABLE series (
-        id TEXT PRIMARY KEY,
-        exerciseId TEXT NOT NULL,
-        previousWeight INTEGER,
-        previousReps INTEGER,
-        lastSavedWeight INTEGER,
-        lastSavedReps INTEGER,
-        weight INTEGER NOT NULL,
-        reps INTEGER NOT NULL,
-        perceivedExertion INTEGER NOT NULL,
-        isCompleted INTEGER NOT NULL,
-        FOREIGN KEY (exerciseId) REFERENCES exercises (id) ON DELETE CASCADE
-      )
-    ''');
+          await db.execute('''
+            CREATE TABLE series (
+              id TEXT PRIMARY KEY,
+              exerciseId TEXT NOT NULL,
+              previousWeight INTEGER,
+              previousReps INTEGER,
+              lastSavedWeight INTEGER,
+              lastSavedReps INTEGER,
+              weight INTEGER NOT NULL,
+              reps INTEGER NOT NULL,
+              perceivedExertion INTEGER NOT NULL,
+              isCompleted INTEGER NOT NULL,
+              FOREIGN KEY (exerciseId) REFERENCES exercises (id) ON DELETE CASCADE
+            )
+          ''');
 
-    // Migrar los datos de la tabla antigua a la nueva
-    await db.execute('''
-      INSERT INTO series (id, exerciseId, previousWeight, previousReps, lastSavedWeight, lastSavedReps, weight, reps, perceivedExertion, isCompleted)
-      SELECT id, exerciseId, previousWeight, previousReps, lastSavedWeight, lastSavedReps, weight, reps, perceivedExertion, isCompleted
-      FROM series_old;
-    ''');
+          await db.execute('''
+            INSERT INTO series (id, exerciseId, previousWeight, previousReps, lastSavedWeight, lastSavedReps, weight, reps, perceivedExertion, isCompleted)
+            SELECT id, exerciseId, previousWeight, previousReps, lastSavedWeight, lastSavedReps, weight, reps, perceivedExertion, isCompleted
+            FROM series_old;
+          ''');
 
-    // Eliminar la tabla antigua
-    await db.execute('DROP TABLE series_old;');
-  }
-  // Manejar otras actualizaciones si es necesario
-},
+          await db.execute('DROP TABLE series_old;');
+        }
+
+        if (oldVersion < 7) {
+          // Agregar columna 'duration' a la tabla 'routines'
+          await db.execute('ALTER TABLE routines ADD COLUMN duration INTEGER');
+          print("Base de datos actualizada a versión 7, columna 'duration' añadida.");
+        }
+        // Manejar otras actualizaciones si es necesario
+      },
     );
   }
 
@@ -185,11 +188,11 @@ class DatabaseHelper {
       'name': routine.name,
       'dateCreated': routine.dateCreated.toIso8601String(),
       'dateCompleted': routine.dateCompleted?.toIso8601String(),
-      'duration': routine.duration.inSeconds,
+      'duration': routine.duration != null ? routine.duration.inSeconds : 0,
       'totalVolume': routine.totalVolume,
       'isCompleted': routine.isCompleted ? 1 : 0,
     });
-    print("Rutina guardada: ${routine.name}");
+    print("Rutina guardada: ${routine.name}, duración: ${routine.duration?.inSeconds ?? 0} segundos");
 
     for (var exercise in routine.exercises) {
       await insertExercise(exercise, routine.id);
@@ -204,7 +207,7 @@ class DatabaseHelper {
       {
         'name': routine.name,
         'dateCompleted': routine.dateCompleted?.toIso8601String(),
-        'duration': routine.duration.inSeconds,
+        'duration': routine.duration != null ? routine.duration.inSeconds : 0,
         'totalVolume': routine.totalVolume,
         'isCompleted': routine.isCompleted ? 1 : 0,
       },
@@ -253,6 +256,7 @@ class DatabaseHelper {
       where: 'userId = ? AND isCompleted = 1',
       whereArgs: [userId],
       orderBy: 'dateCompleted DESC',
+      limit: 10,
     );
     final routines = <Routine>[];
 
@@ -263,11 +267,14 @@ class DatabaseHelper {
         name: routineData['name'] as String,
         dateCreated: DateTime.parse(routineData['dateCreated'] as String),
         dateCompleted: DateTime.parse(routineData['dateCompleted'] as String),
-        duration: Duration(seconds: routineData['duration'] as int),
-        totalVolume: routineData['totalVolume'] as int,
+        duration: routineData['duration'] != null
+            ? Duration(seconds: routineData['duration'] as int)
+            : Duration.zero,
+        totalVolume: routineData['totalVolume'] as int? ?? 0,
         exercises: exercises,
         isCompleted: true,
       ));
+      print("Rutina completada cargada: ${routineData['name']}, duración: ${routineData['duration'] ?? 0} segundos");
     }
     print("Rutinas completadas cargadas: ${routines.length}");
     return routines;
