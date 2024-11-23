@@ -234,6 +234,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                         PopupMenuButton<String>(
                                           offset: const Offset(0.0, 40.0),
                                           color: Colors.white,
+                                          icon: Icon(Icons.more_vert, color: Colors.white),
                                           onSelected: (value) {
                                             if (value == 'edit') {
                                               Navigator.push(
