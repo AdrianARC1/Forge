@@ -9,6 +9,9 @@ import '../../app_state.dart';
 import 'package:uuid/uuid.dart';
 import '../widgets/exercise_form_widget.dart';
 import '../mixins/exercise_management_mixin.dart';
+import '../widgets/base_scaffold.dart'; // Importa BaseScaffold
+import '../widgets/app_bar_button.dart'; // Importa AppBarButton
+import '../../styles/global_styles.dart'; // Importa estilos globales
 
 class RoutineExecutionScreen extends StatefulWidget {
   final Routine? routine;
@@ -125,6 +128,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         _displayDuration.value += Duration(seconds: 1);
         final appState = Provider.of<AppState>(context, listen: false);
         appState.minimizedRoutineDuration = _displayDuration.value;
+        print("Duración actual: ${_displayDuration.value.inSeconds} segundos");
       });
     }
   }
@@ -165,19 +169,25 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
           title: Text("Descartar Entrenamiento"),
           content: Text("¿Estás seguro de que deseas descartar este entrenamiento? Todos los progresos no guardados se perderán."),
           actions: [
-            TextButton(
+            AppBarButton(
+              text: "No",
               onPressed: () {
                 Navigator.of(context).pop(); // Cerrar el diálogo
               },
-              child: Text("No"),
+              textColor: Colors.blue,
+              backgroundColor: Colors.transparent,
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
             ),
-            TextButton(
+            AppBarButton(
+              text: "Sí",
               onPressed: () {
                 final appState = Provider.of<AppState>(context, listen: false);
                 appState.cancelMinimizedRoutine();
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
-              child: Text("Sí"),
+              textColor: Colors.red,
+              backgroundColor: Colors.transparent,
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
             ),
           ],
         );
@@ -217,19 +227,25 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
               ],
             ),
             actions: [
-              TextButton(
+              AppBarButton(
+                text: "Sí",
                 onPressed: () {
                   Navigator.of(context).pop();
                   _finalizeRoutine(appState, saveAsNewRoutine: true, newRoutineName: newRoutineName);
                 },
-                child: Text("Sí"),
+                textColor: Colors.blue,
+                backgroundColor: Colors.transparent,
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
               ),
-              TextButton(
+              AppBarButton(
+                text: "No",
                 onPressed: () {
                   Navigator.of(context).pop();
                   _finalizeRoutine(appState, saveAsNewRoutine: false);
                 },
-                child: Text("No"),
+                textColor: Colors.blue,
+                backgroundColor: Colors.transparent,
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
               ),
             ],
           );
@@ -249,29 +265,35 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
               title: Text("Actualizar Rutina"),
               content: Text("$changeDescription\n¿Deseas actualizarla con estos cambios?"),
               actions: [
-                TextButton(
+                AppBarButton(
+                  text: "No",
                   onPressed: () {
                     Navigator.of(context).pop();
                     _finalizeRoutine(appState, updateRoutine: false);
                   },
-                  child: Text("No"),
+                  textColor: Colors.blue,
+                  backgroundColor: Colors.transparent,
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
                 ),
-                TextButton(
+                AppBarButton(
+                  text: "Sí",
                   onPressed: () {
                     Navigator.of(context).pop();
                     _finalizeRoutine(appState, updateRoutine: true);
                   },
-                  child: Text("Sí"),
+                  textColor: Colors.blue,
+                  backgroundColor: Colors.transparent,
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
                 ),
-                TextButton(
+                AppBarButton(
+                  text: "Cancelar",
                   onPressed: () {
                     Navigator.of(context).pop(); // Simplemente cierra el diálogo
                     // No se realiza ninguna acción adicional
                   },
-                  child: Text(
-                    "Cancelar",
-                    style: TextStyle(color: Colors.red), // Opcional: Resaltar el botón de cancelar
-                  ),
+                  textColor: Colors.red, // Opcional: Resaltar el botón de cancelar
+                  backgroundColor: Colors.transparent,
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
                 ),
               ],
             );
@@ -294,12 +316,70 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
   }
 
   void _finalizeRoutine(AppState appState, {bool updateRoutine = false, bool saveAsNewRoutine = false, String? newRoutineName}) async {
-  try {
-    if (saveAsNewRoutine && newRoutineName != null && newRoutineName.trim().isNotEmpty) {
-      // Guardar la rutina como nueva rutina
-      Routine newRoutine = Routine(
-        id: uuid.v4(),
-        name: newRoutineName.trim(),
+    try {
+      if (saveAsNewRoutine && newRoutineName != null && newRoutineName.trim().isNotEmpty) {
+        // Guardar la rutina como nueva rutina
+        Routine newRoutine = Routine(
+          id: Uuid().v4(),
+          name: newRoutineName.trim(),
+          dateCreated: DateTime.now(),
+          exercises: exercises.map((exercise) {
+            return Exercise(
+              id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
+              name: exercise.name,
+              series: exercise.series.map((series) {
+                return Series(
+                  id: Uuid().v4(), // Genera un nuevo UUID para la serie
+                  previousWeight: series.previousWeight,
+                  previousReps: series.previousReps,
+                  lastSavedWeight: series.lastSavedWeight,
+                  lastSavedReps: series.lastSavedReps,
+                  weight: series.weight,
+                  reps: series.reps,
+                  perceivedExertion: series.perceivedExertion,
+                  lastSavedPerceivedExertion: series.lastSavedPerceivedExertion,
+                  isCompleted: series.isCompleted,
+                );
+              }).toList(),
+            );
+          }).toList(),
+          duration: _displayDuration.value,
+        );
+        await appState.saveRoutine(newRoutine);
+      }
+
+      if (updateRoutine && widget.routine != null) {
+        // Actualizar la rutina existente
+        Routine updatedRoutine = widget.routine!.copyWith(
+          exercises: exercises.map((exercise) {
+            return Exercise(
+              id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
+              name: exercise.name,
+              series: exercise.series.map((series) {
+                return Series(
+                  id: Uuid().v4(), // Genera un nuevo UUID para la serie
+                  previousWeight: series.previousWeight,
+                  previousReps: series.previousReps,
+                  lastSavedWeight: series.lastSavedWeight,
+                  lastSavedReps: series.lastSavedReps,
+                  weight: series.weight,
+                  reps: series.reps,
+                  perceivedExertion: series.perceivedExertion,
+                  lastSavedPerceivedExertion: series.lastSavedPerceivedExertion,
+                  isCompleted: series.isCompleted,
+                );
+              }).toList(),
+            );
+          }).toList(),
+          duration: _displayDuration.value,
+        );
+        await appState.updateRoutine(updatedRoutine);
+      }
+
+      // Guardar la rutina completada en el historial con nuevos IDs
+      Routine completedRoutine = Routine(
+        id: Uuid().v4(),
+        name: routineName,
         dateCreated: DateTime.now(),
         exercises: exercises.map((exercise) {
           return Exercise(
@@ -322,83 +402,27 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
           );
         }).toList(),
         duration: _displayDuration.value,
+        isCompleted: true,
       );
-      await appState.saveRoutine(newRoutine);
-    }
 
-    if (updateRoutine && widget.routine != null) {
-      // Actualizar la rutina existente
-      Routine updatedRoutine = widget.routine!.copyWith(
-        exercises: exercises.map((exercise) {
-          return Exercise(
-            id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
-            name: exercise.name,
-            series: exercise.series.map((series) {
-              return Series(
-                id: Uuid().v4(), // Genera un nuevo UUID para la serie
-                previousWeight: series.previousWeight,
-                previousReps: series.previousReps,
-                lastSavedWeight: series.lastSavedWeight,
-                lastSavedReps: series.lastSavedReps,
-                weight: series.weight,
-                reps: series.reps,
-                perceivedExertion: series.perceivedExertion,
-                lastSavedPerceivedExertion: series.lastSavedPerceivedExertion,
-                isCompleted: series.isCompleted,
-              );
-            }).toList(),
-          );
-        }).toList(),
+      print("Duración antes de completar la rutina: ${_displayDuration.value.inSeconds} segundos");
+
+      await appState.completeRoutine(completedRoutine, _displayDuration.value);
+      appState.restoreRoutine();
+
+      // Navegar de vuelta a la pantalla principal
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => MainNavigationScreen()),
+        (route) => false,
       );
-      await appState.updateRoutine(updatedRoutine);
+    } catch (e) {
+      print("Error en _finalizeRoutine: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al finalizar la rutina: $e")),
+      );
     }
-
-    // Guardar la rutina completada en el historial con nuevos IDs
-    Routine completedRoutine = Routine(
-      id: uuid.v4(),
-      name: routineName,
-      dateCreated: DateTime.now(),
-      exercises: exercises.map((exercise) {
-        return Exercise(
-          id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
-          name: exercise.name,
-          series: exercise.series.map((series) {
-            return Series(
-              id: Uuid().v4(), // Genera un nuevo UUID para la serie
-              previousWeight: series.previousWeight,
-              previousReps: series.previousReps,
-              lastSavedWeight: series.lastSavedWeight,
-              lastSavedReps: series.lastSavedReps,
-              weight: series.weight,
-              reps: series.reps,
-              perceivedExertion: series.perceivedExertion,
-              lastSavedPerceivedExertion: series.lastSavedPerceivedExertion,
-              isCompleted: series.isCompleted,
-            );
-          }).toList(),
-        );
-      }).toList(),
-      duration: _displayDuration.value,
-      isCompleted: true,
-    );
-
-    await appState.completeRoutine(completedRoutine, _displayDuration.value);
-    appState.restoreRoutine();
-
-    // Navegar de vuelta a la pantalla principal
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => MainNavigationScreen()),
-      (route) => false,
-    );
-  } catch (e) {
-    print("Error en _finalizeRoutine: $e");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error al finalizar la rutina: $e")),
-    );
   }
-}
-
 
   bool _areAllSeriesCompleted() {
     for (var exercise in exercises) {
@@ -432,11 +456,15 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
           title: Text("¿Cancelar rutina?"),
           content: Text("¿Realmente quieres cancelar la rutina en ejecución?"),
           actions: [
-            TextButton(
+            AppBarButton(
+              text: "No",
               onPressed: () => Navigator.of(context).pop(),
-              child: Text("No"),
+              textColor: Colors.blue,
+              backgroundColor: Colors.transparent,
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
             ),
-            TextButton(
+            AppBarButton(
+              text: "Sí",
               onPressed: () {
                 final appState = Provider.of<AppState>(context, listen: false);
                 appState.cancelMinimizedRoutine();
@@ -444,7 +472,9 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               },
-              child: Text("Sí"),
+              textColor: Colors.red,
+              backgroundColor: Colors.transparent,
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
             ),
           ],
         );
@@ -458,89 +488,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
     return "$hours:$minutes:$seconds";
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-    
-    return WillPopScope(
-      onWillPop: () async {
-        _minimizeRoutine();
-        return false;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(routineName),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: _minimizeRoutine,
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.cancel),
-              onPressed: _cancelExecution,
-              tooltip: 'Cancelar',
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            ValueListenableBuilder<Duration>(
-              valueListenable: _displayDuration,
-              builder: (context, value, child) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Tiempo Transcurrido: ${_formatDuration(value)}',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                );
-              },
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: exercises.map((exercise) {
-                    final maxRecord = appState.maxExerciseRecords[exercise.name];
-
-                    return ExerciseFormWidget(
-                      exercise: exercise,
-                      onAddSeries: () => addSeriesToExercise(exercise),
-                      onDeleteSeries: (seriesIndex) => deleteSeries(exercise, seriesIndex),
-                      weightControllers: weightControllers,
-                      repsControllers: repsControllers,
-                      exertionControllers: exertionControllers,
-                      isExecution: true,
-                      onDeleteExercise: () => deleteExercise(exercise),
-                      onReplaceExercise: () => replaceExercise(exercise),
-                      onAutofillSeries: autofillSeries,
-                      maxRecord: maxRecord, // Pasamos el registro máximo
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ElevatedButton(
-              onPressed: addExercise,
-              child: Text("Añadir Ejercicio"),
-            ),
-            SizedBox(height: 8),
-            FloatingActionButton.extended(
-              onPressed: _finishRoutine,
-              label: Text("Finalizar Rutina"),
-              icon: Icon(Icons.check),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   String _getRoutineChanges() {
@@ -618,5 +565,127 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     } else {
       return changes.join('\n');
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+
+    return WillPopScope(
+      onWillPop: () async {
+        _minimizeRoutine();
+        return false;
+      },
+      child: BaseScaffold(
+        backgroundColor: GlobalStyles.backgroundColor,
+        appBar: AppBar(
+          backgroundColor: GlobalStyles.backgroundColor,
+          elevation: 0,
+          leadingWidth: 160, // Ajusta el ancho según tus necesidades
+          title: Text(
+            routineName,
+            style: GlobalStyles.insideAppTitleStyle,
+          ),
+          centerTitle: true,
+          leading: Container(
+            padding: const EdgeInsets.only(left: 18.0), // Espaciado al inicio
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    _minimizeRoutine();
+                  },
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: GlobalStyles.textColor,
+                    size: 24.0, // Ajusta el tamaño según tus necesidades
+                  ),
+                ),
+                AppBarButton(
+                  text: 'Cancelar',
+                  onPressed: _cancelExecution,
+                  textColor: GlobalStyles.textColor,
+                  backgroundColor: Colors.transparent,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            AppBarButton(
+              text: 'Finalizar',
+              onPressed: _finishRoutine,
+              textColor: GlobalStyles.buttonTextStyle.color,
+              backgroundColor: GlobalStyles.backgroundButtonsColor,
+              padding: EdgeInsets.symmetric(horizontal: 18.0),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            ValueListenableBuilder<Duration>(
+              valueListenable: _displayDuration,
+              builder: (context, value, child) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Tiempo Transcurrido: ${_formatDuration(value)}',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                );
+              },
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 0), // Añadido padding general
+                  child: Column(
+                    children: [
+                      ...exercises.map((exercise) {
+                        final maxRecord = appState.maxExerciseRecords[exercise.name];
+
+                        return ExerciseFormWidget(
+                          exercise: exercise,
+                          onAddSeries: () => addSeriesToExercise(exercise),
+                          onDeleteSeries: (seriesIndex) => deleteSeries(exercise, seriesIndex),
+                          weightControllers: weightControllers,
+                          repsControllers: repsControllers,
+                          exertionControllers: exertionControllers,
+                          isExecution: true,
+                          onDeleteExercise: () => deleteExercise(exercise),
+                          onReplaceExercise: () => replaceExercise(exercise),
+                          onAutofillSeries: autofillSeries,
+                          maxRecord: maxRecord,
+                          showMaxRecord: true,
+                        );
+                      }).toList(),
+                      SizedBox(height: 2),
+                      // Botón "Añadir Ejercicio" similar a "Introducir ejercicio" en routine_form.dart
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GlobalStyles.backgroundButtonsColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: addExercise,
+                          icon: Icon(Icons.add, color: Colors.black),
+                          label: Text(
+                            "Introducir Ejercicio",
+                            style: GlobalStyles.buttonTextStyle,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -1,11 +1,14 @@
 // lib/screens/routine/routine_form.dart
 
 import 'package:flutter/material.dart';
+import 'package:forge/styles/global_styles.dart';
 import 'package:provider/provider.dart';
 import '../exercice_selection_screen.dart';
 import '../../app_state.dart';
 import 'package:uuid/uuid.dart';
 import '../widgets/exercise_form_widget.dart';
+import '../widgets/base_scaffold.dart'; // Importa el BaseScaffold
+import '../widgets/app_bar_button.dart'; // Importa AppBarButton
 
 class RoutineForm extends StatefulWidget {
   final Routine? routine; // Si es null, estamos creando una nueva rutina
@@ -44,8 +47,10 @@ class _RoutineFormState extends State<RoutineForm> {
       // Inicializar controladores para los ejercicios existentes
       for (var exercise in selectedExercises) {
         for (var series in exercise.series) {
-          weightControllers[series.id] = TextEditingController(text: series.weight.toString());
-          repsControllers[series.id] = TextEditingController(text: series.reps.toString());
+          weightControllers[series.id] =
+              TextEditingController(text: series.weight.toString());
+          repsControllers[series.id] =
+              TextEditingController(text: series.reps.toString());
           exertionControllers[series.id] = TextEditingController(); // No se utiliza en creación/edición
         }
       }
@@ -135,7 +140,6 @@ class _RoutineFormState extends State<RoutineForm> {
     });
   }
 
-
   void _cancel() {
     widget.onCancel();
   }
@@ -179,7 +183,8 @@ class _RoutineFormState extends State<RoutineForm> {
     // Actualizar los valores de weight y reps en las series
     for (var exercise in selectedExercises) {
       for (var series in exercise.series) {
-        series.weight = int.tryParse(weightControllers[series.id]?.text ?? '') ?? 0;
+        series.weight =
+            int.tryParse(weightControllers[series.id]?.text ?? '') ?? 0;
         series.reps = int.tryParse(repsControllers[series.id]?.text ?? '') ?? 0;
       }
     }
@@ -204,126 +209,211 @@ class _RoutineFormState extends State<RoutineForm> {
     super.dispose();
   }
 
+  Future<void> _replaceExercise(Exercise oldExercise) async {
+    final selectedExercise = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ExerciseSelectionScreen()),
+    );
+
+    if (selectedExercise != null) {
+      setState(() {
+        // Eliminar controladores del ejercicio antiguo
+        for (var series in oldExercise.series) {
+          weightControllers[series.id]?.dispose();
+          weightControllers.remove(series.id);
+          repsControllers[series.id]?.dispose();
+          repsControllers.remove(series.id);
+          exertionControllers[series.id]?.dispose();
+          exertionControllers.remove(series.id);
+        }
+        int index = selectedExercises.indexOf(oldExercise);
+
+        // Crear nuevo ejercicio
+        final newExercise = Exercise(
+          id: selectedExercise['id'].toString(),
+          name: selectedExercise['name'],
+          series: [
+            Series(
+              id: Uuid().v4(),
+              weight: 0,
+              reps: 0,
+              perceivedExertion: 0,
+              isCompleted: false,
+            ),
+          ],
+        );
+
+        // Reemplazar en la lista
+        selectedExercises[index] = newExercise;
+
+        // Inicializar controladores para el nuevo ejercicio
+        for (var series in newExercise.series) {
+          weightControllers[series.id] = TextEditingController();
+          repsControllers[series.id] = TextEditingController();
+          exertionControllers[series.id] = TextEditingController();
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    return Scaffold(
+    return BaseScaffold(
+      backgroundColor: GlobalStyles.backgroundColor,
       appBar: AppBar(
-        title: Text(widget.title),
+        backgroundColor: GlobalStyles.backgroundColor,
+        elevation: 0,
+        leadingWidth: 100,
+        title: Text(
+          widget.title,
+          style: GlobalStyles.insideAppTitleStyle,
+        ),
+        centerTitle: true,
+        leading: AppBarButton(
+          text: 'Cancelar',
+          onPressed: _cancel,
+          textColor: GlobalStyles.textColor,
+          backgroundColor: Colors.transparent,
+        ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.cancel),
-            onPressed: _cancel,
-            tooltip: 'Cancelar',
+          AppBarButton(
+            text: 'Guardar',
+            onPressed: _saveRoutine,
+            textColor: GlobalStyles.buttonTextStyle.color,
+            backgroundColor: GlobalStyles.backgroundButtonsColor,
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
           ),
         ],
       ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Campo para el nombre de la rutina
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  controller: _routineNameController,
-                  focusNode: _routineNameFocusNode,
-                  decoration: InputDecoration(
-                    labelText: "Nombre de la Rutina",
-                    border: OutlineInputBorder(),
-                  ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 0.0), // Sin padding general
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch, // Asegura que los hijos ocupen todo el ancho
+              children: [
+                // Campo para el nombre de la rutina con sombra en el borde inferior
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _routineNameController,
+                      focusNode: _routineNameFocusNode,
+                      decoration: InputDecoration(
+                        hintText: "Nombre de la rutina",
+                        hintStyle: GlobalStyles.subtitleStyle.copyWith(
+                          color: GlobalStyles.placeholderColor,
+                        ),
+                        filled: false, // Eliminamos el fondo relleno
+                        border: InputBorder.none, // Eliminamos los bordes por defecto
+                      ),
+                      style: GlobalStyles.subtitleStyle,
+                    ),
+                    // Línea inferior con sombra
+                    Container(
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: GlobalStyles.inputBorderColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.6), // Sombra sutil
+                            offset: Offset(0, 5), // Posición de la sombra
+                            blurRadius: 2, // Radio de desenfoque
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              // Lista de ejercicios
-              Column(
-                children: selectedExercises.map((exercise) {
-                  final maxRecord = appState.maxExerciseRecords[exercise.name];
+                SizedBox(height: 20), // Espacio entre el TextField y los siguientes widgets
 
-                  return ExerciseFormWidget(
-                    exercise: exercise,
-                    onAddSeries: () => _addSeriesToExercise(exercise),
-                    onDeleteSeries: (seriesIndex) => _deleteSeries(exercise, seriesIndex),
-                    weightControllers: weightControllers,
-                    repsControllers: repsControllers,
-                    exertionControllers: exertionControllers,
-                    isExecution: false,
-                    onDeleteExercise: () => _deleteExercise(exercise),
-                    onReplaceExercise: () => _replaceExercise(exercise),
-                    maxRecord: maxRecord,
-                    allowEditing: true,
-                  );
-                }).toList(),
-              ),
-              // Botones para añadir ejercicio y guardar rutina
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: _addExercise,
-                  child: Text("Añadir Ejercicio"),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: _saveRoutine,
-                  child: Text("Guardar Rutina"),
-                ),
-              ),
-            ],
+                // Gestión de ejercicios seleccionados
+                if (selectedExercises.isEmpty) ...[
+                  SizedBox(height: 80),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0), // Añade padding solo aquí
+                    child: Text(
+                      'Introduce algún ejercicio para empezar',
+                      style: GlobalStyles.subtitleStyleHighFont,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    child: SizedBox(
+                      width: double.infinity, // Hace que el botón llene horizontalmente
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GlobalStyles.backgroundButtonsColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _addExercise,
+                        icon: Icon(Icons.add, color: Colors.black),
+                        label: Text(
+                          "Introducir ejercicio",
+                          style: GlobalStyles.buttonTextStyle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  // Lista de ejercicios
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    child: Column(
+                      children: selectedExercises.map((exercise) {
+                        final maxRecord = appState.maxExerciseRecords[exercise.name];
+
+                        return ExerciseFormWidget(
+                          exercise: exercise,
+                          onAddSeries: () => _addSeriesToExercise(exercise),
+                          onDeleteSeries: (seriesIndex) => _deleteSeries(exercise, seriesIndex),
+                          weightControllers: weightControllers,
+                          repsControllers: repsControllers,
+                          exertionControllers: exertionControllers,
+                          isExecution: false,
+                          onDeleteExercise: () => _deleteExercise(exercise),
+                          onReplaceExercise: () => _replaceExercise(exercise),
+                          maxRecord: maxRecord,
+                          allowEditing: true,
+                          showMaxRecord: widget.routine != null, // Mostrar en edición, ocultar en creación
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  // Botón para añadir más ejercicios
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    child: SizedBox(
+                      width: double.infinity, // Hace que el botón llene horizontalmente
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GlobalStyles.backgroundButtonsColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _addExercise,
+                        icon: Icon(Icons.add, color: Colors.black),
+                        label: Text(
+                          "Introducir ejercicio",
+                          style: GlobalStyles.buttonTextStyle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-  // Dentro de routine_form.dart, agrega el siguiente método dentro de la clase _RoutineFormState
-
-Future<void> _replaceExercise(Exercise oldExercise) async {
-  final selectedExercise = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => ExerciseSelectionScreen()),
-  );
-
-  if (selectedExercise != null) {
-    setState(() {
-      // Eliminar controladores del ejercicio antiguo
-      for (var series in oldExercise.series) {
-        weightControllers[series.id]?.dispose();
-        weightControllers.remove(series.id);
-        repsControllers[series.id]?.dispose();
-        repsControllers.remove(series.id);
-        exertionControllers[series.id]?.dispose();
-        exertionControllers.remove(series.id);
-      }
-      int index = selectedExercises.indexOf(oldExercise);
-
-      // Crear nuevo ejercicio
-      final newExercise = Exercise(
-        id: selectedExercise['id'].toString(),
-        name: selectedExercise['name'],
-        series: [
-          Series(
-            id: Uuid().v4(),
-            weight: 0,
-            reps: 0,
-            perceivedExertion: 0,
-            isCompleted: false,
-          ),
-        ],
-      );
-
-      // Reemplazar en la lista
-      selectedExercises[index] = newExercise;
-
-      // Inicializar controladores para el nuevo ejercicio
-      for (var series in newExercise.series) {
-        weightControllers[series.id] = TextEditingController();
-        repsControllers[series.id] = TextEditingController();
-        exertionControllers[series.id] = TextEditingController();
-      }
-    });
-  }
-}
-
 }

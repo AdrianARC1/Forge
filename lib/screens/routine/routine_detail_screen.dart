@@ -4,91 +4,348 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app_state.dart';
 import '../widgets/exercise_form_widget.dart';
+import '../widgets/base_scaffold.dart';
+import '../widgets/app_bar_button.dart';
+import '../../styles/global_styles.dart';
+import 'routine_execution_screen.dart';
 import 'edit_routine_screen.dart';
 
 class RoutineDetailScreen extends StatelessWidget {
   final Routine routine;
   final bool isFromHistory;
-  final Duration? duration;
-  final int? totalVolume;
-  final DateTime? completionDate;
 
   RoutineDetailScreen({
     required this.routine,
     this.isFromHistory = false,
-    this.duration,
-    this.totalVolume,
-    this.completionDate,
   });
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    return Scaffold(
+    // Usamos los valores directamente del objeto routine
+    final Duration duration = routine.duration ?? Duration.zero;
+    final int totalVolume = routine.totalVolume ?? 0;
+    final DateTime? completionDate = routine.dateCompleted;
+
+    return BaseScaffold(
+      backgroundColor: GlobalStyles.backgroundColor,
       appBar: AppBar(
-        title: Text(routine.name),
+        backgroundColor: GlobalStyles.backgroundColor,
+        elevation: 0,
+        leadingWidth: 100,
+        title: Text(
+          routine.name,
+          style: GlobalStyles.insideAppTitleStyle,
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: GlobalStyles.textColor),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: isFromHistory
-            ? null
+            ? [
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, color: Colors.white),
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      // Navegar a la pantalla de edición de la rutina
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditRoutineScreen(routine: routine),
+                        ),
+                      );
+                    }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Text('Editar Rutina'),
+                      ),
+                    ];
+                  },
+                ),
+              ]
             : [
-                IconButton(
-                  icon: Icon(Icons.edit),
+                AppBarButton(
+                  text: 'Comenzar',
                   onPressed: () {
+                    // Navegar a la pantalla de ejecución de la rutina
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EditRoutineScreen(routine: routine),
+                        builder: (context) => RoutineExecutionScreen(routine: routine),
                       ),
                     );
                   },
-                  tooltip: 'Editar Rutina',
+                  textColor: GlobalStyles.buttonTextStyle.color,
+                  backgroundColor: GlobalStyles.backgroundButtonsColor,
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
                 ),
               ],
       ),
-      body: Column(
-        children: [
-          if (isFromHistory)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Finalizada el: ${completionDate != null ? "${completionDate!.toLocal().toString().split(' ')[0]}" : 'N/A'}",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "Duración: ${duration != null ? "${duration!.inHours}h ${duration!.inMinutes.remainder(60)}min" : 'N/A'}",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  Text(
-                    "Volumen Total: ${totalVolume != null ? "$totalVolume kg" : 'N/A'}",
-                    style: TextStyle(fontSize: 16),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 0.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Usuario foto y nombre
+                if (isFromHistory) ...[
+                  SizedBox(height: 16),
+                  Center(
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundImage: AssetImage('assets/icon/icon.png'), // Reemplaza con la imagen de perfil del usuario
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          appState.username ?? 'Usuario',
+                          style: GlobalStyles.subtitleStyle.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          _formatDate(completionDate ?? DateTime.now()),
+                          style: GlobalStyles.subtitleStyle.copyWith(
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-              ),
-            ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: routine.exercises.map((exercise) {
-                  final maxRecord = appState.maxExerciseRecords[exercise.name];
+                // Mostrar el nombre de la rutina con estilo
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    routine.name,
+                    style: GlobalStyles.subtitleStyleHighFont,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                // Línea inferior decorativa
+                Container(
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: GlobalStyles.inputBorderColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.6),
+                        offset: Offset(0, 5),
+                        blurRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+                if (isFromHistory) ...[
+                  // Mostrar detalles adicionales en una fila
+                  SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Duración
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Duración',
+                              style: GlobalStyles.subtitleStyle.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              _formatDuration(duration),
+                              style: GlobalStyles.subtitleStyle,
+                            ),
+                          ],
+                        ),
+                        // Volumen total
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Volumen',
+                              style: GlobalStyles.subtitleStyle.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '$totalVolume kg',
+                              style: GlobalStyles.subtitleStyle,
+                            ),
+                          ],
+                        ),
+                        // RPE medio
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'RPE Medio',
+                              style: GlobalStyles.subtitleStyle.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              _calculateAverageRPE(routine).toStringAsFixed(1),
+                              style: GlobalStyles.subtitleStyle,
+                            ),
+                          ],
+                        ),
+                        // Total de series
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Total Series',
+                              style: GlobalStyles.subtitleStyle.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '${_calculateTotalSeries(routine)}',
+                              style: GlobalStyles.subtitleStyle,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                SizedBox(height: 20),
+                // Mostrar los ejercicios en modo de solo lectura
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 0),
+                  child: Column(
+                    children: [
+                      if (isFromHistory)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'Entrenamiento',
+                            style: GlobalStyles.subtitleStyle.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                      SizedBox(height: 8),
+                      ...routine.exercises.map((exercise) {
+                        final maxRecord = appState.maxExerciseRecords[exercise.name];
 
-                  return ExerciseFormWidget(
-                    exercise: exercise,
-                    weightControllers: {}, // Controladores vacíos
-                    repsControllers: {},
-                    exertionControllers: {},
-                    isExecution: false,
-                    isReadOnly: true,
-                    maxRecord: maxRecord,
-                  );
-                }).toList(),
-              ),
+                        return ExerciseFormWidget(
+                          exercise: exercise,
+                          weightControllers: {},
+                          repsControllers: {},
+                          exertionControllers: {},
+                          isExecution: false,
+                          isReadOnly: true,
+                          maxRecord: maxRecord,
+                          allowEditing: false,
+                          showMaxRecord: !isFromHistory,
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    // Formato: miércoles, nov 13, 2024 - 20:35
+    String weekday = _getWeekday(date.weekday);
+    String month = _getMonth(date.month);
+    String day = date.day.toString();
+    String year = date.year.toString();
+    String time = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    return '$weekday, $month $day, $year - $time';
+  }
+
+  String _getWeekday(int weekday) {
+    List<String> weekdays = [
+      'lunes',
+      'martes',
+      'miércoles',
+      'jueves',
+      'viernes',
+      'sábado',
+      'domingo',
+    ];
+    return weekdays[weekday - 1];
+  }
+
+  String _getMonth(int month) {
+    List<String> months = [
+      'ene',
+      'feb',
+      'mar',
+      'abr',
+      'may',
+      'jun',
+      'jul',
+      'ago',
+      'sep',
+      'oct',
+      'nov',
+      'dic',
+    ];
+    return months[month - 1];
+  }
+
+String _formatDuration(Duration duration) {
+  int hours = duration.inHours;
+  int minutes = duration.inMinutes.remainder(60);
+  int seconds = duration.inSeconds.remainder(60);
+
+  if (hours > 0) {
+    // Si hay horas, mostrar horas y minutos
+    String hoursStr = '${hours}h';
+    String minutesStr = minutes > 0 ? ' ${minutes}min' : '';
+    return '$hoursStr$minutesStr';
+  } else {
+    // Si no hay horas, mostrar minutos y segundos
+    String minutesStr = minutes > 0 ? '${minutes}min' : '';
+    String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
+    return '${minutesStr}${secondsStr}'.trim();
+  }
+}
+
+
+
+  double _calculateAverageRPE(Routine routine) {
+    int totalRPE = 0;
+    int count = 0;
+    for (var exercise in routine.exercises) {
+      for (var series in exercise.series) {
+        totalRPE += series.perceivedExertion;
+        count++;
+      }
+    }
+    return count > 0 ? totalRPE / count : 0.0;
+  }
+
+  int _calculateTotalSeries(Routine routine) {
+    int totalSeries = 0;
+    for (var exercise in routine.exercises) {
+      totalSeries += exercise.series.length;
+    }
+    return totalSeries;
   }
 }
