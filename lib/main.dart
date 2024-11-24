@@ -7,8 +7,10 @@ import 'screens/navigation/main_navigation_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import './styles/global_styles.dart'; // Asegúrate de importar el archivo de estilos
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
+  await dotenv.load();
   WidgetsFlutterBinding.ensureInitialized();
 
   // Mantener la splash screen nativa hasta que la aplicación esté lista

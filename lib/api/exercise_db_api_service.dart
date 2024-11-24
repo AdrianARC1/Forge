@@ -2,10 +2,11 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ExerciseDbApiService {
   final String baseUrl = "https://exercisedb.p.rapidapi.com";
-  final String apiKey = 'REDACTED'; // Reemplaza con tu clave de RapidAPI
+  final String apiKey = dotenv.env['API_KEY'] ?? 'API_KEY not found';
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
