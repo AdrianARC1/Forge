@@ -24,8 +24,8 @@ class RoutineDetailScreen extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
 
     // Usamos los valores directamente del objeto routine
-    final Duration duration = routine.duration ?? Duration.zero;
-    final int totalVolume = routine.totalVolume ?? 0;
+    final Duration duration = routine.duration;
+    final int totalVolume = routine.totalVolume;
     final DateTime? completionDate = routine.dateCompleted;
 
     return BaseScaffold(
@@ -246,7 +246,12 @@ class RoutineDetailScreen extends StatelessWidget {
                         final maxRecord = appState.maxExerciseRecords[exercise.name];
 
                         return ExerciseFormWidget(
-                          exercise: exercise,
+                          exercise: Exercise(
+                            id: exercise.id,
+                            name: exercise.name,
+                            gifUrl: exercise.gifUrl, // Aseguramos pasar gifUrl
+                            series: exercise.series,
+                          ),
                           weightControllers: {},
                           repsControllers: {},
                           exertionControllers: {},
@@ -309,25 +314,23 @@ class RoutineDetailScreen extends StatelessWidget {
     return months[month - 1];
   }
 
-String _formatDuration(Duration duration) {
-  int hours = duration.inHours;
-  int minutes = duration.inMinutes.remainder(60);
-  int seconds = duration.inSeconds.remainder(60);
+  String _formatDuration(Duration duration) {
+    int hours = duration.inHours;
+    int minutes = duration.inMinutes.remainder(60);
+    int seconds = duration.inSeconds.remainder(60);
 
-  if (hours > 0) {
-    // Si hay horas, mostrar horas y minutos
-    String hoursStr = '${hours}h';
-    String minutesStr = minutes > 0 ? ' ${minutes}min' : '';
-    return '$hoursStr$minutesStr';
-  } else {
-    // Si no hay horas, mostrar minutos y segundos
-    String minutesStr = minutes > 0 ? '${minutes}min' : '';
-    String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
-    return '${minutesStr}${secondsStr}'.trim();
+    if (hours > 0) {
+      // Si hay horas, mostrar horas y minutos
+      String hoursStr = '${hours}h';
+      String minutesStr = minutes > 0 ? ' ${minutes}min' : '';
+      return '$hoursStr$minutesStr';
+    } else {
+      // Si no hay horas, mostrar minutos y segundos
+      String minutesStr = minutes > 0 ? '${minutes}min' : '';
+      String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
+      return '${minutesStr}${secondsStr}'.trim();
+    }
   }
-}
-
-
 
   double _calculateAverageRPE(Routine routine) {
     int totalRPE = 0;
