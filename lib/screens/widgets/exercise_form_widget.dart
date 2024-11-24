@@ -277,17 +277,21 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
             children: [
               // Imagen del ejercicio
               Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: NetworkImage(
-                        'https://static.strengthlevel.com/images/exercises/bench-press/bench-press-800.jpg'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
+  width: 50,
+  height: 50,
+  decoration: BoxDecoration(
+    shape: BoxShape.circle,
+    image: widget.exercise.gifUrl != null
+        ? DecorationImage(
+            image: NetworkImage(widget.exercise.gifUrl!),
+            fit: BoxFit.cover,
+          )
+        : null,
+  ),
+  child: widget.exercise.gifUrl == null
+      ? Icon(Icons.image_not_supported)
+      : null,
+),
               SizedBox(width: 8), // Espacio entre la imagen y el texto
               Expanded(
                 child: Column(

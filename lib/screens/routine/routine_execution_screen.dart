@@ -45,6 +45,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         return Exercise(
           id: exercise.id,
           name: exercise.name,
+          gifUrl: exercise.gifUrl,
           series: exercise.series.map((series) {
             return Series(
               id: series.id,
