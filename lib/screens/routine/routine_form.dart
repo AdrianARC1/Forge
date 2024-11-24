@@ -68,6 +68,7 @@ class _RoutineFormState extends State<RoutineForm> {
         final exercise = Exercise(
           id: selectedExercise['id'].toString(),
           name: selectedExercise['name'],
+          gifUrl: selectedExercise['gifUrl'],
           series: [
             Series(
               id: Uuid().v4(),

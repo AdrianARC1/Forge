@@ -3,7 +3,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
-import 'api/wger_api_service.dart';
+import 'api/exercise_db_api_service.dart'; // Cambiado
 import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -41,9 +41,10 @@ class Series {
 class Exercise {
   String id;
   final String name;
+  final String? gifUrl;
   List<Series> series;
 
-  Exercise({required this.id, required this.name, this.series = const []});
+  Exercise({required this.id, required this.name, this.gifUrl, this.series = const []});
 }
 
 class Routine {
@@ -92,17 +93,25 @@ class Routine {
 class AppState with ChangeNotifier {
   List<Routine> _routines = [];
   List<Routine> _completedRoutines = [];
-  List<Map<String, dynamic>> _exercises = [];
-  List<Map<String, dynamic>> _muscleGroups = [];
-  List<Map<String, dynamic>> _equipment = [];
+
+  // Variables para manejar los ejercicios
+  List<Map<String, dynamic>> _allExercises = [];
+  List<Map<String, dynamic>> _filteredExercises = [];
+  List<Map<String, dynamic>> _visibleExercises = [];
+  int _exercisesPerPage = 20;
+  int _currentPage = 0;
+
+  List<String> _muscleGroups = [];
+  List<String> _equipment = [];
+
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
   final DatabaseHelper _dbHelper = DatabaseHelper();
-  final WgerApiService _apiService = WgerApiService();
+  final ExerciseDbApiService _apiService = ExerciseDbApiService(); // Cambiado
 
   Routine? minimizedRoutine;
-  Routine? savedRoutineState; // Guarda el estado de la rutina minimizada
+  Routine? savedRoutineState;
   Duration minimizedRoutineDuration = Duration.zero;
   Timer? _timer;
 
@@ -117,9 +126,9 @@ class AppState with ChangeNotifier {
 
   List<Routine> get routines => _routines;
   List<Routine> get completedRoutines => _completedRoutines;
-  List<Map<String, dynamic>> get exercises => _exercises;
-  List<Map<String, dynamic>> get muscleGroups => _muscleGroups;
-  List<Map<String, dynamic>> get equipment => _equipment;
+  List<Map<String, dynamic>> get exercises => _visibleExercises;
+  List<String> get muscleGroups => _muscleGroups;
+  List<String> get equipment => _equipment;
 
   // Mapa para almacenar los máximos históricos de ejercicios
   Map<String, Map<String, dynamic>> _maxExerciseRecords = {};
@@ -151,7 +160,8 @@ class AppState with ChangeNotifier {
         await _loadCompletedRoutines();
         await loadMuscleGroups();
         await loadEquipment();
-        await loadMaxExerciseRecords(); // Cargar los máximos históricos
+        await fetchAllExercises(); // Cargar todos los ejercicios
+        await loadMaxExerciseRecords();
       }
     } catch (e) {
       print("Error al cargar la sesión del usuario: $e");
@@ -224,7 +234,8 @@ class AppState with ChangeNotifier {
         await _loadCompletedRoutines();
         await loadMuscleGroups();
         await loadEquipment();
-        await loadMaxExerciseRecords(); // Cargar los máximos históricos
+        await fetchAllExercises(); // Cargar todos los ejercicios
+        await loadMaxExerciseRecords();
         notifyListeners();
         return true;
       } else {
@@ -246,6 +257,10 @@ class AppState with ChangeNotifier {
     _username = null;
     _routines = [];
     _completedRoutines = [];
+    _allExercises = [];
+    _filteredExercises = [];
+    _visibleExercises = [];
+    _currentPage = 0;
     _maxExerciseRecords = {};
     notifyListeners();
   }
@@ -295,13 +310,63 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchExercises({int? muscleGroup, int? equipment, int page = 1}) async {
+  // Carga todos los ejercicios y los prepara para el lazy loading
+  Future<void> fetchAllExercises() async {
     try {
-      _exercises = await _apiService.fetchExercises(muscleGroup: muscleGroup, equipment: equipment, page: page);
-      notifyListeners();
+      if (_allExercises.isEmpty) {
+        _allExercises = await _apiService.fetchExercises();
+        _filteredExercises = _allExercises;
+        _visibleExercises.clear();
+        _currentPage = 0;
+        _loadMoreExercises(); // Cargamos la primera página
+        notifyListeners();
+      }
     } catch (e) {
       print("Error al obtener ejercicios: $e");
     }
+  }
+
+  void _loadMoreExercises() {
+    int startIndex = _currentPage * _exercisesPerPage;
+    int endIndex = startIndex + _exercisesPerPage;
+    if (startIndex < _filteredExercises.length) {
+      _visibleExercises.addAll(
+          _filteredExercises.sublist(startIndex, endIndex.clamp(0, _filteredExercises.length)));
+      _currentPage++;
+      notifyListeners();
+    }
+  }
+
+  // Método para que la UI solicite cargar más ejercicios al hacer scroll
+  void loadMoreExercises() {
+    _loadMoreExercises();
+  }
+
+  // Método para filtrar ejercicios por búsqueda
+  void filterExercises(String query) {
+    if (query.isEmpty) {
+      _filteredExercises = _allExercises;
+    } else {
+      _filteredExercises = _allExercises
+          .where((exercise) =>
+              (exercise['name'] as String).toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+    _visibleExercises.clear();
+    _currentPage = 0;
+    _loadMoreExercises();
+  }
+
+  // Método para aplicar filtros (músculo y equipo)
+  void applyFilters({String? muscleGroup, String? equipment}) {
+    _filteredExercises = _allExercises.where((exercise) {
+      bool matchesMuscle = muscleGroup == null || (exercise['target'] == muscleGroup);
+      bool matchesEquipment = equipment == null || (exercise['equipment'] == equipment);
+      return matchesMuscle && matchesEquipment;
+    }).toList();
+    _visibleExercises.clear();
+    _currentPage = 0;
+    _loadMoreExercises();
   }
 
   Future<void> loadMuscleGroups() async {
@@ -315,7 +380,7 @@ class AppState with ChangeNotifier {
 
   Future<void> loadEquipment() async {
     try {
-      _equipment = await _apiService.fetchEquipment();
+      _equipment = await _apiService.fetchEquipmentList();
       notifyListeners();
     } catch (e) {
       print("Error al cargar equipo: $e");
@@ -343,7 +408,8 @@ class AppState with ChangeNotifier {
         _completedRoutines = await _dbHelper.getCompletedRoutines(_userId!);
         print("Rutinas completadas cargadas: ${_completedRoutines.length}");
         for (var completedRoutine in _completedRoutines) {
-          print("Rutina completada: ${completedRoutine.name} con ${completedRoutine.exercises.length} ejercicios");
+          print(
+              "Rutina completada: ${completedRoutine.name} con ${completedRoutine.exercises.length} ejercicios");
         }
       } catch (e) {
         print("Error al cargar rutinas completadas: $e");

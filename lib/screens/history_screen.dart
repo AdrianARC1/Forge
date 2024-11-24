@@ -146,14 +146,43 @@ class HistoryScreen extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        // Mostrar los primeros 3 ejercicios en la vista previa
+                        // Mostrar los primeros 3 ejercicios en la vista previa con imágenes
                         ...previewExercises.map((exercise) {
                           final seriesCount = exercise.series.length;
                           return Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Text(
-                              "$seriesCount series ${exercise.name}",
-                              style: GlobalStyles.subtitleStyle,
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Row(
+                              children: [
+                                // Imagen del ejercicio
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: exercise.gifUrl != null
+                                      ? ClipOval(
+                                          child: Image.network(
+                                            exercise.gifUrl!,
+                                            width: 40,
+                                            height: 40,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return Icon(Icons.image_not_supported);
+                                            },
+                                          ),
+                                        )
+                                      : Icon(Icons.image_not_supported),
+                                ),
+                                SizedBox(width: 8),
+                                // Nombre del ejercicio y series
+                                Expanded(
+                                  child: Text(
+                                    "$seriesCount series ${exercise.name}",
+                                    style: GlobalStyles.subtitleStyle,
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         }),
@@ -203,23 +232,21 @@ class HistoryScreen extends StatelessWidget {
     );
   }
 
-String _formatDuration(Duration duration) {
-  int hours = duration.inHours;
-  int minutes = duration.inMinutes.remainder(60);
-  int seconds = duration.inSeconds.remainder(60);
+  String _formatDuration(Duration duration) {
+    int hours = duration.inHours;
+    int minutes = duration.inMinutes.remainder(60);
+    int seconds = duration.inSeconds.remainder(60);
 
-  if (hours > 0) {
-    // Si hay horas, mostrar horas y minutos
-    String hoursStr = '${hours}h';
-    String minutesStr = minutes > 0 ? ' ${minutes}min' : '';
-    return '$hoursStr$minutesStr';
-  } else {
-    // Si no hay horas, mostrar minutos y segundos
-    String minutesStr = minutes > 0 ? '${minutes}min' : '';
-    String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
-    return '${minutesStr}${secondsStr}'.trim();
+    if (hours > 0) {
+      // Si hay horas, mostrar horas y minutos
+      String hoursStr = '${hours}h';
+      String minutesStr = minutes > 0 ? ' ${minutes}min' : '';
+      return '$hoursStr$minutesStr';
+    } else {
+      // Si no hay horas, mostrar minutos y segundos
+      String minutesStr = minutes > 0 ? '${minutes}min' : '';
+      String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
+      return '${minutesStr}${secondsStr}'.trim();
+    }
   }
-}
-
-
 }

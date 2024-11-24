@@ -45,6 +45,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         return Exercise(
           id: exercise.id,
           name: exercise.name,
+          gifUrl: exercise.gifUrl,
           series: exercise.series.map((series) {
             return Series(
               id: series.id,
@@ -327,6 +328,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
             return Exercise(
               id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
               name: exercise.name,
+              gifUrl: exercise.gifUrl,
               series: exercise.series.map((series) {
                 return Series(
                   id: Uuid().v4(), // Genera un nuevo UUID para la serie
@@ -355,6 +357,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
             return Exercise(
               id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
               name: exercise.name,
+              gifUrl: exercise.gifUrl,
               series: exercise.series.map((series) {
                 return Series(
                   id: Uuid().v4(), // Genera un nuevo UUID para la serie
@@ -385,6 +388,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
           return Exercise(
             id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
             name: exercise.name,
+            gifUrl: exercise.gifUrl,
             series: exercise.series.map((series) {
               return Series(
                 id: Uuid().v4(), // Genera un nuevo UUID para la serie
