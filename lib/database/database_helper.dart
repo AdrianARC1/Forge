@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 7, // Incrementado a versión 7
+      version: 8, // Incrementado a versión 7
       onCreate: (db, version) async {
         // Tabla de usuarios con salting y restricciones NOT NULL
         await db.execute('''
@@ -60,6 +60,7 @@ class DatabaseHelper {
             id TEXT PRIMARY KEY,
             routineId TEXT NOT NULL,
             name TEXT NOT NULL,
+            gifUrl TEXT,
             FOREIGN KEY (routineId) REFERENCES routines (id) ON DELETE CASCADE
           )
         ''');
@@ -132,6 +133,10 @@ class DatabaseHelper {
           print("Base de datos actualizada a versión 7, columna 'duration' añadida.");
         }
         // Manejar otras actualizaciones si es necesario
+        if (oldVersion < 8) {
+          await db.execute('ALTER TABLE exercises ADD COLUMN gifUrl TEXT');
+          print("Base de datos actualizada a versión 8, columna 'gifUrl' añadida a 'exercises'.");
+}
       },
     );
   }
@@ -299,6 +304,7 @@ class DatabaseHelper {
       'id': uniqueId,
       'routineId': routineId,
       'name': exercise.name,
+      'gifUrl': exercise.gifUrl,
     });
     print("Ejercicio guardado: ${exercise.name} para rutina ID: $routineId con ID único $uniqueId");
 
@@ -320,6 +326,7 @@ class DatabaseHelper {
       exercises.add(Exercise(
         id: exerciseData['id'] as String,
         name: exerciseData['name'] as String,
+        gifUrl: exerciseData['gifUrl'] as String?, // Añadido
         series: series,
       ));
     }

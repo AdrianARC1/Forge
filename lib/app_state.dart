@@ -41,9 +41,10 @@ class Series {
 class Exercise {
   String id;
   final String name;
+  final String? gifUrl;
   List<Series> series;
 
-  Exercise({required this.id, required this.name, this.series = const []});
+  Exercise({required this.id, required this.name, this.gifUrl, this.series = const []});
 }
 
 class Routine {
