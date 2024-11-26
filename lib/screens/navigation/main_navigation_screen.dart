@@ -69,34 +69,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         TextButton.icon(
                           style: TextButton.styleFrom(
                             backgroundColor: Colors.transparent, // Sin fondo
-                            ),
+                          ),
                           onPressed: () => _cancelMinimizedRoutine(context),
-                          icon: Icon(Icons.close, color: Colors.red, size: 22,),
+                          icon: Icon(Icons.close, color: Colors.red, size: 26,),
                           label: Text(
                             'Descartar',
-                            style: TextStyle(color: Colors.red, fontSize: 16),
+                            style: TextStyle(color: Colors.red, fontSize: 18),
                           ),
                         ),
 
                         // Botón "Volver a la rutina"
                         TextButton.icon(
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.transparent, // Sin fondo
-                                ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => RoutineExecutionScreen(routine: appState.minimizedRoutine),
-                                  ),
-                                );
-                              },
-                              icon: Icon(Icons.play_arrow, color: GlobalStyles.backgroundButtonsColor, size: 22),
-                              label: Text(
-                                'Volver a la rutina',
-                                style: TextStyle(color: GlobalStyles.backgroundButtonsColor, fontSize: 16),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.transparent, // Sin fondo
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RoutineExecutionScreen(routine: appState.minimizedRoutine),
                               ),
-                            ),
+                            );
+                          },
+                          icon: Icon(Icons.play_arrow, color: GlobalStyles.backgroundButtonsColor, size: 26),
+                          label: Text(
+                            'Volver a la rutina',
+                            style: TextStyle(color: GlobalStyles.backgroundButtonsColor, fontSize: 18),
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -107,48 +107,58 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       bottomNavigationBar: Container(
         height: 70,
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onTabTapped,
-          backgroundColor: GlobalStyles.bottomNavBarTheme.backgroundColor,
-          selectedItemColor: GlobalStyles.bottomNavBarTheme.selectedItemColor, // Color de ítem seleccionado
-          unselectedItemColor: GlobalStyles.bottomNavBarTheme.unselectedItemColor, // Color de ítem no seleccionado
-          type: BottomNavigationBarType.fixed, // Tipo de barra (fija o shifting)
-          showUnselectedLabels: true, // Mostrar etiquetas para los no seleccionados
-          showSelectedLabels: true, // Mostrar etiquetas para los seleccionados
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            splashFactory: NoSplash.splashFactory, // Desactiva el splash
+            highlightColor: Colors.transparent,    // Asegura que no haya highlight
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: _onTabTapped,
+            backgroundColor: GlobalStyles.bottomNavBarTheme.backgroundColor,
+            selectedItemColor: GlobalStyles.backgroundButtonsColor, // Color de ítem seleccionado
+            unselectedItemColor: GlobalStyles.bottomNavBarTheme.unselectedItemColor, // Color de ítem no seleccionado
+            type: BottomNavigationBarType.fixed, // Tipo de barra (fija o shifting)
+            showUnselectedLabels: true, // Mostrar etiquetas para los no seleccionados
+            showSelectedLabels: true, // Mostrar etiquetas para los seleccionados
 
-          // Estilos de íconos
-          selectedIconTheme: IconThemeData(
-            size: 30, // Tamaño de los íconos seleccionados
-          ),
-          unselectedIconTheme: IconThemeData(
-            size: 24, // Tamaño de los íconos no seleccionados
-          ),
+            // Estilos de íconos
+            selectedIconTheme: IconThemeData(
+              size: 32, // Tamaño de los íconos seleccionados
+              color: GlobalStyles.backgroundButtonsColor, // Asegura el color del ícono seleccionado
+            ),
+            unselectedIconTheme: IconThemeData(
+              size: 24, // Tamaño de los íconos no seleccionados
+              color: GlobalStyles.bottomNavBarTheme.unselectedItemColor, // Color de íconos no seleccionados
+            ),
 
-          // Estilos de texto (labels)
-          selectedLabelStyle: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-          unselectedLabelStyle: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.normal,
-          ),
+            // Estilos de texto (labels)
+            selectedLabelStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: GlobalStyles.backgroundButtonsColor, // Color de la etiqueta seleccionada
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.normal,
+              color: GlobalStyles.bottomNavBarTheme.unselectedItemColor, // Color de la etiqueta no seleccionada
+            ),
 
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history),
-              label: "Historial",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.fitness_center),
-              label: "Entrenamiento",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: "Perfil",
-            ),
-          ],
+            items: [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.history),
+                label: "Historial",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.fitness_center),
+                label: "Entrenamiento",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: "Perfil",
+              ),
+            ],
+          ),
         ),
       ),
     );
