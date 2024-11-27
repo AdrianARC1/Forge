@@ -129,7 +129,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         _displayDuration.value += Duration(seconds: 1);
         final appState = Provider.of<AppState>(context, listen: false);
         appState.minimizedRoutineDuration = _displayDuration.value;
-        print("Duración actual: ${_displayDuration.value.inSeconds} segundos");
       });
     }
   }

@@ -1,6 +1,7 @@
 // lib/screens/exercise_selection_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:forge/screens/widgets/refreshable_exercise_image.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 
@@ -29,7 +30,8 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       // Cargar más ejercicios al acercarse al final
       Provider.of<AppState>(context, listen: false).loadMoreExercises();
     }
@@ -107,7 +109,8 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
                   });
                   _filterExercises();
                 },
-                items: appState.muscleGroups.map<DropdownMenuItem<String>>((group) {
+                items: appState.muscleGroups
+                    .map<DropdownMenuItem<String>>((group) {
                   return DropdownMenuItem<String>(
                     value: group,
                     child: Text(group),
@@ -144,23 +147,24 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
                     itemBuilder: (context, index) {
                       final exercise = appState.exercises[index];
                       final exerciseName = exercise['name'] as String;
+                      final exerciseId = exercise['id'] as String;
+                      final gifUrl = exercise['gifUrl'] as String?;
 
                       return ListTile(
-                        leading: exercise['gifUrl'] != null
-                            ? Image.network(
-                                exercise['gifUrl'],
-                                width: 50,
-                                height: 50,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(Icons.image_not_supported);
-                                },
-                              )
-                            : Icon(Icons.image_not_supported),
+                        leading: RefreshableExerciseImage(
+                          gifUrl: gifUrl,
+                          exerciseId: exerciseId,
+                          width: 50,
+                          height: 50,
+                          shape: BoxShape.circle,
+                          fit: BoxFit.cover,
+                        ),
                         title: Text(exerciseName),
                         subtitle: Text(
                             'Músculo: ${exercise['target']}\nEquipo: ${exercise['equipment']}'),
                         onTap: () {
-                          Navigator.pop(context, exercise); // Devuelve el ejercicio seleccionado
+                          Navigator.pop(context,
+                              exercise); // Devuelve el ejercicio seleccionado
                         },
                       );
                     },

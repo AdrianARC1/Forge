@@ -1,6 +1,7 @@
 // lib/screens/history_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:forge/screens/widgets/refreshable_exercise_image.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import 'routine/routine_detail_screen.dart';
@@ -34,8 +35,10 @@ class HistoryScreen extends StatelessWidget {
                 final completedRoutine = completedRoutines[index];
 
                 final String name = completedRoutine.name;
-                final DateTime dateCompleted = completedRoutine.dateCompleted ?? DateTime.now();
-                final Duration duration = completedRoutine.duration ?? Duration.zero;
+                final DateTime dateCompleted =
+                    completedRoutine.dateCompleted ?? DateTime.now();
+                final Duration duration =
+                    completedRoutine.duration ?? Duration.zero;
                 final int totalVolume = completedRoutine.totalVolume;
 
                 // Obtener la lista de ejercicios y la vista previa de los primeros 3 ejercicios
@@ -43,7 +46,8 @@ class HistoryScreen extends StatelessWidget {
                 final previewExercises = exercises.take(3).toList();
 
                 // Calcular los ejercicios restantes para el texto "ver más"
-                final int remainingExercises = exercises.length > 3 ? exercises.length - 3 : 0;
+                final int remainingExercises =
+                    exercises.length > 3 ? exercises.length - 3 : 0;
 
                 // Calcular cuántos días han pasado desde que se completó la rutina
                 final daysAgo = DateTime.now().difference(dateCompleted).inDays;
@@ -149,30 +153,20 @@ class HistoryScreen extends StatelessWidget {
                         // Mostrar los primeros 3 ejercicios en la vista previa con imágenes
                         ...previewExercises.map((exercise) {
                           final seriesCount = exercise.series.length;
+                            print('Exercise ID: ${exercise.id}'); // Añade esta línea
+
                           return Padding(
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Row(
                               children: [
-                                // Imagen del ejercicio
-                                Container(
+                                // Imagen del ejercicio usando el widget personalizado
+                                RefreshableExerciseImage(
+                                  gifUrl: exercise.gifUrl,
+                                  exerciseId: exercise.id,
                                   width: 40,
                                   height: 40,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: exercise.gifUrl != null
-                                      ? ClipOval(
-                                          child: Image.network(
-                                            exercise.gifUrl!,
-                                            width: 40,
-                                            height: 40,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return Icon(Icons.image_not_supported);
-                                            },
-                                          ),
-                                        )
-                                      : Icon(Icons.image_not_supported),
+                                  shape: BoxShape.circle,
+                                  fit: BoxFit.cover,
                                 ),
                                 SizedBox(width: 8),
                                 // Nombre del ejercicio y series
