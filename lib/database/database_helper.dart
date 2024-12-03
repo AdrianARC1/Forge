@@ -1,5 +1,3 @@
-// lib/database/database_helper.dart
-
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../app_state.dart';
@@ -21,13 +19,19 @@ class DatabaseHelper {
     return _database!;
   }
 
+  /// Verifica si una columna existe en una tabla específica
+  Future<bool> _columnExists(Database db, String tableName, String columnName) async {
+    final List<Map<String, dynamic>> tableInfo = await db.rawQuery('PRAGMA table_info($tableName)');
+    return tableInfo.any((column) => column['name'] == columnName);
+  }
+
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'forge.db');
 
     return await openDatabase(
       path,
-      version: 8, // Incrementado a versión 7
+      version: 8, // Incrementado a versión 8
       onCreate: (db, version) async {
         // Tabla de usuarios con salting y restricciones NOT NULL
         await db.execute('''
@@ -128,15 +132,26 @@ class DatabaseHelper {
         }
 
         if (oldVersion < 7) {
-          // Agregar columna 'duration' a la tabla 'routines'
-          await db.execute('ALTER TABLE routines ADD COLUMN duration INTEGER');
-          print("Base de datos actualizada a versión 7, columna 'duration' añadida.");
+          // Agregar columna 'duration' a la tabla 'routines' solo si no existe
+          bool durationExists = await _columnExists(db, 'routines', 'duration');
+          if (!durationExists) {
+            await db.execute('ALTER TABLE routines ADD COLUMN duration INTEGER');
+            print("Base de datos actualizada a versión 7, columna 'duration' añadida.");
+          } else {
+            print("La columna 'duration' ya existe en la tabla 'routines'.");
+          }
         }
-        // Manejar otras actualizaciones si es necesario
+
         if (oldVersion < 8) {
-          await db.execute('ALTER TABLE exercises ADD COLUMN gifUrl TEXT');
-          print("Base de datos actualizada a versión 8, columna 'gifUrl' añadida a 'exercises'.");
-}
+          // Agregar columna 'gifUrl' a la tabla 'exercises' solo si no existe
+          bool gifUrlExists = await _columnExists(db, 'exercises', 'gifUrl');
+          if (!gifUrlExists) {
+            await db.execute('ALTER TABLE exercises ADD COLUMN gifUrl TEXT');
+            print("Base de datos actualizada a versión 8, columna 'gifUrl' añadida a 'exercises'.");
+          } else {
+            print("La columna 'gifUrl' ya existe en la tabla 'exercises'.");
+          }
+        }
       },
     );
   }
