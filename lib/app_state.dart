@@ -1,14 +1,14 @@
 // lib/app_state.dart
 
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:forge/database/database_helper.dart';
-import 'api/exercise_db_api_service.dart'; // Cambiado
-import 'package:uuid/uuid.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'dart:math';
+import 'package:crypto/crypto.dart';
+import 'package:flutter/material.dart';
+import 'package:forge/database/database_helper.dart';
+import 'package:forge/api/exercise_db_api_service.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 const uuid = Uuid();
 
@@ -108,7 +108,7 @@ class AppState with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   final DatabaseHelper _dbHelper = DatabaseHelper();
-  final ExerciseDbApiService _apiService = ExerciseDbApiService(); // Cambiado
+  final ExerciseDbApiService _apiService = ExerciseDbApiService();
 
   Routine? minimizedRoutine;
   Routine? savedRoutineState;
@@ -123,6 +123,10 @@ class AppState with ChangeNotifier {
 
   bool _showTutorial = false;
   bool get showTutorial => _showTutorial;
+
+  // Imagen de perfil del usuario
+  String? _profileImagePath;
+  String? get profileImagePath => _profileImagePath;
 
   List<Routine> get routines => _routines;
   List<Routine> get completedRoutines => _completedRoutines;
@@ -154,6 +158,7 @@ class AppState with ChangeNotifier {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       _userId = prefs.getString('userId');
       _username = prefs.getString('username');
+      _profileImagePath = prefs.getString('profileImagePath');
 
       if (_userId != null) {
         await _loadRoutines();
@@ -166,6 +171,25 @@ class AppState with ChangeNotifier {
     } catch (e) {
       print("Error al cargar la sesión del usuario: $e");
     }
+  }
+
+  Future<void> updateProfileImage(String path) async {
+    _profileImagePath = path;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('profileImagePath', path);
+    notifyListeners();
+  }
+
+  /// Retorna un mapa con los mejores pesos (maxWeight) para cada ejercicio
+  Map<String, int> getPersonalRecords() {
+    Map<String, int> personalRecords = {};
+    _maxExerciseRecords.forEach((exerciseName, recordData) {
+      // Asumimos que maxWeight es un entero en recordData
+      if (recordData.containsKey('maxWeight')) {
+        personalRecords[exerciseName] = recordData['maxWeight'] as int;
+      }
+    });
+    return personalRecords;
   }
 
   /// Genera un salt aleatorio
@@ -201,7 +225,7 @@ class AppState with ChangeNotifier {
     if (success) {
       await login(trimmedUsername, trimmedPassword);
       _showTutorial = true;
-      notifyListeners(); // Notificar cambios después de actualizar _showTutorial
+      notifyListeners(); 
       return true;
     } else {
       return false;
@@ -234,7 +258,7 @@ class AppState with ChangeNotifier {
         await _loadCompletedRoutines();
         await loadMuscleGroups();
         await loadEquipment();
-        await fetchAllExercises(); // Cargar todos los ejercicios
+        await fetchAllExercises(); 
         await loadMaxExerciseRecords();
         notifyListeners();
         return true;
@@ -252,9 +276,11 @@ class AppState with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('userId');
     await prefs.remove('username');
+    await prefs.remove('profileImagePath');
 
     _userId = null;
     _username = null;
+    _profileImagePath = null;
     _routines = [];
     _completedRoutines = [];
     _allExercises = [];
@@ -272,7 +298,7 @@ class AppState with ChangeNotifier {
 
   // Inicia el temporizador para la rutina minimizada
   void startRoutineTimer() {
-    stopRoutineTimer(); // Detener cualquier temporizador anterior
+    stopRoutineTimer(); 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       minimizedRoutineDuration += Duration(seconds: 1);
       notifyListeners();
@@ -286,7 +312,7 @@ class AppState with ChangeNotifier {
 
   // Minimiza la rutina y guarda su estado
   void minimizeRoutine(Routine routine) {
-    savedRoutineState = routine; // Guarda el estado actual de la rutina
+    savedRoutineState = routine; 
     minimizedRoutine = routine;
     startRoutineTimer();
     notifyListeners();
@@ -296,15 +322,14 @@ class AppState with ChangeNotifier {
   void restoreRoutine() {
     minimizedRoutine = null;
     savedRoutineState = null;
-    stopRoutineTimer(); // Detiene el temporizador
-    // No reiniciamos minimizedRoutineDuration aquí para preservar el tiempo al restaurar
+    stopRoutineTimer(); 
     notifyListeners();
   }
 
   // Cancela la rutina minimizada y limpia el estado
   void cancelMinimizedRoutine() {
     minimizedRoutine = null;
-    savedRoutineState = null; // Limpia el estado guardado
+    savedRoutineState = null; 
     minimizedRoutineDuration = Duration.zero;
     stopRoutineTimer();
     notifyListeners();
@@ -318,7 +343,7 @@ class AppState with ChangeNotifier {
         _filteredExercises = _allExercises;
         _visibleExercises.clear();
         _currentPage = 0;
-        _loadMoreExercises(); // Cargamos la primera página
+        _loadMoreExercises(); 
         notifyListeners();
       }
     } catch (e) {
@@ -337,12 +362,10 @@ class AppState with ChangeNotifier {
     }
   }
 
-  // Método para que la UI solicite cargar más ejercicios al hacer scroll
   void loadMoreExercises() {
     _loadMoreExercises();
   }
 
-  // Método para filtrar ejercicios por búsqueda
   void filterExercises(String query) {
     if (query.isEmpty) {
       _filteredExercises = _allExercises;
@@ -357,7 +380,6 @@ class AppState with ChangeNotifier {
     _loadMoreExercises();
   }
 
-  // Método para aplicar filtros (músculo y equipo)
   void applyFilters({String? muscleGroup, String? equipment}) {
     _filteredExercises = _allExercises.where((exercise) {
       bool matchesMuscle = muscleGroup == null || (exercise['target'] == muscleGroup);
