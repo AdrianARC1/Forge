@@ -22,7 +22,8 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
 
     return BaseScaffold(
       appBar: AppBar(
-        title: Text("Entrenamiento"),
+        title: Text("Entrenamiento", style: GlobalStyles.insideAppTitleStyle),
+        centerTitle: true,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

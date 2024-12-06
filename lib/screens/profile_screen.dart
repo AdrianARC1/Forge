@@ -51,19 +51,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return BaseScaffold(
       backgroundColor: GlobalStyles.backgroundColor,
       appBar: AppBar(
-        backgroundColor: GlobalStyles.backgroundColor,
         elevation: 0,
         centerTitle: true,
         title: Text('Perfil', style: GlobalStyles.insideAppTitleStyle),
-        leading: AppBarButton(
-          text: 'Descarga',
+        leading: IconButton(
+          icon: Icon(Icons.download, color: GlobalStyles.textColor), // Icono de descarga
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Funcionalidad en desarrollo')),
             );
           },
-          textColor: GlobalStyles.textColor,
-          backgroundColor: Colors.transparent,
         ),
         actions: [
           AppBarButton(
@@ -311,6 +308,7 @@ class _DataGraphsState extends State<DataGraphs> {
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: leftTitleWidgets,
+                    reservedSize: 40
                   ),
                 ),
                 bottomTitles: AxisTitles(

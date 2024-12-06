@@ -16,7 +16,6 @@ class HistoryScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: GlobalStyles.backgroundColor,
         title: Text("Historial", style: GlobalStyles.insideAppTitleStyle),
         centerTitle: true,
       ),
