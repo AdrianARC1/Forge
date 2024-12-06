@@ -94,7 +94,6 @@ class AppState with ChangeNotifier {
   List<Routine> _routines = [];
   List<Routine> _completedRoutines = [];
 
-  // Variables para manejar los ejercicios
   List<Map<String, dynamic>> _allExercises = [];
   List<Map<String, dynamic>> _filteredExercises = [];
   List<Map<String, dynamic>> _visibleExercises = [];
@@ -115,18 +114,16 @@ class AppState with ChangeNotifier {
   Duration minimizedRoutineDuration = Duration.zero;
   Timer? _timer;
 
-  // Propiedades del usuario
   String? _userId;
   String? get userId => _userId;
   String? _username;
   String? get username => _username;
 
-  bool _showTutorial = false;
-  bool get showTutorial => _showTutorial;
-
-  // Imagen de perfil del usuario
   String? _profileImagePath;
   String? get profileImagePath => _profileImagePath;
+
+  bool _showTutorial = false;
+  bool get showTutorial => _showTutorial;
 
   List<Routine> get routines => _routines;
   List<Routine> get completedRoutines => _completedRoutines;
@@ -134,7 +131,6 @@ class AppState with ChangeNotifier {
   List<String> get muscleGroups => _muscleGroups;
   List<String> get equipment => _equipment;
 
-  // Mapa para almacenar los máximos históricos de ejercicios
   Map<String, Map<String, dynamic>> _maxExerciseRecords = {};
   Map<String, Map<String, dynamic>> get maxExerciseRecords => _maxExerciseRecords;
 
@@ -146,7 +142,7 @@ class AppState with ChangeNotifier {
     try {
       await _loadUserSession();
     } catch (e) {
-      print("Error durante la inicialización de la aplicación: $e");
+      print("Error durante la inicialización: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -165,11 +161,11 @@ class AppState with ChangeNotifier {
         await _loadCompletedRoutines();
         await loadMuscleGroups();
         await loadEquipment();
-        await fetchAllExercises(); // Cargar todos los ejercicios
+        await fetchAllExercises();
         await loadMaxExerciseRecords();
       }
     } catch (e) {
-      print("Error al cargar la sesión del usuario: $e");
+      print("Error al cargar la sesión: $e");
     }
   }
 
@@ -180,26 +176,44 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Retorna un mapa con los mejores pesos (maxWeight) para cada ejercicio
-  Map<String, int> getPersonalRecords() {
-    Map<String, int> personalRecords = {};
+  /// Obtiene los records ordenados por maxWeight, devuelve una lista con info (nombre, gifurl, maxWeight).
+  List<Map<String, dynamic>> getPersonalRecords() {
+    List<Map<String, dynamic>> recordsList = [];
+
     _maxExerciseRecords.forEach((exerciseName, recordData) {
-      // Asumimos que maxWeight es un entero en recordData
-      if (recordData.containsKey('maxWeight')) {
-        personalRecords[exerciseName] = recordData['maxWeight'] as int;
-      }
+      int maxWeight = recordData['maxWeight'] as int;
+      double max1RM = recordData['max1RM'] as double;
+      int maxReps = recordData['maxReps'] as int;
+      String? gifUrl = getExerciseGifUrl(exerciseName);
+      recordsList.add({
+        'exerciseName': exerciseName,
+        'gifUrl': gifUrl,
+        'maxWeight': maxWeight,
+        'maxReps': maxReps,
+        'max1RM': max1RM,
+      });
     });
-    return personalRecords;
+
+    recordsList.sort((a, b) => (b['maxWeight'] as int).compareTo(a['maxWeight'] as int));
+    return recordsList;
   }
 
-  /// Genera un salt aleatorio
+  /// Dado el nombre de un ejercicio, devuelve su gifUrl si existe en _allExercises.
+  String? getExerciseGifUrl(String exerciseName) {
+    for (var ex in _allExercises) {
+      if ((ex['name'] as String).toLowerCase() == exerciseName.toLowerCase()) {
+        return ex['gifUrl'] as String?;
+      }
+    }
+    return null;
+  }
+
   String generateSalt([int length = 16]) {
     final Random random = Random.secure();
     final List<int> saltBytes = List<int>.generate(length, (_) => random.nextInt(256));
     return base64Url.encode(saltBytes);
   }
 
-  /// Hash de la contraseña con salt
   String hashPassword(String password, String salt) {
     final bytes = utf8.encode(password + salt);
     return sha256.convert(bytes).toString();
@@ -209,13 +223,11 @@ class AppState with ChangeNotifier {
     String trimmedUsername = username.trim();
     String trimmedPassword = password.trim();
 
-    // Validaciones adicionales
     if (trimmedUsername.isEmpty || trimmedPassword.isEmpty) {
       return false;
     }
 
     if (trimmedPassword.length < 6) {
-      // Puedes ajustar la longitud mínima según tus necesidades
       return false;
     }
 
@@ -225,7 +237,7 @@ class AppState with ChangeNotifier {
     if (success) {
       await login(trimmedUsername, trimmedPassword);
       _showTutorial = true;
-      notifyListeners(); 
+      notifyListeners();
       return true;
     } else {
       return false;
@@ -258,16 +270,16 @@ class AppState with ChangeNotifier {
         await _loadCompletedRoutines();
         await loadMuscleGroups();
         await loadEquipment();
-        await fetchAllExercises(); 
+        await fetchAllExercises();
         await loadMaxExerciseRecords();
         notifyListeners();
         return true;
       } else {
-        print("Contraseña incorrecta para usuario: $trimmedUsername");
+        print("Contraseña incorrecta");
         return false;
       }
     } else {
-      print("Usuario no encontrado: $trimmedUsername");
+      print("Usuario no encontrado");
       return false;
     }
   }
@@ -296,7 +308,6 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // Inicia el temporizador para la rutina minimizada
   void startRoutineTimer() {
     stopRoutineTimer(); 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
@@ -305,12 +316,10 @@ class AppState with ChangeNotifier {
     });
   }
 
-  // Detener el temporizador
   void stopRoutineTimer() {
     _timer?.cancel();
   }
 
-  // Minimiza la rutina y guarda su estado
   void minimizeRoutine(Routine routine) {
     savedRoutineState = routine; 
     minimizedRoutine = routine;
@@ -318,7 +327,6 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // Restaura la rutina minimizada, detiene el temporizador y reinicia el tiempo
   void restoreRoutine() {
     minimizedRoutine = null;
     savedRoutineState = null;
@@ -326,7 +334,6 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // Cancela la rutina minimizada y limpia el estado
   void cancelMinimizedRoutine() {
     minimizedRoutine = null;
     savedRoutineState = null; 
@@ -335,7 +342,6 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  // Carga todos los ejercicios y los prepara para el lazy loading
   Future<void> fetchAllExercises() async {
     try {
       if (_allExercises.isEmpty) {
@@ -413,10 +419,6 @@ class AppState with ChangeNotifier {
     if (_userId != null) {
       try {
         _routines = await _dbHelper.getRoutines(_userId!);
-        print("Rutinas cargadas: ${_routines.length}");
-        for (var routine in _routines) {
-          print("Rutina: ${routine.name} con ${routine.exercises.length} ejercicios");
-        }
       } catch (e) {
         print("Error al cargar rutinas: $e");
       }
@@ -428,11 +430,6 @@ class AppState with ChangeNotifier {
     if (_userId != null) {
       try {
         _completedRoutines = await _dbHelper.getCompletedRoutines(_userId!);
-        print("Rutinas completadas cargadas: ${_completedRoutines.length}");
-        for (var completedRoutine in _completedRoutines) {
-          print(
-              "Rutina completada: ${completedRoutine.name} con ${completedRoutine.exercises.length} ejercicios");
-        }
       } catch (e) {
         print("Error al cargar rutinas completadas: $e");
       }
@@ -450,7 +447,7 @@ class AppState with ChangeNotifier {
         };
         notifyListeners();
       } catch (e) {
-        print("Error al cargar los registros máximos de ejercicios: $e");
+        print("Error al cargar registros máximos: $e");
       }
     }
   }
@@ -458,9 +455,7 @@ class AppState with ChangeNotifier {
   Future<void> completeRoutine(Routine routine, Duration duration) async {
     try {
       int totalVolume = calculateTotalVolume(routine);
-      print("Antes de completar la rutina, userId: $_userId");
 
-      // Crear una copia de la rutina con un nuevo ID y marcarla como completada
       Routine completedRoutine = routine.copyWith(
         id: uuid.v4(),
         isCompleted: true,
@@ -469,18 +464,9 @@ class AppState with ChangeNotifier {
         totalVolume: totalVolume,
       );
 
-      // Guardar la rutina completada en la base de datos
       await _dbHelper.insertRoutine(completedRoutine, _userId!);
-
-      // Actualizar los registros máximos
       await updateMaxRecordsFromRoutine(completedRoutine);
-
-      // Recargar rutinas completadas
       await _loadCompletedRoutines();
-
-      print(
-          "Rutina completada: ${completedRoutine.name} con duración de ${duration.inMinutes} minutos y volumen total de $totalVolume kg");
-      print("Después de completar la rutina, userId: $_userId");
     } catch (e) {
       print("Error al completar la rutina: $e");
     }
@@ -511,7 +497,6 @@ class AppState with ChangeNotifier {
       try {
         await _dbHelper.insertRoutine(routine, _userId!);
         _routines.add(routine);
-        print("Rutina guardada: ${routine.name} con ${routine.exercises.length} ejercicios");
         notifyListeners();
       } catch (e) {
         print("Error al guardar la rutina: $e");
@@ -526,7 +511,6 @@ class AppState with ChangeNotifier {
         final index = _routines.indexWhere((r) => r.id == routine.id);
         if (index != -1) {
           _routines[index] = routine;
-          print("Rutina actualizada: ${routine.name} con ${routine.exercises.length} ejercicios");
           notifyListeners();
         }
       } catch (e) {
@@ -538,10 +522,8 @@ class AppState with ChangeNotifier {
   Future<void> addExerciseToRoutine(Exercise exercise, String routineId) async {
     try {
       await _dbHelper.insertExercise(exercise, routineId);
-      final routine = _routines.firstWhere((routine) => routine.id == routineId,
-          orElse: () => throw Exception("Rutina no encontrada"));
+      final routine = _routines.firstWhere((routine) => routine.id == routineId);
       routine.exercises.add(exercise);
-      print("Ejercicio añadido: ${exercise.name} a la rutina ID: $routineId");
       notifyListeners();
     } catch (e) {
       print("Error al añadir ejercicio a la rutina: $e");
@@ -552,13 +534,8 @@ class AppState with ChangeNotifier {
     try {
       series.lastSavedPerceivedExertion = series.perceivedExertion;
       await _dbHelper.insertSeries(series, exerciseId);
-      final exercise = _routines
-          .expand((routine) => routine.exercises)
-          .firstWhere((exercise) => exercise.id == exerciseId,
-              orElse: () => throw Exception("Ejercicio no encontrado"));
+      final exercise = _routines.expand((r) => r.exercises).firstWhere((e) => e.id == exerciseId);
       exercise.series.add(series);
-      print(
-          "Serie añadida a ejercicio ID: $exerciseId con peso ${series.weight} kg y ${series.reps} repeticiones");
       notifyListeners();
     } catch (e) {
       print("Error al añadir serie al ejercicio: $e");
@@ -567,13 +544,11 @@ class AppState with ChangeNotifier {
 
   void updateRoutineDuration(String routineId, Duration duration) {
     try {
-      final routine = _routines.firstWhere((routine) => routine.id == routineId,
-          orElse: () => throw Exception("Rutina no encontrada"));
+      final routine = _routines.firstWhere((r) => r.id == routineId);
       routine.duration = duration;
-      print("Duración de rutina actualizada: ${routine.name} a ${duration.inMinutes} minutos");
       notifyListeners();
     } catch (e) {
-      print("Error al actualizar la duración de la rutina: $e");
+      print("Error al actualizar duración: $e");
     }
   }
 
@@ -581,7 +556,6 @@ class AppState with ChangeNotifier {
     try {
       await _dbHelper.deleteRoutine(id);
       _routines.removeWhere((routine) => routine.id == id);
-      print("Rutina eliminada: ID $id");
       notifyListeners();
     } catch (e) {
       print("Error al eliminar la rutina: $e");
@@ -595,7 +569,6 @@ class AppState with ChangeNotifier {
         totalVolume += series.weight * series.reps;
       }
     }
-    print("Volumen total calculado para rutina ${routine.name}: $totalVolume kg");
     return totalVolume;
   }
 }

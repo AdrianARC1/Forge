@@ -5,15 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import 'auth/login_screen.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'settings_screen.dart';
 import 'edit_profile_screen.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:fl_chart/fl_chart.dart';
 import './widgets/base_scaffold.dart';
 import './widgets/app_bar_button.dart';
 import '../styles/global_styles.dart';
+import 'widgets/history_list_widget.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool showAllRecords = false;
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -34,6 +42,12 @@ class ProfileScreen extends StatelessWidget {
       return sum + (routine.totalVolume);
     });
 
+    List<Map<String, dynamic>> personalRecords = appState.getPersonalRecords();
+    List<Map<String, dynamic>> top5Records = personalRecords.take(5).toList();
+    List<Map<String, dynamic>> remainingRecords = personalRecords.length > 5
+        ? personalRecords.skip(5).toList()
+        : [];
+
     return BaseScaffold(
       backgroundColor: GlobalStyles.backgroundColor,
       appBar: AppBar(
@@ -41,7 +55,6 @@ class ProfileScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: Text('Perfil', style: GlobalStyles.insideAppTitleStyle),
-        leadingWidth: 100,
         leading: AppBarButton(
           text: 'Descarga',
           onPressed: () {
@@ -70,17 +83,17 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Sección de información de usuario
+            // Información del usuario
             Container(
               decoration: BoxDecoration(
                 color: GlobalStyles.inputBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: EdgeInsets.all(16.0),
+              margin: EdgeInsets.only(top: 16.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Foto de perfil
                   GestureDetector(
                     onTap: () async {
                       final picker = ImagePicker();
@@ -93,11 +106,10 @@ class ProfileScreen extends StatelessWidget {
                       radius: 40,
                       backgroundImage: appState.profileImagePath != null
                           ? FileImage(File(appState.profileImagePath!))
-                          : AssetImage('assets/default_profile.png') as ImageProvider,
+                          : AssetImage('assets/default_profile.jpg') as ImageProvider,
                     ),
                   ),
                   SizedBox(width: 16),
-                  // Nombre de usuario y rutinas completadas
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,7 +126,6 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Botón de editar perfil
                   IconButton(
                     icon: Icon(Icons.edit, color: GlobalStyles.textColor),
                     onPressed: () {
@@ -129,45 +140,7 @@ class ProfileScreen extends StatelessWidget {
             ),
 
             SizedBox(height: 24),
-
-            // Sección de gráficas
-            Text('Progreso', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
-            SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: GlobalStyles.inputBackgroundColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: EdgeInsets.all(16.0),
-              height: 350,
-              child: DataGraphs(),
-            ),
-
-            SizedBox(height: 24),
-
-            // Mejores marcas personales
-            Text('Mejores Marcas Personales', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
-            SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: GlobalStyles.inputBackgroundColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListView(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                children: appState.getPersonalRecords().entries.map((entry) {
-                  return ListTile(
-                    title: Text(entry.key, style: TextStyle(color: GlobalStyles.textColor)),
-                    trailing: Text('${entry.value} kg', style: TextStyle(color: GlobalStyles.textColor)),
-                  );
-                }).toList(),
-              ),
-            ),
-
-            SizedBox(height: 24),
-
-            // Volumen total acumulado
+            // Volumen total
             Container(
               decoration: BoxDecoration(
                 color: GlobalStyles.inputBackgroundColor,
@@ -187,31 +160,116 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(height: 24),
+
+            // Gráficos
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text('Progreso', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
+            ),
+            SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: GlobalStyles.inputBackgroundColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: EdgeInsets.all(16.0),
+              height: 350,
+              child: DataGraphs(),
+            ),
+
+            SizedBox(height: 24),
+
+            // Mejores marcas personales
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text('Mejores Marcas Personales', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
+            ),
+            SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: GlobalStyles.inputBackgroundColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  ...top5Records.map((record) {
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: record['gifUrl'] != null
+                            ? NetworkImage(record['gifUrl'])
+                            : null,
+                        child: record['gifUrl'] == null ? Icon(Icons.image_not_supported) : null,
+                      ),
+                      title: Text(record['exerciseName'], style: TextStyle(color: GlobalStyles.textColor)),
+                      subtitle: Text('${record['maxWeight']} kg x ${record['maxReps']} reps', style: TextStyle(color: GlobalStyles.textColorWithOpacity)),
+                    );
+                  }).toList(),
+                  if (remainingRecords.isNotEmpty && !showAllRecords)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          showAllRecords = true;
+                        });
+                      },
+                      child: Text('Ver más ejercicios', style: TextStyle(color: Colors.blue)),
+                    ),
+                  if (showAllRecords)
+                    ...remainingRecords.map((record) {
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: record['gifUrl'] != null
+                              ? NetworkImage(record['gifUrl'])
+                              : null,
+                          child: record['gifUrl'] == null ? Icon(Icons.image_not_supported) : null,
+                        ),
+                        title: Text(record['exerciseName'], style: TextStyle(color: GlobalStyles.textColor)),
+                        subtitle: Text('${record['maxWeight']} kg x ${record['maxReps']} reps', style: TextStyle(color: GlobalStyles.textColorWithOpacity)),
+                      );
+                    }).toList(),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 24),
+
+            // Historial
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text('Historial', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
+            ),
+            SizedBox(height: 8),
+            HistoryListWidget(),
 
             SizedBox(height: 24),
 
             // Botón de cerrar sesión
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: GlobalStyles.backgroundButtonsColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: GlobalStyles.backgroundButtonsColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 16),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  onPressed: () async {
+                    await appState.logout();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                      (route) => false,
+                    );
+                  },
+                  child: Text('Cerrar Sesión', style: GlobalStyles.buttonTextStyle),
                 ),
-                onPressed: () async {
-                  await appState.logout();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
-                    (route) => false,
-                  );
-                },
-                child: Text('Cerrar Sesión', style: GlobalStyles.buttonTextStyle),
               ),
             ),
+            SizedBox(height: 24),
           ],
         ),
       ),
@@ -219,7 +277,10 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// Widget para las gráficas de datos
+// DataGraphs, DataButton, TimeframeButton son iguales al ejemplo anterior
+// Se asume que ya fueron implementados con intervalos inteligentes y agrupamiento por día/mes/año.
+// Puedes usar la última versión que te pasé de DataGraphs.
+
 class DataGraphs extends StatefulWidget {
   @override
   _DataGraphsState createState() => _DataGraphsState();
@@ -229,12 +290,12 @@ class _DataGraphsState extends State<DataGraphs> {
   String selectedData = 'Duración';
   String selectedTimeframe = 'Semana';
 
-  List<Routine> routines = [];
+  List<Map<String, dynamic>> groupedData = [];
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    routines = getFilteredRoutines(appState);
+    groupedData = _getGroupedData(appState);
 
     List<BarChartGroupData> barData = getBarChartData();
 
@@ -249,15 +310,12 @@ class _DataGraphsState extends State<DataGraphs> {
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    interval: getLeftTitlesInterval(),
-                    reservedSize: 40,
                     getTitlesWidget: leftTitleWidgets,
                   ),
                 ),
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    interval: 1,
                     getTitlesWidget: bottomTitleWidgets,
                   ),
                 ),
@@ -344,7 +402,7 @@ class _DataGraphsState extends State<DataGraphs> {
     );
   }
 
-  List<Routine> getFilteredRoutines(AppState appState) {
+  List<Map<String, dynamic>> _getGroupedData(AppState appState) {
     List<Routine> routines = appState.completedRoutines;
     DateTime now = DateTime.now();
     DateTime startDate;
@@ -363,27 +421,80 @@ class _DataGraphsState extends State<DataGraphs> {
         startDate = DateTime(now.year, now.month, now.day);
     }
 
-    routines = routines.where((routine) {
-      return routine.dateCompleted != null && routine.dateCompleted!.isAfter(startDate);
-    }).toList();
-
+    routines = routines.where((r) => r.dateCompleted != null && r.dateCompleted!.isAfter(startDate)).toList();
     routines.sort((a, b) => a.dateCompleted!.compareTo(b.dateCompleted!));
-    return routines;
+
+    Map<String, Map<String, dynamic>> aggregated = {};
+
+    for (var r in routines) {
+      DateTime d = r.dateCompleted!;
+      String key;
+      if (selectedTimeframe == 'Año') {
+        key = '${d.month}/${d.year}';
+      } else {
+        key = '${d.day}/${d.month}';
+      }
+
+      if (!aggregated.containsKey(key)) {
+        aggregated[key] = {
+          'key': key,
+          'duracion': 0.0,
+          'volumen': 0.0,
+          'rir': [],
+        };
+      }
+
+      aggregated[key]!['duracion'] += r.duration.inMinutes;
+      aggregated[key]!['volumen'] += r.totalVolume;
+      double routineRIR = _calculateAverageRIR(r);
+      aggregated[key]!['rir'].add(routineRIR);
+    }
+
+    List<Map<String, dynamic>> result = [];
+    aggregated.forEach((k, v) {
+      List rirList = v['rir'];
+      double avgRIR = 0;
+      if (rirList.isNotEmpty) {
+        avgRIR = rirList.reduce((a, b) => a + b) / rirList.length;
+      }
+
+      result.add({
+        'key': v['key'],
+        'duracion': v['duracion'],
+        'volumen': v['volumen'],
+        'rirMedio': avgRIR,
+      });
+    });
+
+    return result;
+  }
+
+  double _calculateAverageRIR(Routine routine) {
+    int totalRIR = 0;
+    int count = 0;
+    for (var exercise in routine.exercises) {
+      for (var series in exercise.series) {
+        totalRIR += series.perceivedExertion;
+        count++;
+      }
+    }
+    return count > 0 ? totalRIR / count : 0.0;
   }
 
   List<BarChartGroupData> getBarChartData() {
     List<BarChartGroupData> barGroups = [];
-    for (int i = 0; i < routines.length; i++) {
+
+    for (int i = 0; i < groupedData.length; i++) {
       double yValue;
       switch (selectedData) {
         case 'Duración':
-          yValue = routines[i].duration.inMinutes.toDouble();
+          yValue = groupedData[i]['duracion'];
           break;
         case 'Volumen':
-          yValue = routines[i].totalVolume.toDouble();
+          yValue = groupedData[i]['volumen'];
           break;
         case 'RIR Medio':
-          yValue = calculateAverageRIR(routines[i]);
+          yValue = groupedData[i]['rirMedio'];
           break;
         default:
           yValue = 0;
@@ -403,37 +514,52 @@ class _DataGraphsState extends State<DataGraphs> {
         ),
       );
     }
+
     return barGroups;
   }
 
   Widget leftTitleWidgets(double value, TitleMeta meta) {
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      child: Text(
-        value.toInt().toString(),
-        style: TextStyle(color: Colors.white70, fontSize: 12),
-      ),
-    );
+    if (meta.max == null || meta.min == null) return Container();
+    double interval = _calculateInterval(meta.max);
+    if (value % interval == 0) {
+      return SideTitleWidget(
+        axisSide: meta.axisSide,
+        child: Text(
+          value.toInt().toString(),
+          style: TextStyle(color: Colors.white70, fontSize: 12),
+        ),
+      );
+    }
+    return Container();
+  }
+
+  double _calculateInterval(double? maxY) {
+    if (maxY == null || maxY == 0) return 1;
+    double maxVal = maxY;
+    int magnitude = (maxVal / 10).ceil();
+    if (magnitude < 5) {
+      return 5.0;
+    } else if (magnitude < 10) {
+      return 10.0;
+    } else if (magnitude < 20) {
+      return 20.0;
+    } else if (magnitude < 50) {
+      return 25.0;
+    } else if (magnitude < 100) {
+      return 50.0;
+    } else if (magnitude < 200) {
+      return 100.0;
+    } else {
+      return 200.0;
+    }
   }
 
   Widget bottomTitleWidgets(double value, TitleMeta meta) {
     int index = value.toInt();
-    if (index < 0 || index >= routines.length) {
+    if (index < 0 || index >= groupedData.length) {
       return Container();
     }
-    DateTime date = routines[index].dateCompleted!;
-    String text;
-    switch (selectedTimeframe) {
-      case 'Semana':
-      case 'Mes':
-        text = '${date.day}/${date.month}';
-        break;
-      case 'Año':
-        text = '${date.month}/${date.year}';
-        break;
-      default:
-        text = '';
-    }
+    String text = groupedData[index]['key'];
     return SideTitleWidget(
       axisSide: meta.axisSide,
       child: Text(
@@ -441,52 +567,6 @@ class _DataGraphsState extends State<DataGraphs> {
         style: TextStyle(color: Colors.white70, fontSize: 10),
       ),
     );
-  }
-
-  double getLeftTitlesInterval() {
-    double maxY = 0;
-    routines.forEach((routine) {
-      double yValue;
-      switch (selectedData) {
-        case 'Duración':
-          yValue = routine.duration.inMinutes.toDouble();
-          break;
-        case 'Volumen':
-          yValue = routine.totalVolume.toDouble();
-          break;
-        case 'RIR Medio':
-          yValue = calculateAverageRIR(routine);
-          break;
-        default:
-          yValue = 0;
-      }
-      if (yValue > maxY) {
-        maxY = yValue;
-      }
-    });
-
-    if (maxY <= 10) {
-      return 1;
-    } else if (maxY <= 50) {
-      return 5;
-    } else if (maxY <= 100) {
-      return 10;
-    } else {
-      return 20;
-    }
-  }
-
-  double calculateAverageRIR(Routine routine) {
-    int totalRIR = 0;
-    int count = 0;
-
-    for (var exercise in routine.exercises) {
-      for (var series in exercise.series) {
-        totalRIR += series.perceivedExertion;
-        count++;
-      }
-    }
-    return count > 0 ? totalRIR / count : 0;
   }
 }
 

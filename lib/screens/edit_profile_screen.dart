@@ -58,7 +58,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               radius: 40,
               backgroundImage: _profileImagePath != null
                   ? FileImage(File(_profileImagePath!))
-                  : AssetImage('assets/default_profile.png') as ImageProvider,
+                  : AssetImage('assets/default_profile.jpg') as ImageProvider,
             ),
           ),
           SizedBox(height: 20),
@@ -94,8 +94,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _saveChanges() {
-    // Aquí iría la lógica para guardar los cambios en AppState
-    // Por ahora, solo volvemos atrás
+    // Aquí podrías guardar el nombre de usuario en AppState si lo deseas
+    // Por ahora solo volvemos atrás
     Navigator.pop(context);
   }
 }
