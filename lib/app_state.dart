@@ -360,9 +360,12 @@ class AppState with ChangeNotifier {
     int endIndex = startIndex + _exercisesPerPage;
     if (startIndex < _filteredExercises.length) {
       _visibleExercises.addAll(
-          _filteredExercises.sublist(startIndex, endIndex.clamp(0, _filteredExercises.length)));
+        _filteredExercises.sublist(startIndex, endIndex.clamp(0, _filteredExercises.length))
+      );
       _currentPage++;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 

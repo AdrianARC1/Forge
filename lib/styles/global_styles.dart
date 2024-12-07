@@ -63,6 +63,11 @@ class GlobalStyles {
     fontSize: 14,
   );
 
+  static const TextStyle lowSubtitleStyle = TextStyle(
+    color: textColor,
+    fontSize: 14,
+  );
+
   // Estilos para BottomNavigationBar
   static const BottomNavigationBarThemeData bottomNavBarTheme = BottomNavigationBarThemeData(
     backgroundColor: navigationBarColor,
