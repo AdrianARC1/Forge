@@ -263,7 +263,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                   children: [
                     Text(
                       widget.exercise.name,
-                      style: GlobalStyles.subtitleStyle.copyWith(
+                      style: GlobalStyles.orangeSubtitleStyle.copyWith(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -362,7 +362,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                     child: Center(
                       child: Text(
                         "SERIE",
-                        style: GlobalStyles.subtitleStyle,
+                        style: GlobalStyles.subtitleStyleRoutineData,
                       ),
                     ),
                   ),
@@ -377,7 +377,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                       child: Center(
                         child: Text(
                           "ANTERIOR",
-                          style: GlobalStyles.subtitleStyle,
+                          style: GlobalStyles.subtitleStyleRoutineData,
                         ),
                       ),
                     ),
@@ -393,7 +393,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                     child: Center(
                       child: Text(
                         "KG",
-                        style: GlobalStyles.subtitleStyle,
+                        style: GlobalStyles.subtitleStyleRoutineData,
                       ),
                     ),
                   ),
@@ -407,7 +407,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                     child: Center(
                       child: Text(
                         "REPS",
-                        style: GlobalStyles.subtitleStyle,
+                        style: GlobalStyles.subtitleStyleRoutineData,
                       ),
                     ),
                   ),
@@ -422,7 +422,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                       child: Center(
                         child: Text(
                           "RPE",
-                          style: GlobalStyles.subtitleStyle,
+                          style: GlobalStyles.subtitleStyleRoutineData,
                         ),
                       ),
                     ),
@@ -471,12 +471,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10.0),
-                            decoration: BoxDecoration(
-                              color: series.isCompleted
-                                  ? Colors.transparent
-                                  : GlobalStyles.inputBackgroundColor,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                            
                             child: Center(
                               child: Text(
                                 "${seriesIndex + 1}",
@@ -544,7 +539,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                             : Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 2.0),
                                   decoration: BoxDecoration(
                                     color: series.isCompleted
                                         ? Colors.transparent
@@ -607,7 +602,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                             : Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 2.0),
                                   decoration: BoxDecoration(
                                     color: series.isCompleted
                                         ? Colors.transparent

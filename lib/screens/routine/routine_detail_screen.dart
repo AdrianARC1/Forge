@@ -202,7 +202,7 @@ class RoutineDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Total Series',
+                              'Series',
                               style: GlobalStyles.subtitleStyle.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),

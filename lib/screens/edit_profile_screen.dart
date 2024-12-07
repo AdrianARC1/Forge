@@ -29,26 +29,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return BaseScaffold(
-      appBar: AppBar(
-        backgroundColor: GlobalStyles.backgroundColor,
-        elevation: 0,
-        centerTitle: true,
-        title: Text('Editar Perfil', style: GlobalStyles.insideAppTitleStyle),
-        leading: AppBarButton(
-          text: 'Atrás',
-          onPressed: () => Navigator.pop(context),
-          textColor: GlobalStyles.textColor,
-          backgroundColor: Colors.transparent,
-        ),
-        actions: [
-          AppBarButton(
-            text: 'Guardar',
-            onPressed: _saveChanges,
-            textColor: GlobalStyles.buttonTextStyle.color,
-            backgroundColor: GlobalStyles.backgroundButtonsColor,
-          ),
-        ],
-      ),
+appBar: AppBar(
+  backgroundColor: GlobalStyles.backgroundColor,
+  elevation: 0,
+  centerTitle: true,
+  title: Text('Editar Perfil', style: GlobalStyles.insideAppTitleStyle),
+  leading: IconButton(
+    icon: Icon(
+      Icons.arrow_back, // Ícono de flecha de retroceso
+      color: GlobalStyles.textColor, // Color personalizado
+      size: 24.0, // Tamaño del ícono (puedes ajustarlo según tus necesidades)
+    ),
+    onPressed: () => Navigator.pop(context), // Acción al presionar
+    tooltip: 'Atrás', // Descripción para accesibilidad
+  ),
+  actions: [
+    AppBarButton(
+      text: 'Guardar',
+      onPressed: _saveChanges,
+      textColor: GlobalStyles.buttonTextStyle.color,
+      backgroundColor: GlobalStyles.backgroundButtonsColor,
+    ),
+  ],
+),
+
       body: Column(
         children: [
           SizedBox(height: 20),
@@ -58,7 +62,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               radius: 40,
               backgroundImage: _profileImagePath != null
                   ? FileImage(File(_profileImagePath!))
-                  : AssetImage('assets/default_profile.jpg') as ImageProvider,
+                  : AssetImage('assets/default_profile.png') as ImageProvider,
             ),
           ),
           SizedBox(height: 20),

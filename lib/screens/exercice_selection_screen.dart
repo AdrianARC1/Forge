@@ -21,8 +21,8 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
 
-  final String allMusclesOption = "Todos los músculos";
-  final String allEquipmentOption = "Todos los equipamientos";
+  final String allMusclesOption = "Todos\n los músculos";
+  final String allEquipmentOption = "Todos\n los equipos";
 
   late AppState appState; 
   bool _initialized = false;
@@ -163,7 +163,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
         children: [
           // Campo de búsqueda
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
             child: TextField(
               style: GlobalStyles.subtitleStyle,
               cursorColor: GlobalStyles.textColor,
@@ -192,79 +192,94 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
             ),
           ),
 
-          // Filtros
+          // Filtros con ancho equitativo y margen
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0),
+            padding: const EdgeInsets.symmetric(horizontal: 0), // Padding consistente
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildDropdown(
-                  hint: "Músculo",
-                  value: selectedMuscleGroup ?? allMusclesOption,
-                  items: getMuscleGroups(),
-                  onChanged: _onMuscleGroupChanged,
+                // Primer Filtro: Músculo
+                Expanded(
+                  child: _buildDropdown(
+                    hint: "Músculo",
+                    value: selectedMuscleGroup ?? allMusclesOption,
+                    items: getMuscleGroups(),
+                    onChanged: _onMuscleGroupChanged,
+                  ),
                 ),
-                _buildDropdown(
-                  hint: "Equipo",
-                  value: selectedEquipment ?? allEquipmentOption,
-                  items: getEquipment(),
-                  onChanged: _onEquipmentChanged,
+
+                SizedBox(width: 10), // Espaciado entre filtros
+
+                // Segundo Filtro: Equipo
+                Expanded(
+                  child: _buildDropdown(
+                    hint: "Equipo",
+                    value: selectedEquipment ?? allEquipmentOption,
+                    items: getEquipment(),
+                    onChanged: _onEquipmentChanged,
+                  ),
                 ),
               ],
             ),
           ),
 
+          // Lista de ejercicios
           Expanded(
-            child: _isLoading
-                ? Center(child: CircularProgressIndicator(color: GlobalStyles.textColor))
-                : exercises.isEmpty
-                    ? Center(
-                        child: Text(
-                          "No se encontraron ejercicios",
-                          style: GlobalStyles.subtitleStyle.copyWith(color: Colors.white70),
-                        ),
-                      )
-                    : ListView.separated(
-                        controller: _scrollController,
-                        itemCount: exercises.length,
-                        separatorBuilder: (context, index) => Divider(
-                          color: Colors.grey[700],
-                          thickness: 0.5,
-                          height: 1,
-                        ),
-                        itemBuilder: (context, index) {
-                          final exercise = exercises[index];
-                          final exerciseName = exercise['name'] as String;
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0), // Alinea con otros elementos
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator(color: GlobalStyles.textColor))
+                  : exercises.isEmpty
+                      ? Center(
+                          child: Text(
+                            "No se encontraron ejercicios",
+                            style: GlobalStyles.subtitleStyle.copyWith(color: Colors.white70),
+                          ),
+                        )
+                      : ListView.separated(
+                          controller: _scrollController,
+                          itemCount: exercises.length,
+                          separatorBuilder: (context, index) => Divider(
+                            color: Colors.grey[700],
+                            thickness: 0.5,
+                            height: 1,
+                          ),
+                          itemBuilder: (context, index) {
+                            final exercise = exercises[index];
+                            final exerciseName = exercise['name'] as String;
 
-                          return ListTile(
-                            tileColor: Colors.transparent,
-                            leading: exercise['gifUrl'] != null
-                                ? ClipOval(
-                                    child: Image.network(
-                                      exercise['gifUrl'],
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Icon(Icons.image_not_supported, color: GlobalStyles.textColor);
-                                      },
-                                    ),
-                                  )
-                                : Icon(Icons.image_not_supported, color: GlobalStyles.textColor),
-                            title: Text(
-                              exerciseName,
-                              style: GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(
-                              '${exercise['target']}',
-                              style: GlobalStyles.subtitleStyle.copyWith(color: Colors.grey[400]),
-                            ),
-                            onTap: () {
-                              Navigator.pop(context, exercise);
-                            },
-                          );
-                        },
-                      ),
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero, // Elimina padding interno
+                              minLeadingWidth: 0, // Reduce espacio para el leading
+                              visualDensity: VisualDensity.compact, // Reduce la densidad vertical
+                              tileColor: Colors.transparent,
+                              leading: exercise['gifUrl'] != null
+                                  ? ClipOval(
+                                      child: Image.network(
+                                        exercise['gifUrl'],
+                                        width: 50, // Ajusta el tamaño si es necesario
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Icon(Icons.image_not_supported, color: GlobalStyles.textColor);
+                                        },
+                                      ),
+                                    )
+                                  : Icon(Icons.image_not_supported, color: GlobalStyles.textColor),
+                              title: Text(
+                                exerciseName,
+                                style: GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(
+                                '${exercise['target']}',
+                                style: GlobalStyles.subtitleStyle.copyWith(color: Colors.grey[400]),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context, exercise);
+                              },
+                            );
+                          },
+                        ),
+            ),
           ),
         ],
       ),
@@ -278,6 +293,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
     required void Function(String?) onChanged,
   }) {
     return Container(
+      // No establezcas un ancho fijo aquí para permitir que Expanded lo controle
       padding: EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: GlobalStyles.inputBackgroundColor,
@@ -286,13 +302,19 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
+          isExpanded: true, // Asegura que ocupe todo el ancho del contenedor
           hint: Text(
             hint,
             style: GlobalStyles.subtitleStyle.copyWith(color: GlobalStyles.placeholderColor),
           ),
           value: value,
           dropdownColor: GlobalStyles.inputBackgroundColor,
-          iconEnabledColor: GlobalStyles.textColor,
+          icon: Icon(
+            Icons.arrow_drop_down,
+            color: GlobalStyles.textColor,
+            size: 24, // Ajusta el tamaño si es necesario
+          ),
+          iconSize: 24, // Asegura que el ícono tenga un tamaño adecuado
           style: GlobalStyles.subtitleStyle,
           onChanged: onChanged,
           items: items.map<DropdownMenuItem<String>>((option) {
@@ -300,7 +322,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
               value: option,
               child: Text(
                 option,
-                style: GlobalStyles.subtitleStyle,
+                style: GlobalStyles.subtitleStyle.copyWith(fontSize: 12),
               ),
             );
           }).toList(),

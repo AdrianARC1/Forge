@@ -78,7 +78,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      flex: 2, // Controla cuánto espacio ocupa el botón
+                      flex: 3, // Controla cuánto espacio ocupa el botón
                       child: ElevatedButton.icon(
                         onPressed: () {
                           Navigator.push(

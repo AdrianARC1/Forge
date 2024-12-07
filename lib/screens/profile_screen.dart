@@ -62,19 +62,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           },
         ),
-        actions: [
-          AppBarButton(
-            text: 'Ajustes',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsScreen()),
-              );
-            },
-            textColor: GlobalStyles.textColor,
-            backgroundColor: Colors.transparent,
-          ),
-        ],
+actions: [
+  Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 14.0),
+    child: IconButton(
+      icon: Icon(
+        Icons.settings,
+        color: GlobalStyles.textColor,
+        size: 24.0,
+      ),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SettingsScreen()),
+        );
+      },
+      tooltip: 'Configuración',
+    ),
+  ),
+],
+
+
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -100,10 +108,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       }
                     },
                     child: CircleAvatar(
-                      radius: 40,
+                      radius: 50,
+                      backgroundColor: Colors.transparent,
                       backgroundImage: appState.profileImagePath != null
                           ? FileImage(File(appState.profileImagePath!))
-                          : AssetImage('assets/default_profile.jpg') as ImageProvider,
+                          : AssetImage('assets/default_profile.png') as ImageProvider,
                     ),
                   ),
                   SizedBox(width: 16),
