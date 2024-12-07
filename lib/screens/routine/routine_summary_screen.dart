@@ -1,12 +1,17 @@
-import 'package:flutter/material.dart';
-import '../../../app_state.dart';
+// lib/screens/routine/routine_summary_screen.dart
 
-class RoutineSummaryScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../app_state.dart';
+import '../widgets/base_scaffold.dart';
+import '../../styles/global_styles.dart';
+
+class RoutineSummaryScreen extends StatefulWidget {
   final Routine routine;
   final Duration duration;
   final VoidCallback onDiscard;
   final VoidCallback onResume;
-  final VoidCallback onSave;
+  final void Function(Routine updatedRoutine) onSave; // se cambia a aceptar un Routine
 
   RoutineSummaryScreen({
     required this.routine,
@@ -17,64 +22,246 @@ class RoutineSummaryScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    int totalVolume = _calculateTotalVolume(routine);
+  _RoutineSummaryScreenState createState() => _RoutineSummaryScreenState();
+}
 
-    return Scaffold(
+class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {
+  late TextEditingController _nameController;
+  late TextEditingController _notesController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.routine.name);
+    _notesController = TextEditingController(text: widget.routine.notes ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Duration duration = widget.duration;
+    final int totalVolume = _calculateTotalVolume(widget.routine);
+    final double averageRPE = _calculateAverageRPE(widget.routine);
+    final int totalSeries = _calculateTotalSeries(widget.routine);
+    final DateTime now = widget.routine.dateCompleted ?? DateTime.now();
+
+    return BaseScaffold(
+      backgroundColor: GlobalStyles.backgroundColor,
       appBar: AppBar(
-        title: Text('Resumen de Rutina'),
+        backgroundColor: GlobalStyles.backgroundColor,
+        elevation: 0,
+        leadingWidth: 100,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: GlobalStyles.textColor),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        centerTitle: true,
+        title: Text(
+          'Resumen de Rutina',
+          style: GlobalStyles.insideAppTitleStyle,
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Text(
-              'Has completado la rutina "${routine.name}" en ${_formatDuration(duration)}.',
-              style: TextStyle(fontSize: 18),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Nombre de la rutina (editable)
+                TextField(
+                  controller: _nameController,
+                  style: GlobalStyles.subtitleStyleHighFont.copyWith(color: Colors.white),
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    hintText: "Nombre de la rutina",
+                    hintStyle: TextStyle(color: Colors.white54),
+                    border: InputBorder.none,
+                  ),
+                ),
+
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 20.0),
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: GlobalStyles.inputBorderColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.6),
+                        offset: Offset(0, 5),
+                        blurRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Datos en fila
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _dataColumn('Duración', _formatDuration(duration)),
+                      SizedBox(width: 20),
+                      _dataColumn('Volumen', '$totalVolume kg'),
+                      SizedBox(width: 20),
+                      _dataColumn('RPE Medio', averageRPE.toStringAsFixed(1)),
+                      SizedBox(width: 20),
+                      _dataColumn('Total Series', '$totalSeries'),
+                      SizedBox(width: 20),
+                      _dataColumn('Fecha', _formatDate(now)),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 30),
+
+                Text(
+                  'Notas:',
+                  style: GlobalStyles.subtitleStyle.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                SizedBox(height: 8),
+                TextField(
+                  controller: _notesController,
+                  style: GlobalStyles.subtitleStyle,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'Añade notas sobre tu entrenamiento...',
+                    hintStyle: TextStyle(color: Colors.white54),
+                    filled: true,
+                    fillColor: GlobalStyles.inputBackgroundColor,
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: GlobalStyles.inputBorderColor),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: GlobalStyles.inputBorderColor),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: GlobalStyles.focusedBorderColor),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 40),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final updatedRoutine = widget.routine.copyWith(
+                        name: _nameController.text.trim(),
+                        notes: _notesController.text.trim(),
+                      );
+                      widget.onSave(updatedRoutine);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GlobalStyles.backgroundButtonsColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text('Guardar Rutina', style: GlobalStyles.buttonTextStyle),
+                  ),
+                ),
+
+                SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: widget.onResume,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF2d2d2d),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text('Volver a la Rutina', style: GlobalStyles.buttonTextStyleLight),
+                  ),
+                ),
+
+                SizedBox(height: 10),
+                Center(
+                  child: TextButton(
+                    onPressed: widget.onDiscard,
+                    child: Text(
+                      'Descartar Entrenamiento',
+                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 20),
-            Text(
-              'Volumen Total Levantado: $totalVolume kg',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: routine.exercises.length,
-                itemBuilder: (context, index) {
-                  final exercise = routine.exercises[index];
-                  return ListTile(
-                    title: Text(exercise.name),
-                    subtitle: Text('Series: ${exercise.series.length}'),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: onResume,
-              child: Text('Volver a la Rutina'),
-            ),
-            ElevatedButton(
-              onPressed: onDiscard,
-              child: Text('Descartar Entrenamiento'),
-            ),
-            ElevatedButton(
-              onPressed: onSave,
-              child: Text('Guardar Rutina'),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
+  Widget _dataColumn(String title, String value) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(title,
+            style: GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)),
+        SizedBox(height: 4),
+        Text(value, style: GlobalStyles.subtitleStyle),
+      ],
+    );
+  }
+
   String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(duration.inHours);
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$hours:$minutes:$seconds";
+    int hours = duration.inHours;
+    int minutes = duration.inMinutes.remainder(60);
+    int seconds = duration.inSeconds.remainder(60);
+
+    if (hours > 0) {
+      String hoursStr = '${hours}h';
+      String minutesStr = minutes > 0 ? ' ${minutes}min' : '';
+      return '$hoursStr$minutesStr';
+    } else {
+      String minutesStr = minutes > 0 ? '${minutes}min' : '';
+      String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
+      return '${minutesStr}${secondsStr}'.trim();
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    List<String> months = [
+      'ene',
+      'feb',
+      'mar',
+      'abr',
+      'may',
+      'jun',
+      'jul',
+      'ago',
+      'sep',
+      'oct',
+      'nov',
+      'dic',
+    ];
+    String month = months[date.month - 1];
+    String day = date.day.toString();
+    String year = date.year.toString();
+    String hour = date.hour.toString().padLeft(2, '0');
+    String minute = date.minute.toString().padLeft(2, '0');
+
+    return '$day $month $year, $hour:$minute';
   }
 
   int _calculateTotalVolume(Routine routine) {
@@ -85,5 +272,25 @@ class RoutineSummaryScreen extends StatelessWidget {
       }
     }
     return totalVolume;
+  }
+
+  double _calculateAverageRPE(Routine routine) {
+    int totalRPE = 0;
+    int count = 0;
+    for (var exercise in routine.exercises) {
+      for (var series in exercise.series) {
+        totalRPE += series.perceivedExertion;
+        count++;
+      }
+    }
+    return count > 0 ? totalRPE / count : 0.0;
+  }
+
+  int _calculateTotalSeries(Routine routine) {
+    int totalSeries = 0;
+    for (var exercise in routine.exercises) {
+      totalSeries += exercise.series.length;
+    }
+    return totalSeries;
   }
 }

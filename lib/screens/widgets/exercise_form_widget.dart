@@ -16,7 +16,7 @@ class ExerciseFormWidget extends StatefulWidget {
   final VoidCallback? onDeleteExercise;
   final Future<void> Function()? onReplaceExercise;
   final void Function(Series, {bool markCompleted})? onAutofillSeries;
-  final Map<String, dynamic>? maxRecord; // Máximo histórico
+  final Map<String, dynamic>? maxRecord;
   final bool allowEditing;
   final bool isReadOnly;
   final bool showMaxRecord;
@@ -42,24 +42,12 @@ class ExerciseFormWidget extends StatefulWidget {
   _ExerciseFormWidgetState createState() => _ExerciseFormWidgetState();
 }
 
-class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
-    with SingleTickerProviderStateMixin {
-  // Mapa para almacenar los GlobalKeys de cada serie
+class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTickerProviderStateMixin {
   Map<String, GlobalKey> seriesRowKeys = {};
-
-  // OverlayEntry activo
   OverlayEntry? activeOverlay;
-
-  // Mapa para almacenar los valores temporales de RPE mientras se edita
   Map<String, double> tempRPEValues = {};
-
-  // Mapa para almacenar los valores originales de RPE antes de editar
   Map<String, double> originalRPEValues = {};
-
-  // ID de la serie que actualmente tiene el Slider activo
   String? activeSliderSeriesId;
-
-  // Propiedades para manejar el nuevo récord
   bool isNewRecord = false;
   late AnimationController _animationController;
   double currentMax1RM = 0.0;
@@ -69,22 +57,18 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
   @override
   void initState() {
     super.initState();
-    // Inicializar los GlobalKeys para cada serie
     for (var series in widget.exercise.series) {
       seriesRowKeys[series.id] = GlobalKey();
     }
 
-    // Inicializar el controlador de animación
     _animationController = AnimationController(
       vsync: this,
       duration: Duration(seconds: 1),
     );
 
-    // Inicializar los valores actuales del máximo histórico
     _initializeMaxRecord();
   }
 
-  // Método para inicializar los valores del máximo histórico
   void _initializeMaxRecord() {
     if (widget.maxRecord != null) {
       currentMax1RM = widget.maxRecord!['max1RM'] as double;
@@ -104,35 +88,28 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
     if (widget.maxRecord != oldWidget.maxRecord) {
       setState(() {
         _initializeMaxRecord();
-        isNewRecord = false; // Reiniciamos la animación del trofeo
+        isNewRecord = false;
       });
     }
   }
 
   @override
   void dispose() {
-    // Asegurarse de eliminar cualquier OverlayEntry activo al destruir el widget
     activeOverlay?.remove();
-
     _animationController.dispose();
-
     super.dispose();
   }
 
   void showRPEOverlay(BuildContext context, Series series) {
-    // Remover cualquier Overlay existente
     activeOverlay?.remove();
-
-    // Obtener la RenderBox del row de la serie
     RenderBox renderBox =
         seriesRowKeys[series.id]!.currentContext!.findRenderObject() as RenderBox;
     Offset position = renderBox.localToGlobal(Offset.zero);
     Size size = renderBox.size;
 
-    // Crear el OverlayEntry
     activeOverlay = OverlayEntry(
       builder: (context) => Positioned(
-        top: position.dy + size.height + 10, // 10 es un margen
+        top: position.dy + size.height + 10,
         left: position.dx,
         width: size.width,
         child: Material(
@@ -165,7 +142,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                       value: currentValue,
                       min: 1,
                       max: 10,
-                      divisions: 9, // Pasos enteros de 1 a 10
+                      divisions: 9,
                       label: currentValue.round().toString(),
                       activeColor: Colors.blue,
                       inactiveColor: Colors.grey,
@@ -174,7 +151,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                           tempRPEValues[series.id] = newValue;
                           series.perceivedExertion = newValue.round();
                         });
-                        // Llamar a setState del widget principal para actualizar el RPE Text
                         setState(() {});
                       },
                     ),
@@ -183,11 +159,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                       children: [
                         TextButton(
                           onPressed: () {
-                            // Cancelar: remover Overlay sin guardar cambios
                             activeOverlay?.remove();
                             activeOverlay = null;
                             setState(() {
-                              // Revertir el valor de RPE a su valor original
                               if (originalRPEValues.containsKey(series.id)) {
                                 series.perceivedExertion =
                                     originalRPEValues[series.id]!.round();
@@ -204,11 +178,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            // Guardar: remover Overlay
                             activeOverlay?.remove();
                             activeOverlay = null;
                             setState(() {
-                              // No es necesario revertir el valor ya que se actualizó en tiempo real
                               originalRPEValues.remove(series.id);
                               tempRPEValues.remove(series.id);
                               activeSliderSeriesId = null;
@@ -227,11 +199,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
       ),
     );
 
-    // Insertar el OverlayEntry en el Overlay
     Overlay.of(context)!.insert(activeOverlay!);
   }
 
-  // Método para verificar si hay un nuevo récord al marcar la serie como completada
   void _checkForNewRecord(Series series) {
     final weightController = widget.weightControllers[series.id];
     final repsController = widget.repsControllers[series.id];
@@ -249,9 +219,8 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
           currentMaxWeight = weight;
           currentMaxReps = reps;
 
-          // Iniciar la animación del trofeo
           _animationController.forward(from: 0).then((_) {
-            _animationController.reverse(); // Revertir para volver al estado original
+            _animationController.reverse();
           });
         });
       }
@@ -260,22 +229,17 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
 
   @override
   Widget build(BuildContext context) {
-    // Determinar si mostrar el campo de RPE y la casilla de verificación
     bool showRPEAndCheckbox = widget.isExecution;
-
-    // Determinar si mostrar las opciones de edición
     bool showEditOptions = widget.isExecution || widget.allowEditing;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Encabezado con nombre del ejercicio, máximo histórico y menú de opciones
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Imagen del ejercicio
               Container(
                 width: 50,
                 height: 50,
@@ -292,7 +256,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                     ? Icon(Icons.image_not_supported)
                     : null,
               ),
-              SizedBox(width: 8), // Espacio entre la imagen y el texto
+              SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,15 +268,14 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (widget.showMaxRecord) // Condicional para mostrar la fila del máximo histórico
+                    if (widget.showMaxRecord)
                       Row(
                         children: [
                           AnimatedBuilder(
                             animation: _animationController,
                             builder: (context, child) {
                               return Transform.scale(
-                                scale:
-                                    1.0 + (_animationController.value * 0.5), // Animación
+                                scale: 1.0 + (_animationController.value * 0.5),
                                 child: Icon(
                                   Icons.emoji_events,
                                   color: Colors.amber,
@@ -359,7 +322,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                   ],
                 ),
               ),
-              // Menú de opciones con ícono blanco
               if (showEditOptions)
                 PopupMenuButton<String>(
                   offset: const Offset(0.0, 40.0),
@@ -388,18 +350,15 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
             ],
           ),
         ),
-        // Cabecera de las columnas (sin fondo)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 0.0),
           child: Row(
             children: [
-              // SERIE
               Expanded(
-                flex: 2, // Coincide con SERIE en las filas de entrada
+                flex: 2,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 0),
                     child: Center(
                       child: Text(
                         "SERIE",
@@ -409,14 +368,12 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                   ),
                 ),
               ),
-              // ANTERIOR
               if (widget.isExecution)
                 Expanded(
-                  flex: 3, // Coincide con ANTERIOR en las filas de entrada
+                  flex: 3,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 0),
                       child: Center(
                         child: Text(
                           "ANTERIOR",
@@ -428,13 +385,11 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                 )
               else
                 SizedBox(),
-              // KG
               Expanded(
-                flex: 2, // Coincide con KG en las filas de entrada
+                flex: 2,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 0),
                     child: Center(
                       child: Text(
                         "KG",
@@ -444,13 +399,11 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                   ),
                 ),
               ),
-              // REPS
               Expanded(
-                flex: 2, // Coincide con REPS en las filas de entrada
+                flex: 2,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 0),
                     child: Center(
                       child: Text(
                         "REPS",
@@ -460,14 +413,12 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                   ),
                 ),
               ),
-              // RPE
               if (showRPEAndCheckbox)
                 Expanded(
-                  flex: 2, // Incrementado a 2 para equilibrar RPE
+                  flex: 2,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 0),
                       child: Center(
                         child: Text(
                           "RPE",
@@ -479,10 +430,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                 )
               else
                 SizedBox(),
-              // CHECKBOX
               if (showRPEAndCheckbox)
                 Container(
-                  width: 40, // Ajusta este valor según el tamaño del Checkbox
+                  width: 40,
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                   child: SizedBox(),
                 )
@@ -491,12 +441,10 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
             ],
           ),
         ),
-        // Series
         Column(
           children: widget.exercise.series.asMap().entries.map((entry) {
             int seriesIndex = entry.key;
             Series series = entry.value;
-
             bool isActive = activeSliderSeriesId == series.id;
             double currentRPE = tempRPEValues[series.id]?.toDouble() ??
                 series.perceivedExertion.toDouble();
@@ -506,26 +454,23 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
               onDelete: () => widget.onDeleteSeries?.call(seriesIndex),
               child: Container(
                 decoration: BoxDecoration(
-                  color: (series.isCompleted && !widget.isReadOnly)
+                  // Solo verde si isExecution es true
+                  color: (series.isCompleted && widget.isExecution)
                       ? Color(0xFF008922)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Padding(
                   key: seriesRowKeys[series.id],
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 0.0, vertical: 2.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 2.0),
                   child: Row(
                     children: [
-                      // SERIE
                       Expanded(
-                        flex: 2, // Mantener flex:2
+                        flex: 2,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0), // Reducido vertical padding
+                            padding: const EdgeInsets.symmetric(vertical: 10.0),
                             decoration: BoxDecoration(
                               color: series.isCompleted
                                   ? Colors.transparent
@@ -541,23 +486,19 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                           ),
                         ),
                       ),
-                      // ANTERIOR
                       if (widget.isExecution)
                         Expanded(
-                          flex: 3, // Mantener flex:3
+                          flex: 3,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 4.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                             child: GestureDetector(
                               onTap: () {
                                 if (widget.onAutofillSeries != null) {
-                                  widget.onAutofillSeries!(series,
-                                      markCompleted: false);
+                                  widget.onAutofillSeries!(series, markCompleted: false);
                                 }
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10.0), // Reducido vertical padding
+                                padding: const EdgeInsets.symmetric(vertical: 10.0),
                                 decoration: BoxDecoration(
                                   color: series.isCompleted
                                       ? Colors.transparent
@@ -578,16 +519,13 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                         )
                       else
                         SizedBox(),
-                      // KG
                       Expanded(
-                        flex: 2, // Mantener flex:2
+                        flex: 2,
                         child: widget.isReadOnly
                             ? Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   decoration: BoxDecoration(
                                     color: series.isCompleted
                                         ? Colors.transparent
@@ -604,11 +542,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                 ),
                               )
                             : Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   decoration: BoxDecoration(
                                     color: series.isCompleted
                                         ? Colors.transparent
@@ -616,8 +552,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: TextField(
-                                    controller:
-                                        widget.weightControllers[series.id],
+                                    controller: widget.weightControllers[series.id],
                                     keyboardType: TextInputType.number,
                                     textAlign: TextAlign.center,
                                     decoration: InputDecoration(
@@ -631,35 +566,29 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                       fillColor: series.isCompleted
                                           ? Colors.transparent
                                           : GlobalStyles.inputBackgroundColor,
-                                      contentPadding: EdgeInsets.symmetric(
-                                          vertical: 8.0),
+                                      contentPadding: EdgeInsets.symmetric(vertical: 8.0),
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide.none,
-                                        borderRadius:
-                                            BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
                                     style: GlobalStyles.subtitleStyle,
                                     onChanged: (value) {
                                       setState(() {
-                                        series.weight =
-                                            int.tryParse(value) ?? 0;
+                                        series.weight = int.tryParse(value) ?? 0;
                                       });
                                     },
                                   ),
                                 ),
                               ),
                       ),
-                      // REPS
                       Expanded(
-                        flex: 2, // Mantener flex:2
+                        flex: 2,
                         child: widget.isReadOnly
                             ? Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   decoration: BoxDecoration(
                                     color: series.isCompleted
                                         ? Colors.transparent
@@ -676,11 +605,9 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                 ),
                               )
                             : Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 4.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   decoration: BoxDecoration(
                                     color: series.isCompleted
                                         ? Colors.transparent
@@ -688,8 +615,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: TextField(
-                                    controller:
-                                        widget.repsControllers[series.id],
+                                    controller: widget.repsControllers[series.id],
                                     keyboardType: TextInputType.number,
                                     textAlign: TextAlign.center,
                                     decoration: InputDecoration(
@@ -703,12 +629,10 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                       fillColor: series.isCompleted
                                           ? Colors.transparent
                                           : GlobalStyles.inputBackgroundColor,
-                                      contentPadding: EdgeInsets.symmetric(
-                                          vertical: 8.0),
+                                      contentPadding: EdgeInsets.symmetric(vertical: 8.0),
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide.none,
-                                        borderRadius:
-                                            BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
                                     style: GlobalStyles.subtitleStyle,
@@ -721,13 +645,11 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                 ),
                               ),
                       ),
-                      // RPE
                       if (showRPEAndCheckbox)
                         Expanded(
-                          flex: 2, // Incrementado a 2 para equilibrar RPE
+                          flex: 2,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 4.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                             child: GestureDetector(
                               onTap: () {
                                 setState(() {
@@ -750,8 +672,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                 });
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10.0), // Reducido vertical padding
+                                padding: const EdgeInsets.symmetric(vertical: 10.0),
                                 decoration: BoxDecoration(
                                   color: series.isCompleted
                                       ? Colors.transparent
@@ -773,19 +694,16 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                         )
                       else
                         SizedBox(),
-                      // CHECKBOX
                       if (showRPEAndCheckbox)
                         Container(
-                          width: 40, // Ajusta este valor según el tamaño del Checkbox
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0, vertical: 4.0),
+                          width: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           child: GestureDetector(
                             onTap: () {
                               setState(() {
                                 series.isCompleted = !series.isCompleted;
                                 if (series.isCompleted) {
-                                  if (widget.isExecution &&
-                                      widget.onAutofillSeries != null) {
+                                  if (widget.isExecution && widget.onAutofillSeries != null) {
                                     widget.onAutofillSeries!(series);
                                   }
                                   _checkForNewRecord(series);
@@ -800,8 +718,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
                                   setState(() {
                                     series.isCompleted = value ?? false;
                                     if (series.isCompleted) {
-                                      if (widget.isExecution &&
-                                          widget.onAutofillSeries != null) {
+                                      if (widget.isExecution && widget.onAutofillSeries != null) {
                                         widget.onAutofillSeries!(series);
                                       }
                                       _checkForNewRecord(series);
@@ -836,23 +753,21 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget>
         ),
         if (!widget.isReadOnly)
           Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 0.0, vertical: 8.0), // Sin padding izquierdo
+            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: GlobalStyles.inputBackgroundColor, // Color de fondo del botón
+                  backgroundColor: GlobalStyles.inputBackgroundColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 onPressed: widget.onAddSeries,
-                icon: Icon(Icons.add, color: Colors.white), // Ícono blanco
+                icon: Icon(Icons.add, color: Colors.white),
                 label: Text(
                   "Introducir serie",
-                  style: GlobalStyles.buttonTextStyle
-                      .copyWith(color: Colors.white),
+                  style: GlobalStyles.buttonTextStyle.copyWith(color: Colors.white),
                 ),
               ),
             ),

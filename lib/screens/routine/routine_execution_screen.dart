@@ -201,8 +201,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     Navigator.of(context).pop();
   }
 
-  void _saveRoutine() async {
+  void _saveRoutine(Routine updatedRoutine) async {
     final appState = Provider.of<AppState>(context, listen: false);
+
+    // Actualizar el nombre y las notas desde el updatedRoutine
+    routineName = updatedRoutine.name; 
+    // Notas guardadas en updatedRoutine.notes si se hubieran definido aquí
 
     if (widget.routine == null) {
       // Es un entrenamiento vacío
@@ -232,7 +236,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                 text: "Sí",
                 onPressed: () {
                   Navigator.of(context).pop();
-                  _finalizeRoutine(appState, saveAsNewRoutine: true, newRoutineName: newRoutineName);
+                  _finalizeRoutine(appState, saveAsNewRoutine: true, newRoutineName: newRoutineName, notes: updatedRoutine.notes);
                 },
                 textColor: Colors.blue,
                 backgroundColor: Colors.transparent,
@@ -242,7 +246,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                 text: "No",
                 onPressed: () {
                   Navigator.of(context).pop();
-                  _finalizeRoutine(appState, saveAsNewRoutine: false);
+                  _finalizeRoutine(appState, saveAsNewRoutine: false, notes: updatedRoutine.notes);
                 },
                 textColor: Colors.blue,
                 backgroundColor: Colors.transparent,
@@ -270,7 +274,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                   text: "No",
                   onPressed: () {
                     Navigator.of(context).pop();
-                    _finalizeRoutine(appState, updateRoutine: false);
+                    _finalizeRoutine(appState, updateRoutine: false, notes: updatedRoutine.notes);
                   },
                   textColor: Colors.blue,
                   backgroundColor: Colors.transparent,
@@ -280,7 +284,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                   text: "Sí",
                   onPressed: () {
                     Navigator.of(context).pop();
-                    _finalizeRoutine(appState, updateRoutine: true);
+                    _finalizeRoutine(appState, updateRoutine: true, notes: updatedRoutine.notes);
                   },
                   textColor: Colors.blue,
                   backgroundColor: Colors.transparent,
@@ -292,7 +296,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                     Navigator.of(context).pop(); // Simplemente cierra el diálogo
                     // No se realiza ninguna acción adicional
                   },
-                  textColor: Colors.red, // Opcional: Resaltar el botón de cancelar
+                  textColor: Colors.red,
                   backgroundColor: Colors.transparent,
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
                 ),
@@ -302,7 +306,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         );
       } else {
         // No hay cambios, finalizar rutina
-        _finalizeRoutine(appState, updateRoutine: false);
+        _finalizeRoutine(appState, updateRoutine: false, notes: updatedRoutine.notes);
       }
     }
   }
@@ -316,7 +320,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     return false;
   }
 
-  void _finalizeRoutine(AppState appState, {bool updateRoutine = false, bool saveAsNewRoutine = false, String? newRoutineName}) async {
+  void _finalizeRoutine(AppState appState, {bool updateRoutine = false, bool saveAsNewRoutine = false, String? newRoutineName, String? notes}) async {
     try {
       if (saveAsNewRoutine && newRoutineName != null && newRoutineName.trim().isNotEmpty) {
         // Guardar la rutina como nueva rutina
@@ -326,12 +330,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
           dateCreated: DateTime.now(),
           exercises: exercises.map((exercise) {
             return Exercise(
-              id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
+              id: Uuid().v4(),
               name: exercise.name,
               gifUrl: exercise.gifUrl,
               series: exercise.series.map((series) {
                 return Series(
-                  id: Uuid().v4(), // Genera un nuevo UUID para la serie
+                  id: Uuid().v4(),
                   previousWeight: series.previousWeight,
                   previousReps: series.previousReps,
                   lastSavedWeight: series.lastSavedWeight,
@@ -346,6 +350,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
             );
           }).toList(),
           duration: _displayDuration.value,
+          notes: notes,
         );
         await appState.saveRoutine(newRoutine);
       }
@@ -355,12 +360,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         Routine updatedRoutine = widget.routine!.copyWith(
           exercises: exercises.map((exercise) {
             return Exercise(
-              id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
+              id: Uuid().v4(),
               name: exercise.name,
               gifUrl: exercise.gifUrl,
               series: exercise.series.map((series) {
                 return Series(
-                  id: Uuid().v4(), // Genera un nuevo UUID para la serie
+                  id: Uuid().v4(),
                   previousWeight: series.previousWeight,
                   previousReps: series.previousReps,
                   lastSavedWeight: series.lastSavedWeight,
@@ -375,6 +380,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
             );
           }).toList(),
           duration: _displayDuration.value,
+          notes: notes,
+          name: routineName,
         );
         await appState.updateRoutine(updatedRoutine);
       }
@@ -386,12 +393,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         dateCreated: DateTime.now(),
         exercises: exercises.map((exercise) {
           return Exercise(
-            id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
+            id: Uuid().v4(),
             name: exercise.name,
             gifUrl: exercise.gifUrl,
             series: exercise.series.map((series) {
               return Series(
-                id: Uuid().v4(), // Genera un nuevo UUID para la serie
+                id: Uuid().v4(),
                 previousWeight: series.previousWeight,
                 previousReps: series.previousReps,
                 lastSavedWeight: series.lastSavedWeight,
@@ -407,6 +414,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         }).toList(),
         duration: _displayDuration.value,
         isCompleted: true,
+        notes: notes,
       );
 
       print("Duración antes de completar la rutina: ${_displayDuration.value.inSeconds} segundos");
@@ -500,7 +508,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     int seriesAdded = 0;
     int seriesRemoved = 0;
 
-    // Mapear ejercicios originales y actuales por ID
     Map<String, Exercise> originalExercisesMap = {
       for (var exercise in originalExercises) exercise.id: exercise
     };
@@ -508,7 +515,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       for (var exercise in exercises) exercise.id: exercise
     };
 
-    // Detectar ejercicios añadidos y eliminados
     for (var exercise in exercises) {
       if (!originalExercisesMap.containsKey(exercise.id)) {
         exercisesAdded += 1;
@@ -523,7 +529,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       }
     }
 
-    // Comparar series dentro de los ejercicios existentes
     for (var exercise in exercises) {
       if (originalExercisesMap.containsKey(exercise.id)) {
         var originalExercise = originalExercisesMap[exercise.id]!;
@@ -549,7 +554,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       }
     }
 
-    // Construir la descripción de cambios
     List<String> changes = [];
 
     if (exercisesAdded > 0) {
@@ -585,14 +589,14 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         appBar: AppBar(
           backgroundColor: GlobalStyles.backgroundColor,
           elevation: 0,
-          leadingWidth: 160, // Ajusta el ancho según tus necesidades
+          leadingWidth: 160,
           title: Text(
             routineName,
             style: GlobalStyles.insideAppTitleStyle,
           ),
           centerTitle: true,
           leading: Container(
-            padding: const EdgeInsets.only(left: 18.0), // Espaciado al inicio
+            padding: const EdgeInsets.only(left: 18.0),
             child: Row(
               children: [
                 GestureDetector(
@@ -602,7 +606,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                   child: Icon(
                     Icons.arrow_back,
                     color: GlobalStyles.textColor,
-                    size: 24.0, // Ajusta el tamaño según tus necesidades
+                    size: 24.0,
                   ),
                 ),
                 AppBarButton(
@@ -641,7 +645,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
             Expanded(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 0), // Añadido padding general
+                  padding: EdgeInsets.symmetric(horizontal: 0),
                   child: Column(
                     children: [
                       ...exercises.map((exercise) {
@@ -663,7 +667,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                         );
                       }).toList(),
                       SizedBox(height: 2),
-                      // Botón "Añadir Ejercicio" similar a "Introducir ejercicio" en routine_form.dart
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(

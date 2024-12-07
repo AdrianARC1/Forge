@@ -6,7 +6,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
-import 'package:forge/api/exercise_db_api_service.dart'; 
+import 'package:forge/api/exercise_db_api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -56,6 +56,7 @@ class Routine {
   Duration duration;
   int totalVolume;
   bool isCompleted;
+  String? notes;
 
   Routine({
     required this.id,
@@ -66,6 +67,7 @@ class Routine {
     this.duration = Duration.zero,
     this.totalVolume = 0,
     this.isCompleted = false,
+    this.notes,
   });
 
   Routine copyWith({
@@ -76,6 +78,7 @@ class Routine {
     bool? isCompleted,
     DateTime? dateCompleted,
     int? totalVolume,
+    String? notes,
   }) {
     return Routine(
       id: id ?? this.id,
@@ -86,6 +89,7 @@ class Routine {
       duration: duration ?? this.duration,
       totalVolume: totalVolume ?? this.totalVolume,
       isCompleted: isCompleted ?? this.isCompleted,
+      notes: notes ?? this.notes,
     );
   }
 }
@@ -176,10 +180,8 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Obtiene los records ordenados por maxWeight, devuelve una lista con info (nombre, gifurl, maxWeight).
   List<Map<String, dynamic>> getPersonalRecords() {
     List<Map<String, dynamic>> recordsList = [];
-
     _maxExerciseRecords.forEach((exerciseName, recordData) {
       int maxWeight = recordData['maxWeight'] as int;
       double max1RM = recordData['max1RM'] as double;
@@ -193,12 +195,10 @@ class AppState with ChangeNotifier {
         'max1RM': max1RM,
       });
     });
-
     recordsList.sort((a, b) => (b['maxWeight'] as int).compareTo(a['maxWeight'] as int));
     return recordsList;
   }
 
-  /// Dado el nombre de un ejercicio, devuelve su gifUrl si existe en _allExercises.
   String? getExerciseGifUrl(String exerciseName) {
     for (var ex in _allExercises) {
       if ((ex['name'] as String).toLowerCase() == exerciseName.toLowerCase()) {
@@ -275,11 +275,9 @@ class AppState with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        print("Contraseña incorrecta");
         return false;
       }
     } else {
-      print("Usuario no encontrado");
       return false;
     }
   }
@@ -309,7 +307,7 @@ class AppState with ChangeNotifier {
   }
 
   void startRoutineTimer() {
-    stopRoutineTimer(); 
+    stopRoutineTimer();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       minimizedRoutineDuration += Duration(seconds: 1);
       notifyListeners();
@@ -321,7 +319,7 @@ class AppState with ChangeNotifier {
   }
 
   void minimizeRoutine(Routine routine) {
-    savedRoutineState = routine; 
+    savedRoutineState = routine;
     minimizedRoutine = routine;
     startRoutineTimer();
     notifyListeners();
@@ -330,13 +328,13 @@ class AppState with ChangeNotifier {
   void restoreRoutine() {
     minimizedRoutine = null;
     savedRoutineState = null;
-    stopRoutineTimer(); 
+    stopRoutineTimer();
     notifyListeners();
   }
 
   void cancelMinimizedRoutine() {
     minimizedRoutine = null;
-    savedRoutineState = null; 
+    savedRoutineState = null;
     minimizedRoutineDuration = Duration.zero;
     stopRoutineTimer();
     notifyListeners();
@@ -349,7 +347,7 @@ class AppState with ChangeNotifier {
         _filteredExercises = _allExercises;
         _visibleExercises.clear();
         _currentPage = 0;
-        _loadMoreExercises(); 
+        _loadMoreExercises();
         notifyListeners();
       }
     } catch (e) {

@@ -23,7 +23,6 @@ class RoutineDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    // Usamos los valores directamente del objeto routine
     final Duration duration = routine.duration;
     final int totalVolume = routine.totalVolume;
     final DateTime? completionDate = routine.dateCompleted;
@@ -51,7 +50,6 @@ class RoutineDetailScreen extends StatelessWidget {
                   icon: Icon(Icons.more_vert, color: Colors.white),
                   onSelected: (value) {
                     if (value == 'edit') {
-                      // Navegar a la pantalla de edición de la rutina
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -74,7 +72,6 @@ class RoutineDetailScreen extends StatelessWidget {
                 AppBarButton(
                   text: 'Comenzar',
                   onPressed: () {
-                    // Navegar a la pantalla de ejecución de la rutina
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -96,7 +93,6 @@ class RoutineDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Usuario foto y nombre
                 if (isFromHistory) ...[
                   SizedBox(height: 16),
                   Center(
@@ -104,7 +100,7 @@ class RoutineDetailScreen extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 40,
-                          backgroundImage: AssetImage('assets/icon/icon.png'), // Reemplaza con la imagen de perfil del usuario
+                          backgroundImage: AssetImage('assets/icon/icon.png'),
                         ),
                         SizedBox(height: 8),
                         Text(
@@ -125,7 +121,6 @@ class RoutineDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ],
-                // Mostrar el nombre de la rutina con estilo
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
@@ -134,7 +129,6 @@ class RoutineDetailScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                // Línea inferior decorativa
                 Container(
                   height: 2,
                   decoration: BoxDecoration(
@@ -149,7 +143,6 @@ class RoutineDetailScreen extends StatelessWidget {
                   ),
                 ),
                 if (isFromHistory) ...[
-                  // Mostrar detalles adicionales en una fila
                   SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -225,7 +218,6 @@ class RoutineDetailScreen extends StatelessWidget {
                   ),
                 ],
                 SizedBox(height: 20),
-                // Mostrar los ejercicios en modo de solo lectura
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 0),
                   child: Column(
@@ -249,7 +241,7 @@ class RoutineDetailScreen extends StatelessWidget {
                           exercise: Exercise(
                             id: exercise.id,
                             name: exercise.name,
-                            gifUrl: exercise.gifUrl, // Aseguramos pasar gifUrl
+                            gifUrl: exercise.gifUrl,
                             series: exercise.series,
                           ),
                           weightControllers: {},
@@ -265,6 +257,27 @@ class RoutineDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (isFromHistory && routine.notes != null && routine.notes!.isNotEmpty) ...[
+                  SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      'Notas',
+                      style: GlobalStyles.subtitleStyle.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      routine.notes!,
+                      style: GlobalStyles.subtitleStyle,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -274,7 +287,6 @@ class RoutineDetailScreen extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    // Formato: miércoles, nov 13, 2024 - 20:35
     String weekday = _getWeekday(date.weekday);
     String month = _getMonth(date.month);
     String day = date.day.toString();
@@ -320,12 +332,10 @@ class RoutineDetailScreen extends StatelessWidget {
     int seconds = duration.inSeconds.remainder(60);
 
     if (hours > 0) {
-      // Si hay horas, mostrar horas y minutos
       String hoursStr = '${hours}h';
       String minutesStr = minutes > 0 ? ' ${minutes}min' : '';
       return '$hoursStr$minutesStr';
     } else {
-      // Si no hay horas, mostrar minutos y segundos
       String minutesStr = minutes > 0 ? '${minutes}min' : '';
       String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
       return '${minutesStr}${secondsStr}'.trim();
