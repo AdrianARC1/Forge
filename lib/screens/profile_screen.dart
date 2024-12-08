@@ -170,7 +170,7 @@ actions: [
 
             // Gráficos
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 0),
               child: Text('Progreso', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
             ),
             SizedBox(height: 8),
@@ -188,8 +188,15 @@ actions: [
 
             // Mejores marcas personales
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text('Mejores Marcas Personales', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
+              padding: const EdgeInsets.symmetric(horizontal: 0),
+              child: Text(
+                'Mejores Marcas Personales',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: GlobalStyles.textColor,
+                ),
+              ),
             ),
             SizedBox(height: 8),
             Container(
@@ -198,83 +205,92 @@ actions: [
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  ...top5Records.map((record) {
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: record['gifUrl'] != null
-                            ? NetworkImage(record['gifUrl'])
-                            : null,
-                        child: record['gifUrl'] == null ? Icon(Icons.image_not_supported) : null,
-                      ),
-                      title: Text(record['exerciseName'], style: TextStyle(color: GlobalStyles.textColor)),
-                      subtitle: Text('${record['maxWeight']} kg x ${record['maxReps']} reps', style: TextStyle(color: GlobalStyles.textColorWithOpacity)),
-                    );
-                  }).toList(),
-                  if (remainingRecords.isNotEmpty && !showAllRecords)
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          showAllRecords = true;
-                        });
-                      },
-                      child: Text('Ver más ejercicios', style: TextStyle(color: Colors.blue)),
-                    ),
-                  if (showAllRecords)
-                    ...remainingRecords.map((record) {
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: record['gifUrl'] != null
-                              ? NetworkImage(record['gifUrl'])
-                              : null,
-                          child: record['gifUrl'] == null ? Icon(Icons.image_not_supported) : null,
+              child: top5Records.isEmpty && remainingRecords.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No hay marcas personales registradas.',
+                        style: TextStyle(
+                          color: GlobalStyles.textColorWithOpacity,
+                          fontSize: 16,
                         ),
-                        title: Text(record['exerciseName'], style: TextStyle(color: GlobalStyles.textColor)),
-                        subtitle: Text('${record['maxWeight']} kg x ${record['maxReps']} reps', style: TextStyle(color: GlobalStyles.textColorWithOpacity)),
-                      );
-                    }).toList(),
-                ],
-              ),
-            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : Column(
+                      children: [
+                        // Mostrar los top 5 registros si existen
+                        ...top5Records.map((record) {
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: record['gifUrl'] != null
+                                  ? NetworkImage(record['gifUrl'])
+                                  : null,
+                              child: record['gifUrl'] == null
+                                  ? Icon(Icons.image_not_supported)
+                                  : null,
+                            ),
+                            title: Text(
+                              record['exerciseName'],
+                              style: TextStyle(color: GlobalStyles.textColor),
+                            ),
+                            subtitle: Text(
+                              '${record['maxWeight']} kg x ${record['maxReps']} reps',
+                              style: TextStyle(color: GlobalStyles.textColorWithOpacity),
+                            ),
+                          );
+                        }).toList(),
+
+                        // Botón para ver más ejercicios si hay registros adicionales
+                        if (remainingRecords.isNotEmpty && !showAllRecords)
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                showAllRecords = true;
+                              });
+                            },
+                            child: Text(
+                              'Ver más ejercicios',
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                          ),
+
+                        // Mostrar los registros restantes si se ha activado "Ver más"
+                        if (showAllRecords)
+                          ...remainingRecords.map((record) {
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: record['gifUrl'] != null
+                                    ? NetworkImage(record['gifUrl'])
+                                    : null,
+                                child: record['gifUrl'] == null
+                                    ? Icon(Icons.image_not_supported)
+                                    : null,
+                              ),
+                              title: Text(
+                                record['exerciseName'],
+                                style: TextStyle(color: GlobalStyles.textColor),
+                              ),
+                              subtitle: Text(
+                                '${record['maxWeight']} kg x ${record['maxReps']} reps',
+                                style: TextStyle(color: GlobalStyles.textColorWithOpacity),
+                              ),
+                            );
+                          }).toList(),
+                      ],
+                    ),
+),
+
 
             SizedBox(height: 24),
 
             // Historial
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 0),
               child: Text('Historial', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
             ),
             SizedBox(height: 8),
             HistoryListWidget(),
 
-            SizedBox(height: 24),
-
-            // Botón de cerrar sesión
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: GlobalStyles.backgroundButtonsColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () async {
-                    await appState.logout();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()),
-                      (route) => false,
-                    );
-                  },
-                  child: Text('Cerrar Sesión', style: GlobalStyles.buttonTextStyle),
-                ),
-              ),
-            ),
             SizedBox(height: 24),
           ],
         ),
