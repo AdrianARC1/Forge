@@ -35,6 +35,15 @@ class GlobalStyles {
     fontSize: 16,
   );
 
+  static const TextStyle subtitleStyleRoutineData = TextStyle(
+    color: textColor,
+    fontSize: 14,
+  );
+    static const TextStyle orangeSubtitleStyle = TextStyle(
+    color: backgroundButtonsColor,
+    fontSize: 18,
+  );
+
   static const TextStyle subtitleStyleHighFont = TextStyle(
     color: textColorWithOpacity,
     fontSize: 26,
@@ -60,6 +69,11 @@ class GlobalStyles {
 
   static const TextStyle errorTextStyle = TextStyle(
     color: errorColor,
+    fontSize: 14,
+  );
+
+  static const TextStyle lowSubtitleStyle = TextStyle(
+    color: textColor,
     fontSize: 14,
   );
 

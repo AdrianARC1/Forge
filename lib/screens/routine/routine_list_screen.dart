@@ -22,7 +22,8 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
 
     return BaseScaffold(
       appBar: AppBar(
-        title: Text("Entrenamiento"),
+        title: Text("Entrenamiento", style: GlobalStyles.insideAppTitleStyle),
+        centerTitle: true,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,7 +78,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      flex: 2, // Controla cuánto espacio ocupa el botón
+                      flex: 3, // Controla cuánto espacio ocupa el botón
                       child: ElevatedButton.icon(
                         onPressed: () {
                           Navigator.push(
