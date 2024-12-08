@@ -7,6 +7,7 @@ import './widgets/base_scaffold.dart';
 import './widgets/app_bar_button.dart';
 import '../app_state.dart'; // Importa AppState para acceder al estado de la aplicación
 import 'auth/login_screen.dart'; // Importa LoginScreen para la navegación
+import 'onboarding/intro_slides.dart'; // Importa IntroSlides para el tutorial
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -35,13 +36,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(0), // Agrega padding para mejor espaciado
+        padding: const EdgeInsets.all(16.0), // Ajuste de padding para mejor espaciado
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Preferencias',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: GlobalStyles.textColor,
+              ),
             ),
             SizedBox(height: 16),
             SwitchListTile(
@@ -51,6 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   _darkMode = value;
                   // Aquí puedes agregar lógica para cambiar el tema de la aplicación
+                  // Por ejemplo: appState.toggleDarkMode(value);
                 });
               },
               activeColor: GlobalStyles.backgroundButtonsColor,
@@ -62,6 +68,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   _notifications = value;
                   // Aquí puedes agregar lógica para manejar las notificaciones
+                  // Por ejemplo: appState.toggleNotifications(value);
                 });
               },
               activeColor: GlobalStyles.backgroundButtonsColor,
@@ -71,11 +78,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
               'Aquí puedes configurar las opciones de la aplicación.',
               style: TextStyle(color: GlobalStyles.textColorWithOpacity),
             ),
+            SizedBox(height: 32),
+
+            // Botón para Ver el Tutorial
+            ListTile(
+              leading: Icon(Icons.info_outline, color: GlobalStyles.textColor),
+              title: Text(
+                'Ver Tutorial',
+                style: TextStyle(color: GlobalStyles.textColor, fontSize: 16),
+              ),
+              trailing: Icon(Icons.arrow_forward_ios, color: GlobalStyles.textColorWithOpacity),
+              onTap: () async {
+                // Reiniciar el estado del tutorial
+                await appState.resetTutorial();
+
+                // Navegar a la pantalla de introducción
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => IntroSlides()),
+                );
+              },
+            ),
+            Divider(color: GlobalStyles.textColorWithOpacity),
+            SizedBox(height: 16),
 
             Spacer(), // Empuja el botón de cerrar sesión al final
-
-            Divider(color: GlobalStyles.textColorWithOpacity), // Separador visual
-            SizedBox(height: 16),
 
             // Botón de Cerrar Sesión
             SizedBox(
@@ -117,7 +143,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   }
                 },
-                child: Text('Cerrar Sesión', style: TextStyle(color: Colors.white, fontSize: 16)),
+                child: Text(
+                  'Cerrar Sesión',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
               ),
             ),
           ],

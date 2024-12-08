@@ -6,8 +6,9 @@ import 'app_state.dart';
 import 'screens/navigation/main_navigation_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import './styles/global_styles.dart'; // Asegúrate de importar el archivo de estilos
+import './styles/global_styles.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'screens/onboarding/intro_slides.dart';
 
 void main() async {
   await dotenv.load();
@@ -15,10 +16,6 @@ void main() async {
 
   // Mantener la splash screen nativa hasta que la aplicación esté lista
   FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-
-  // Llama a resetDatabase para eliminar los datos de la base de datos
-  // await DatabaseHelper().resetDatabase();
-  // print("Base de datos reiniciada.");
 
   runApp(const MyApp());
 }
@@ -41,19 +38,19 @@ class MyApp extends StatelessWidget {
             title: 'Forge',
             theme: ThemeData(
               primarySwatch: Colors.blue,
-              scaffoldBackgroundColor: GlobalStyles.backgroundColor, // Color de fondo general
-              bottomNavigationBarTheme: GlobalStyles.bottomNavBarTheme, // Tema de la barra de navegación
+              scaffoldBackgroundColor: GlobalStyles.backgroundColor,
+              bottomNavigationBarTheme: GlobalStyles.bottomNavBarTheme,
               appBarTheme: AppBarTheme(
                 backgroundColor: GlobalStyles.navigationBarColor,
                 centerTitle: true,
-                foregroundColor: Colors.white
-              )
+                foregroundColor: Colors.white,
+              ),
             ),
             home: appState.isLoading
                 ? Container() // Pantalla vacía mientras carga
-                : appState.userId == null
-                    ? LoginScreen()
-                    : MainNavigationScreen(),
+                : appState.hasSeenTutorial
+                    ? (appState.userId == null ? LoginScreen() : MainNavigationScreen())
+                    : IntroSlides(), // Mostrar el tutorial si no se ha visto
           );
         },
       ),

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app_state.dart';
-import '../onboarding/tutorial_screen.dart';
+import '../onboarding/intro_slides.dart';
 import '../widgets/shared_widgets.dart';
 import '../../styles/global_styles.dart';
 
@@ -146,7 +146,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (success) {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => TutorialScreen()),
+                            MaterialPageRoute(builder: (context) => IntroSlides()), // Navegar al IntroSlides
                           );
                         } else {
                           setState(() {

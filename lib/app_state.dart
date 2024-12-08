@@ -128,6 +128,8 @@ class AppState with ChangeNotifier {
 
   bool _showTutorial = false;
   bool get showTutorial => _showTutorial;
+  bool _hasSeenTutorial = false;
+  bool get hasSeenTutorial => _hasSeenTutorial;
 
   List<Routine> get routines => _routines;
   List<Routine> get completedRoutines => _completedRoutines;
@@ -142,9 +144,10 @@ class AppState with ChangeNotifier {
     _initializeApp();
   }
 
-  Future<void> _initializeApp() async {
+Future<void> _initializeApp() async {
     try {
       await _loadUserSession();
+      await _loadTutorialStatus(); // Cargar el estado del tutorial
     } catch (e) {
       print("Error durante la inicialización: $e");
     } finally {
@@ -153,6 +156,24 @@ class AppState with ChangeNotifier {
     }
   }
 
+  Future<void> _loadTutorialStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _hasSeenTutorial = prefs.getBool('hasSeenTutorial') ?? false;
+  }
+
+  Future<void> completeTutorial() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _hasSeenTutorial = true;
+    await prefs.setBool('hasSeenTutorial', true);
+    notifyListeners();
+  }
+
+  Future<void> resetTutorial() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _hasSeenTutorial = false;
+    await prefs.setBool('hasSeenTutorial', false);
+    notifyListeners();
+  }
   Future<void> _loadUserSession() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -298,11 +319,6 @@ class AppState with ChangeNotifier {
     _visibleExercises = [];
     _currentPage = 0;
     _maxExerciseRecords = {};
-    notifyListeners();
-  }
-
-  void completeTutorial() {
-    _showTutorial = false;
     notifyListeners();
   }
 
