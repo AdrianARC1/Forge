@@ -11,7 +11,7 @@ class ExerciseSelectionScreen extends StatefulWidget {
   const ExerciseSelectionScreen({super.key});
 
   @override
-  _ExerciseSelectionScreenState createState() => _ExerciseSelectionScreenState();
+  State<ExerciseSelectionScreen> createState() => _ExerciseSelectionScreenState();
 }
 
 class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {

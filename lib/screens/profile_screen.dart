@@ -17,7 +17,7 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
@@ -308,7 +308,7 @@ class DataGraphs extends StatefulWidget {
   const DataGraphs({super.key});
 
   @override
-  _DataGraphsState createState() => _DataGraphsState();
+  State<DataGraphs> createState() => _DataGraphsState();
 }
 
 class _DataGraphsState extends State<DataGraphs> {

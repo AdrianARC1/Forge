@@ -13,7 +13,7 @@ class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  _SettingsScreenState createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
@@ -96,7 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // Navegar a la pantalla de introducción
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => IntroSlides()),
+                  MaterialPageRoute(builder: (_) => const IntroSlides()),
                 );
               },
             ),
@@ -140,7 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await appState.logout(); // Llama al método de logout
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
                       (route) => false,
                     );
                   }

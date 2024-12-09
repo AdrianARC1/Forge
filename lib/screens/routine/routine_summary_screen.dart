@@ -21,7 +21,7 @@ class RoutineSummaryScreen extends StatefulWidget {
   });
 
   @override
-  _RoutineSummaryScreenState createState() => _RoutineSummaryScreenState();
+  State<RoutineSummaryScreen> createState() => _RoutineSummaryScreenState();
 }
 
 class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {

@@ -19,7 +19,7 @@ class RoutineExecutionScreen extends StatefulWidget {
   const RoutineExecutionScreen({super.key, this.routine});
 
   @override
-  _RoutineExecutionScreenState createState() => _RoutineExecutionScreenState();
+  State<RoutineExecutionScreen> createState() => _RoutineExecutionScreenState();
 }
 
 class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with ExerciseManagementMixin {

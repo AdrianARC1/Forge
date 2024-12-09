@@ -22,7 +22,8 @@ class ExerciseFormWidget extends StatefulWidget {
   final bool isReadOnly;
   final bool showMaxRecord;
 
-  const ExerciseFormWidget({super.key, 
+  const ExerciseFormWidget({
+    super.key, 
     required this.exercise,
     this.onAddSeries,
     this.onDeleteSeries,
@@ -40,7 +41,7 @@ class ExerciseFormWidget extends StatefulWidget {
   });
 
   @override
-  _ExerciseFormWidgetState createState() => _ExerciseFormWidgetState();
+  State<ExerciseFormWidget> createState() => _ExerciseFormWidgetState();
 }
 
 class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTickerProviderStateMixin {
@@ -231,7 +232,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
   @override
   Widget build(BuildContext context) {
     bool showRPEAndCheckbox = widget.isExecution;
-    bool showEditOptions = widget.isExecution || widget.allowEditing;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,8 +440,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
             int seriesIndex = entry.key;
             Series series = entry.value;
             bool isActive = activeSliderSeriesId == series.id;
-            double currentRPE = tempRPEValues[series.id]?.toDouble() ??
-                series.perceivedExertion.toDouble();
 
             return DismissibleSeriesItem(
               series: series,

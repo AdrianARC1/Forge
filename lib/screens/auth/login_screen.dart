@@ -10,7 +10,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -101,35 +101,37 @@ class _LoginScreenState extends State<LoginScreen> {
                     isLoading: _isLoggingIn,
                     enabled: !_isLoggingIn,
                     padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
-                    onPressed: _isLoggingIn ? () {} : () async {
-                      if (_formKey.currentState!.validate()) {
-                        setState(() {
-                          _isLoggingIn = true;
-                        });
+                    onPressed: _isLoggingIn
+                        ? () {}
+                        : () async {
+                            if (_formKey.currentState!.validate()) {
+                              setState(() {
+                                _isLoggingIn = true;
+                              });
 
-                        String username = _usernameController.text.trim();
-                        String password = _passwordController.text.trim();
+                              String username = _usernameController.text.trim();
+                              String password = _passwordController.text.trim();
 
-                        bool success = await appState.login(username, password);
-                        if (success) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-                          );
-                        } else {
-                          setState(() {
-                            _isLoggingIn = false;
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Usuario o contraseña incorrectos.'),
-                              backgroundColor: GlobalStyles.errorColor,
-                              duration: Duration(milliseconds: 1500),
-                            ),
-                          );
-                        }
-                      }
-                    },
+                              bool success = await appState.login(username, password);
+                              if (success) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+                                );
+                              } else {
+                                setState(() {
+                                  _isLoggingIn = false;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Usuario o contraseña incorrectos.'),
+                                    backgroundColor: GlobalStyles.errorColor,
+                                    duration: Duration(milliseconds: 1500),
+                                  ),
+                                );
+                              }
+                            }
+                          },
                   ),
                   SharedWidgets.buildLinkButton(
                     text: 'Registrarse',
