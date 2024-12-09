@@ -74,7 +74,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           icon: Icon(Icons.close, color: Colors.red, size: 26,),
                           label: Text(
                             'Descartar',
-                            style: TextStyle(color: Colors.red, fontSize: 18),
+                            style: TextStyle(color: Colors.red, fontSize: 14),
                           ),
                         ),
 
@@ -94,7 +94,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                           icon: Icon(Icons.play_arrow, color: GlobalStyles.backgroundButtonsColor, size: 26),
                           label: Text(
                             'Volver a la rutina',
-                            style: TextStyle(color: GlobalStyles.backgroundButtonsColor, fontSize: 18),
+                            style: TextStyle(color: GlobalStyles.backgroundButtonsColor, fontSize: 14),
                           ),
                         ),
                       ],
