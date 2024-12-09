@@ -32,7 +32,7 @@ class RoutineDetailScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: GlobalStyles.backgroundColor,
         elevation: 0,
-        leadingWidth: 100,
+        leadingWidth: 60,
         title: Text(
           routine.name,
           style: GlobalStyles.insideAppTitleStyle,

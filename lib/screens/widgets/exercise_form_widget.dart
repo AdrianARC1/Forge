@@ -1,6 +1,7 @@
 // lib/screens/widgets/exercise_form_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart'; // Importa flutter_slidable
 import 'package:forge/styles/global_styles.dart';
 import '../../app_state.dart';
 import '../widgets/dismissible_series_item.dart';
@@ -235,119 +236,122 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+        Slidable(
+          key: ValueKey(widget.exercise.id), // Clave única para cada Slidable
+          endActionPane: ActionPane(
+            motion: ScrollMotion(),
+            extentRatio: (widget.isExecution || widget.allowEditing) ? 1 : 0.5,
             children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: widget.exercise.gifUrl != null
-                      ? DecorationImage(
-                          image: NetworkImage(widget.exercise.gifUrl!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: widget.exercise.gifUrl == null
-                    ? Icon(Icons.image_not_supported)
-                    : null,
+              SlidableAction(
+                onPressed: (context) {
+                  widget.onDeleteExercise?.call();
+                },
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Eliminar',
               ),
-              SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.exercise.name,
-                      style: GlobalStyles.orangeSubtitleStyle.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (widget.showMaxRecord)
-                      Row(
-                        children: [
-                          AnimatedBuilder(
-                            animation: _animationController,
-                            builder: (context, child) {
-                              return Transform.scale(
-                                scale: 1.0 + (_animationController.value * 0.5),
-                                child: Icon(
-                                  Icons.emoji_events,
-                                  color: Colors.amber,
-                                  size: 20,
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '${currentMaxWeight}kg x ${currentMaxReps} reps',
-                            style: GlobalStyles.subtitleStyle.copyWith(
-                              fontSize: 14,
-                              color: Colors.grey[300],
-                            ),
-                          ),
-                          SizedBox(width: 4),
-                          GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text('Máximo Histórico'),
-                                  content: Text(
-                                      'Este es tu mejor rendimiento registrado en este ejercicio.'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      child: Text('OK'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                            child: Icon(
-                              Icons.info_outline,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-              if (showEditOptions)
-                PopupMenuButton<String>(
-                  offset: const Offset(0.0, 40.0),
-                  icon: Icon(Icons.more_vert, color: Colors.white),
-                  onSelected: (value) {
-                    if (value == 'delete') {
-                      widget.onDeleteExercise?.call();
-                    } else if (value == 'replace') {
-                      widget.onReplaceExercise?.call();
-                    }
+              if (widget.isExecution || widget.allowEditing)
+                SlidableAction(
+                  onPressed: (context) {
+                    widget.onReplaceExercise?.call();
                   },
-                  itemBuilder: (BuildContext context) {
-                    return [
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text('Eliminar Ejercicio'),
-                      ),
-                      if (widget.isExecution || widget.allowEditing)
-                        PopupMenuItem(
-                          value: 'replace',
-                          child: Text('Reemplazar Ejercicio'),
-                        ),
-                    ];
-                  },
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  label: 'Reemplazar',
                 ),
             ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: widget.exercise.gifUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(widget.exercise.gifUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: widget.exercise.gifUrl == null
+                      ? Icon(Icons.image_not_supported, color: Colors.grey)
+                      : null,
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.exercise.name,
+                        style: GlobalStyles.orangeSubtitleStyle.copyWith(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (widget.showMaxRecord)
+                        Row(
+                          children: [
+                            AnimatedBuilder(
+                              animation: _animationController,
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: 1.0 + (_animationController.value * 0.5),
+                                  child: Icon(
+                                    Icons.emoji_events,
+                                    color: Colors.amber,
+                                    size: 20,
+                                  ),
+                                );
+                              },
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '${currentMaxWeight}kg x ${currentMaxReps} reps',
+                              style: GlobalStyles.subtitleStyle.copyWith(
+                                fontSize: 14,
+                                color: Colors.grey[300],
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                            GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Máximo Histórico'),
+                                    content: Text(
+                                        'Este es tu mejor rendimiento registrado en este ejercicio.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              child: Icon(
+                                Icons.info_outline,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+                // Eliminado el PopupMenuButton
+              ],
+            ),
           ),
         ),
         Padding(

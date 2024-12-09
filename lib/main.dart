@@ -16,7 +16,7 @@ void main() async {
 
   // Mantener la splash screen nativa hasta que la aplicación esté lista
   FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-
+  // await DatabaseHelper().resetDatabase();
   runApp(const MyApp());
 }
 
