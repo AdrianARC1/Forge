@@ -9,6 +9,8 @@ import '../routine/routine_execution_screen.dart';
 import '../../styles/global_styles.dart'; // Importa el archivo de estilos
 
 class MainNavigationScreen extends StatefulWidget {
+  const MainNavigationScreen({super.key});
+
   @override
   _MainNavigationScreenState createState() => _MainNavigationScreenState();
 }
@@ -17,9 +19,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 1;
 
   final List<Widget> _screens = [
-    HistoryScreen(),
-    RoutineListScreen(),
-    ProfileScreen(), // Descomentar si tienes una pantalla de perfil
+    const HistoryScreen(),
+    const RoutineListScreen(),
+    const ProfileScreen(), // Descomentar si tienes una pantalla de perfil
   ];
 
   void _onTabTapped(int index) {
@@ -44,23 +46,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               right: 0,
               child: Container(
                 color: GlobalStyles.navigationBarColor, // Fondo igual que la barra de navegación
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min, // Para que la columna ocupe el espacio mínimo
                   children: [
                     // Nombre de la rutina centrado
                     Text(
-                      "${appState.minimizedRoutine!.name}",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                      appState.minimizedRoutine!.name,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
                       textAlign: TextAlign.center,
                     ),
                     // Temporizador centrado
                     Text(
                       _formatDuration(appState.minimizedRoutineDuration),
-                      style: TextStyle(color: Colors.white70, fontSize: 18),
+                      style: const TextStyle(color: Colors.white70, fontSize: 18),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 2.0), // Espacio entre el temporizador y los botones
+                    const SizedBox(height: 2.0), // Espacio entre el temporizador y los botones
                     // Fila con los dos botones
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -71,8 +73,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                             backgroundColor: Colors.transparent, // Sin fondo
                           ),
                           onPressed: () => _cancelMinimizedRoutine(context),
-                          icon: Icon(Icons.close, color: Colors.red, size: 26,),
-                          label: Text(
+                          icon: const Icon(Icons.close, color: Colors.red, size: 26,),
+                          label: const Text(
                             'Descartar',
                             style: TextStyle(color: Colors.red, fontSize: 14),
                           ),
@@ -91,8 +93,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               ),
                             );
                           },
-                          icon: Icon(Icons.play_arrow, color: GlobalStyles.backgroundButtonsColor, size: 26),
-                          label: Text(
+                          icon: const Icon(Icons.play_arrow, color: GlobalStyles.backgroundButtonsColor, size: 26),
+                          label: const Text(
                             'Volver a la rutina',
                             style: TextStyle(color: GlobalStyles.backgroundButtonsColor, fontSize: 14),
                           ),
@@ -105,7 +107,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: SizedBox(
         height: 70,
         child: Theme(
           data: Theme.of(context).copyWith(
@@ -123,7 +125,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             showSelectedLabels: true, // Mostrar etiquetas para los seleccionados
 
             // Estilos de íconos
-            selectedIconTheme: IconThemeData(
+            selectedIconTheme: const IconThemeData(
               size: 32, // Tamaño de los íconos seleccionados
               color: GlobalStyles.backgroundButtonsColor, // Asegura el color del ícono seleccionado
             ),
@@ -133,7 +135,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
 
             // Estilos de texto (labels)
-            selectedLabelStyle: TextStyle(
+            selectedLabelStyle: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: GlobalStyles.backgroundButtonsColor, // Color de la etiqueta seleccionada
@@ -144,7 +146,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               color: GlobalStyles.bottomNavBarTheme.unselectedItemColor, // Color de la etiqueta no seleccionada
             ),
 
-            items: [
+            items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.history),
                 label: "Historial",
@@ -177,12 +179,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("¿Cancelar rutina?"),
-          content: Text("¿Realmente quieres cancelar la rutina en ejecución?"),
+          title: const Text("¿Cancelar rutina?"),
+          content: const Text("¿Realmente quieres cancelar la rutina en ejecución?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text("No"),
+              child: const Text("No"),
             ),
             TextButton(
               onPressed: () {
@@ -190,7 +192,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 appState.cancelMinimizedRoutine(); // Elimina la rutina minimizada
                 Navigator.of(context).pop();
               },
-              child: Text("Sí"),
+              child: const Text("Sí"),
             ),
           ],
         );

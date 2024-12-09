@@ -71,7 +71,7 @@ class SharedWidgets {
           decoration: InputDecoration(
             prefixIcon: prefixIcon,
             labelText: labelText,
-            labelStyle: TextStyle(
+            labelStyle: const TextStyle(
               color: GlobalStyles.placeholderColor,
             ),
             errorStyle: GlobalStyles.errorTextStyle,
@@ -79,14 +79,14 @@ class SharedWidgets {
             focusedBorder: InputBorder.none,
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: GlobalStyles.errorBorderColor, width: 2),
+              borderSide: const BorderSide(color: GlobalStyles.errorBorderColor, width: 2),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: GlobalStyles.errorBorderColor, width: 2),
+              borderSide: const BorderSide(color: GlobalStyles.errorBorderColor, width: 2),
             ),
           ),
-          style: TextStyle(color: GlobalStyles.textColor),
+          style: const TextStyle(color: GlobalStyles.textColor),
           textInputAction: textInputAction,
         ),
       ),
@@ -108,7 +108,7 @@ class SharedWidgets {
             color: Colors.black.withOpacity(.5),
             spreadRadius: 1,
             blurRadius: 8,
-            offset: Offset(0, 10),
+            offset: const Offset(0, 10),
           ),
         ],
         borderRadius: BorderRadius.circular(12),
@@ -124,7 +124,7 @@ class SharedWidgets {
         ),
         onPressed: enabled ? onPressed : null,
         child: isLoading
-            ? CircularProgressIndicator(
+            ? const CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(GlobalStyles.backgroundColor),
               )
             : Text(

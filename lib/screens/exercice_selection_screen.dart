@@ -8,7 +8,7 @@ import 'widgets/base_scaffold.dart';
 import 'widgets/app_bar_button.dart';
 
 class ExerciseSelectionScreen extends StatefulWidget {
-  const ExerciseSelectionScreen({Key? key}) : super(key: key);
+  const ExerciseSelectionScreen({super.key});
 
   @override
   _ExerciseSelectionScreenState createState() => _ExerciseSelectionScreenState();
@@ -18,7 +18,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   String searchQuery = "";
   String? selectedMuscleGroup;
   String? selectedEquipment;
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
 
   final String allMusclesOption = "Todos\n los músculos";
@@ -125,9 +125,9 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
           backgroundColor: GlobalStyles.backgroundColor,
           elevation: 0,
           centerTitle: true,
-          title: Text("Seleccionar Ejercicio", style: GlobalStyles.insideAppTitleStyle),
+          title: const Text("Seleccionar Ejercicio", style: GlobalStyles.insideAppTitleStyle),
         ),
-        body: Center(child: CircularProgressIndicator(color: GlobalStyles.textColor)),
+        body: const Center(child: CircularProgressIndicator(color: GlobalStyles.textColor)),
       );
     }
 
@@ -140,10 +140,10 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
         backgroundColor: GlobalStyles.backgroundColor,
         elevation: 0,
         centerTitle: true,
-        title: Text("Seleccionar Ejercicio", style: GlobalStyles.insideAppTitleStyle),
+        title: const Text("Seleccionar Ejercicio", style: GlobalStyles.insideAppTitleStyle),
         leadingWidth: 60,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: GlobalStyles.textColor),
+          icon: const Icon(Icons.arrow_back, color: GlobalStyles.textColor),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -170,16 +170,16 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
               decoration: InputDecoration(
                 hintText: 'Buscar ejercicio',
                 hintStyle: GlobalStyles.subtitleStyle.copyWith(color: GlobalStyles.placeholderColor),
-                prefixIcon: Icon(Icons.search, color: GlobalStyles.textColor),
+                prefixIcon: const Icon(Icons.search, color: GlobalStyles.textColor),
                 filled: true,
                 fillColor: GlobalStyles.inputBackgroundColor,
-                contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                contentPadding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: GlobalStyles.inputBorderColor),
+                  borderSide: const BorderSide(color: GlobalStyles.inputBorderColor),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: GlobalStyles.focusedBorderColor),
+                  borderSide: const BorderSide(color: GlobalStyles.focusedBorderColor),
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
@@ -207,7 +207,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
                   ),
                 ),
 
-                SizedBox(width: 10), // Espaciado entre filtros
+                const SizedBox(width: 10), // Espaciado entre filtros
 
                 // Segundo Filtro: Equipo
                 Expanded(
@@ -227,7 +227,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0), // Alinea con otros elementos
               child: _isLoading
-                  ? Center(child: CircularProgressIndicator(color: GlobalStyles.textColor))
+                  ? const Center(child: CircularProgressIndicator(color: GlobalStyles.textColor))
                   : exercises.isEmpty
                       ? Center(
                           child: Text(
@@ -260,11 +260,11 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
                                         height: 60,
                                         fit: BoxFit.cover,
                                         errorBuilder: (context, error, stackTrace) {
-                                          return Icon(Icons.image_not_supported, color: GlobalStyles.textColor);
+                                          return const Icon(Icons.image_not_supported, color: GlobalStyles.textColor);
                                         },
                                       ),
                                     )
-                                  : Icon(Icons.image_not_supported, color: GlobalStyles.textColor),
+                                  : const Icon(Icons.image_not_supported, color: GlobalStyles.textColor),
                               title: Text(
                                 exerciseName,
                                 style: GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold),
@@ -294,7 +294,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   }) {
     return Container(
       // No establezcas un ancho fijo aquí para permitir que Expanded lo controle
-      padding: EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: GlobalStyles.inputBackgroundColor,
         borderRadius: BorderRadius.circular(8),
@@ -309,7 +309,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
           ),
           value: value,
           dropdownColor: GlobalStyles.inputBackgroundColor,
-          icon: Icon(
+          icon: const Icon(
             Icons.arrow_drop_down,
             color: GlobalStyles.textColor,
             size: 24, // Ajusta el tamaño si es necesario

@@ -1,7 +1,6 @@
 // lib/screens/routine/routine_summary_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../app_state.dart';
 import '../widgets/base_scaffold.dart';
 import '../../styles/global_styles.dart';
@@ -13,7 +12,7 @@ class RoutineSummaryScreen extends StatefulWidget {
   final VoidCallback onResume;
   final void Function(Routine updatedRoutine) onSave; // se cambia a aceptar un Routine
 
-  RoutineSummaryScreen({
+  const RoutineSummaryScreen({super.key, 
     required this.routine,
     required this.duration,
     required this.onDiscard,
@@ -58,13 +57,13 @@ class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {
         elevation: 0,
         leadingWidth: 100,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: GlobalStyles.textColor),
+          icon: const Icon(Icons.arrow_back, color: GlobalStyles.textColor),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         centerTitle: true,
-        title: Text(
+        title: const Text(
           'Resumen de Rutina',
           style: GlobalStyles.insideAppTitleStyle,
         ),
@@ -82,7 +81,7 @@ class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {
                   controller: _nameController,
                   style: GlobalStyles.subtitleStyleHighFont.copyWith(color: Colors.white),
                   textAlign: TextAlign.center,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Nombre de la rutina",
                     hintStyle: TextStyle(color: Colors.white54),
                     border: InputBorder.none,
@@ -97,7 +96,7 @@ class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.6),
-                        offset: Offset(0, 5),
+                        offset: const Offset(0, 5),
                         blurRadius: 2,
                       ),
                     ],
@@ -111,19 +110,19 @@ class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _dataColumn('Duración', _formatDuration(duration)),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       _dataColumn('Volumen', '$totalVolume kg'),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       _dataColumn('RPE Medio', averageRPE.toStringAsFixed(1)),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       _dataColumn('Total Series', '$totalSeries'),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       _dataColumn('Fecha', _formatDate(now)),
                     ],
                   ),
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
                 Text(
                   'Notas:',
@@ -132,32 +131,32 @@ class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {
                     fontSize: 18,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 TextField(
                   controller: _notesController,
                   style: GlobalStyles.subtitleStyle,
                   maxLines: 4,
                   decoration: InputDecoration(
                     hintText: 'Añade notas sobre tu entrenamiento...',
-                    hintStyle: TextStyle(color: Colors.white54),
+                    hintStyle: const TextStyle(color: Colors.white54),
                     filled: true,
                     fillColor: GlobalStyles.inputBackgroundColor,
                     border: OutlineInputBorder(
-                      borderSide: BorderSide(color: GlobalStyles.inputBorderColor),
+                      borderSide: const BorderSide(color: GlobalStyles.inputBorderColor),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: GlobalStyles.inputBorderColor),
+                      borderSide: const BorderSide(color: GlobalStyles.inputBorderColor),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: GlobalStyles.focusedBorderColor),
+                      borderSide: const BorderSide(color: GlobalStyles.focusedBorderColor),
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ),
 
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
 
                 SizedBox(
                   width: double.infinity,
@@ -175,30 +174,30 @@ class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text('Guardar Rutina', style: GlobalStyles.buttonTextStyle),
+                    child: const Text('Guardar Rutina', style: GlobalStyles.buttonTextStyle),
                   ),
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: widget.onResume,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF2d2d2d),
+                      backgroundColor: const Color(0xFF2d2d2d),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text('Volver a la Rutina', style: GlobalStyles.buttonTextStyleLight),
+                    child: const Text('Volver a la Rutina', style: GlobalStyles.buttonTextStyleLight),
                   ),
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Center(
                   child: TextButton(
                     onPressed: widget.onDiscard,
-                    child: Text(
+                    child: const Text(
                       'Descartar Entrenamiento',
                       style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                     ),
@@ -218,7 +217,7 @@ class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {
       children: [
         Text(title,
             style: GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(value, style: GlobalStyles.subtitleStyle),
       ],
     );
@@ -236,7 +235,7 @@ class _RoutineSummaryScreenState extends State<RoutineSummaryScreen> {
     } else {
       String minutesStr = minutes > 0 ? '${minutes}min' : '';
       String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
-      return '${minutesStr}${secondsStr}'.trim();
+      return '$minutesStr$secondsStr'.trim();
     }
   }
 

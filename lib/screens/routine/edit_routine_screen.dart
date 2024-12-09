@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 class EditRoutineScreen extends StatelessWidget {
   final Routine routine;
 
-  EditRoutineScreen({required this.routine});
+  const EditRoutineScreen({super.key, required this.routine});
 
   @override
   Widget build(BuildContext context) {

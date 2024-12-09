@@ -13,17 +13,17 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
   Future<void> addExercise() async {
     final selectedExercise = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ExerciseSelectionScreen()),
+      MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen()),
     );
 
     if (selectedExercise != null) {
       setState(() {
         final exercise = Exercise(
-          id: Uuid().v4(), // Genera un nuevo UUID para el ejercicio
+          id: const Uuid().v4(), // Genera un nuevo UUID para el ejercicio
           name: selectedExercise['name'],
           series: [
             Series(
-              id: Uuid().v4(), // Genera un nuevo UUID para la serie
+              id: const Uuid().v4(), // Genera un nuevo UUID para la serie
               weight: 0,
               reps: 0,
               perceivedExertion: 1,
@@ -46,7 +46,7 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
   void addSeriesToExercise(Exercise exercise) {
     setState(() {
       Series newSeries = Series(
-        id: Uuid().v4(), // Genera un nuevo UUID para la serie
+        id: const Uuid().v4(), // Genera un nuevo UUID para la serie
         weight: 0,
         reps: 0,
         perceivedExertion: 1,
@@ -95,7 +95,7 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
   Future<void> replaceExercise(Exercise oldExercise) async {
     final selectedExercise = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ExerciseSelectionScreen()),
+      MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen()),
     );
 
     if (selectedExercise != null) {
@@ -117,7 +117,7 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
           name: selectedExercise['name'],
           series: [
             Series(
-              id: Uuid().v4(),
+              id: const Uuid().v4(),
               weight: 0,
               reps: 0,
               perceivedExertion: 0,

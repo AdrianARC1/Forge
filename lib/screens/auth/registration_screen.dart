@@ -8,6 +8,8 @@ import '../widgets/shared_widgets.dart';
 import '../../styles/global_styles.dart';
 
 class RegistrationScreen extends StatefulWidget {
+  const RegistrationScreen({super.key});
+
   @override
   _RegistrationScreenState createState() => _RegistrationScreenState();
 }
@@ -71,23 +73,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     'assets/icon/icon.png', // Reemplaza con la ruta de tu logo
                     height: 100,
                   ),
-                  SizedBox(height: 60), // Ajustamos el espaciado
+                  const SizedBox(height: 60), // Ajustamos el espaciado
 
-                  Text(
+                  const Text(
                     'FORGE',
                     style: GlobalStyles.titleStyle,
                   ),
-                  SizedBox(height: 10),
-                  Text(
+                  const SizedBox(height: 10),
+                  const Text(
                     'Organiza tus rutinas diarias\nsemanal o mensualmente',
                     textAlign: TextAlign.center,
                     style: GlobalStyles.subtitleStyle,
                   ),
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
                   SharedWidgets.buildTextFormField(
                     controller: _usernameController,
                     labelText: 'Usuario',
-                    prefixIcon: Icon(Icons.person, color: GlobalStyles.placeholderColor),
+                    prefixIcon: const Icon(Icons.person, color: GlobalStyles.placeholderColor),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Por favor, ingresa tu usuario.';
@@ -95,12 +97,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   SharedWidgets.buildTextFormField(
                     controller: _passwordController,
                     labelText: 'Contraseña',
                     obscureText: true,
-                    prefixIcon: Icon(Icons.lock, color: GlobalStyles.placeholderColor),
+                    prefixIcon: const Icon(Icons.lock, color: GlobalStyles.placeholderColor),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Por favor, ingresa tu contraseña.';
@@ -111,12 +113,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   SharedWidgets.buildTextFormField(
                     controller: _repeatPasswordController,
                     labelText: 'Repetir Contraseña',
                     obscureText: true,
-                    prefixIcon: Icon(Icons.lock, color: GlobalStyles.placeholderColor),
+                    prefixIcon: const Icon(Icons.lock, color: GlobalStyles.placeholderColor),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Por favor, repite tu contraseña.';
@@ -127,12 +129,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       return null;
                     },
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   SharedWidgets.buildPrimaryButton(
                     text: 'Registrarse',
                     isLoading: _isRegistering,
                     enabled: !_isRegistering,
-                    padding: EdgeInsets.symmetric(horizontal: 60, vertical: 20), // Padding personalizado
+                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20), // Padding personalizado
                     onPressed: _isRegistering ? () {} : () async {
                       if (_formKey.currentState!.validate()) { // Validar el formulario
                         setState(() {
@@ -146,14 +148,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (success) {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => IntroSlides()), // Navegar al IntroSlides
+                            MaterialPageRoute(builder: (context) => const IntroSlides()), // Navegar al IntroSlides
                           );
                         } else {
                           setState(() {
                             _isRegistering = false;
                           });
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('El nombre de usuario ya existe o hubo un error.'),
                               backgroundColor: GlobalStyles.errorColor,
                             ),

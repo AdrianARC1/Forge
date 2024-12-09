@@ -7,13 +7,15 @@ import '../../styles/global_styles.dart';
 import '../routine/routine_detail_screen.dart';
 
 class HistoryListWidget extends StatelessWidget {
+  const HistoryListWidget({super.key});
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final completedRoutines = appState.completedRoutines.take(10).toList();
 
     if (completedRoutines.isEmpty) {
-      return Center(
+      return const Center(
         child: Text(
           "No hay rutinas completadas en el historial.",
           style: GlobalStyles.subtitleStyle,
@@ -23,7 +25,7 @@ class HistoryListWidget extends StatelessWidget {
 
     return ListView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: completedRoutines.length,
       itemBuilder: (context, index) {
         final completedRoutine = completedRoutines[index];
@@ -46,14 +48,14 @@ class HistoryListWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
-            contentPadding: EdgeInsets.all(16),
+            contentPadding: const EdgeInsets.all(16),
             title: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 24,
                   backgroundImage: AssetImage('assets/icon/icon.png'),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +85,7 @@ class HistoryListWidget extends StatelessWidget {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     // Duración
@@ -124,7 +126,7 @@ class HistoryListWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   "Entrenamiento",
                   style: GlobalStyles.subtitleStyle.copyWith(
@@ -140,7 +142,7 @@ class HistoryListWidget extends StatelessWidget {
                         Container(
                           width: 40,
                           height: 40,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                           ),
                           child: exercise.gifUrl != null
@@ -151,13 +153,13 @@ class HistoryListWidget extends StatelessWidget {
                                     height: 40,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
-                                      return Icon(Icons.image_not_supported);
+                                      return const Icon(Icons.image_not_supported);
                                     },
                                   ),
                                 )
-                              : Icon(Icons.image_not_supported),
+                              : const Icon(Icons.image_not_supported),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             "$seriesCount series ${exercise.name}",
@@ -222,7 +224,7 @@ class HistoryListWidget extends StatelessWidget {
     } else {
       String minutesStr = minutes > 0 ? '${minutes}min' : '';
       String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
-      return '${minutesStr}${secondsStr}'.trim();
+      return '$minutesStr$secondsStr'.trim();
     }
   }
 }

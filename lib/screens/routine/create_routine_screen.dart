@@ -5,6 +5,8 @@ import '../../app_state.dart';
 import 'package:provider/provider.dart';
 
 class CreateRoutineScreen extends StatelessWidget {
+  const CreateRoutineScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return RoutineForm(

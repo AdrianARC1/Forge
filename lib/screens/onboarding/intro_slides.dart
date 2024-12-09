@@ -8,6 +8,8 @@ import '../navigation/main_navigation_screen.dart';
 import '../../styles/global_styles.dart';
 
 class IntroSlides extends StatelessWidget {
+  const IntroSlides({super.key});
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context, listen: false);
@@ -48,13 +50,13 @@ class IntroSlides extends StatelessWidget {
       onDone: () async {
         await appState.completeTutorial();
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => MainNavigationScreen()),
+          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
         );
       },
       onSkip: () async {
         await appState.completeTutorial();
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => MainNavigationScreen()),
+          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
         );
       },
       showSkipButton: true,

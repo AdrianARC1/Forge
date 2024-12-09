@@ -9,6 +9,8 @@ import 'routine_detail_screen.dart';
 import 'routine_execution_screen.dart';
 
 class RoutineListScreen extends StatefulWidget {
+  const RoutineListScreen({super.key});
+
   @override
   _RoutineListScreenState createState() => _RoutineListScreenState();
 }
@@ -22,7 +24,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
 
     return BaseScaffold(
       appBar: AppBar(
-        title: Text("Entrenamiento", style: GlobalStyles.insideAppTitleStyle),
+        title: const Text("Entrenamiento", style: GlobalStyles.insideAppTitleStyle),
         centerTitle: true,
       ),
       body: Column(
@@ -35,17 +37,17 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RoutineExecutionScreen(),
+                    builder: (context) => const RoutineExecutionScreen(),
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 15,), // Padding interno del botón
+                padding: const EdgeInsets.symmetric(vertical: 15,), // Padding interno del botón
                 alignment: Alignment.centerLeft, // Alineación del contenido a la izquierda
                 backgroundColor: GlobalStyles.inputBackgroundColor,
                 foregroundColor: Colors.white,
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   Padding(
@@ -58,12 +60,12 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
               ),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0),
+              const Padding(
+                padding: EdgeInsets.only(left: 10.0),
                 child: Text(
                   "Rutinas",
                   style: TextStyle(
@@ -84,28 +86,28 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => CreateRoutineScreen(),
+                              builder: (context) => const CreateRoutineScreen(),
                             ),
                           );
                         },
-                        icon: Icon(Icons.add),
-                        label: Text("Nueva Rutina"),
+                        icon: const Icon(Icons.add),
+                        label: const Text("Nueva Rutina"),
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20), // Padding interno (vertical y horizontal)
+                          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20), // Padding interno (vertical y horizontal)
                           alignment: Alignment.centerLeft, // Alinea el contenido hacia la izquierda
                           backgroundColor: GlobalStyles.inputBackgroundColor,
                           foregroundColor: Colors.white,
-                          textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
-                    Spacer(flex: 2), // Añade espacio proporcional después del botón
+                    const Spacer(flex: 2), // Añade espacio proporcional después del botón
                   ],
                 ),
               ),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           GestureDetector(
             onTap: () {
               setState(() {
@@ -120,7 +122,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 ),
                 Text(
                   "Mis rutinas (${appState.routines.length})",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -129,16 +131,16 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
               ],
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Expanded(
             child: ClipRect(
               child: AnimatedSwitcher(
-                duration: Duration(milliseconds: 300), // Duración total para expansión
+                duration: const Duration(milliseconds: 300), // Duración total para expansión
                 transitionBuilder: (Widget child, Animation<double> animation) {
-                  if (child.key == ValueKey(true)) {
+                  if (child.key == const ValueKey(true)) {
                     final inAnimation = Tween<Offset>(
-                      begin: Offset(0, -0.2),
-                      end: Offset(0, 0),
+                      begin: const Offset(0, -0.2),
+                      end: const Offset(0, 0),
                     ).animate(CurvedAnimation(
                       parent: animation,
                       curve: Curves.easeInOut,
@@ -152,12 +154,12 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                     );
                   } else {
                     final outAnimation = Tween<Offset>(
-                      begin: Offset(0, 0),
-                      end: Offset(0, 0.2),
+                      begin: const Offset(0, 0),
+                      end: const Offset(0, 0.2),
                     ).animate(
                       CurvedAnimation(
                         parent: animation,
-                        curve: Interval(
+                        curve: const Interval(
                           0.0,
                           0.25, // 25% del tiempo total (100ms)
                           curve: Curves.easeInOut,
@@ -170,7 +172,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                     ).animate(
                       CurvedAnimation(
                         parent: animation,
-                        curve: Interval(
+                        curve: const Interval(
                           0.0,
                           0.25, // 25% del tiempo total (100ms)
                           curve: Curves.easeInOut,
@@ -197,7 +199,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 },
                 child: _isExpanded
                     ? ListView.builder(
-                        key: ValueKey(true),
+                        key: const ValueKey(true),
                         itemCount: appState.routines.length,
                         itemBuilder: (context, index) {
                           final routine = appState.routines[index];
@@ -211,7 +213,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                               );
                             },
                             child: Card(
-                              margin: EdgeInsets.symmetric(vertical: 8),
+                              margin: const EdgeInsets.symmetric(vertical: 8),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12), // Bordes redondeados
                               ),
@@ -226,7 +228,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                       children: [
                                         Text(
                                           routine.name,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
@@ -235,7 +237,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                         PopupMenuButton<String>(
                                           offset: const Offset(0.0, 40.0),
                                           color: Colors.white,
-                                          icon: Icon(Icons.more_vert, color: Colors.white),
+                                          icon: const Icon(Icons.more_vert, color: Colors.white),
                                           onSelected: (value) {
                                             if (value == 'edit') {
                                               Navigator.push(
@@ -250,11 +252,11 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                           },
                                           itemBuilder: (BuildContext context) {
                                             return [
-                                              PopupMenuItem(
+                                              const PopupMenuItem(
                                                 value: 'edit',
                                                 child: Text('Editar Rutina'),
                                               ),
-                                              PopupMenuItem(
+                                              const PopupMenuItem(
                                                 value: 'delete',
                                                 child: Text('Eliminar Rutina'),
                                               ),
@@ -263,21 +265,21 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: 5),
+                                    const SizedBox(height: 5),
                                     Text(
                                       routine.exercises.map((exercise) => exercise.name).join(", "),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    SizedBox(height: 10),
+                                    const SizedBox(height: 10),
                                     Row(
                                       children: [
-                                        Spacer(), // Empuja el botón hacia la derecha
+                                        const Spacer(), // Empuja el botón hacia la derecha
                                         ElevatedButton(
                                           onPressed: () {
                                             Navigator.push(
@@ -288,18 +290,18 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                             );
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15), // Tamaño más compacto
+                                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15), // Tamaño más compacto
                                             backgroundColor: GlobalStyles.backgroundButtonsColor, // Color del botón
                                             foregroundColor: Colors.black,
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(12), // Bordes del botón
                                             ),
-                                            textStyle: TextStyle(
+                                            textStyle: const TextStyle(
                                               fontSize: 15, // Tamaño de texto más pequeño
                                               fontWeight: FontWeight.w900,
                                             ),
                                           ),
-                                          child: Text("Empezar Rutina"),
+                                          child: const Text("Empezar Rutina"),
                                         ),
                                       ],
                                     ),
@@ -310,7 +312,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                           );
                         },
                       )
-                    : SizedBox.shrink(
+                    : const SizedBox.shrink(
                         key: ValueKey(false),
                       ),
               ),

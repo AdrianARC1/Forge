@@ -10,6 +10,8 @@ import './widgets/app_bar_button.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditProfileScreen extends StatefulWidget {
+  const EditProfileScreen({super.key});
+
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
@@ -33,9 +35,9 @@ appBar: AppBar(
   backgroundColor: GlobalStyles.backgroundColor,
   elevation: 0,
   centerTitle: true,
-  title: Text('Editar Perfil', style: GlobalStyles.insideAppTitleStyle),
+  title: const Text('Editar Perfil', style: GlobalStyles.insideAppTitleStyle),
   leading: IconButton(
-    icon: Icon(
+    icon: const Icon(
       Icons.arrow_back, // Ícono de flecha de retroceso
       color: GlobalStyles.textColor, // Color personalizado
       size: 24.0, // Tamaño del ícono (puedes ajustarlo según tus necesidades)
@@ -55,21 +57,21 @@ appBar: AppBar(
 
       body: Column(
         children: [
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           GestureDetector(
             onTap: _changeProfileImage,
             child: CircleAvatar(
               radius: 40,
               backgroundImage: _profileImagePath != null
                   ? FileImage(File(_profileImagePath!))
-                  : AssetImage('assets/default_profile.png') as ImageProvider,
+                  : const AssetImage('assets/default_profile.png') as ImageProvider,
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           TextField(
             controller: _usernameController,
-            style: TextStyle(color: GlobalStyles.textColor),
-            decoration: InputDecoration(
+            style: const TextStyle(color: GlobalStyles.textColor),
+            decoration: const InputDecoration(
               labelText: 'Nombre de Usuario',
               labelStyle: TextStyle(color: GlobalStyles.placeholderColor),
               enabledBorder: UnderlineInputBorder(
@@ -80,8 +82,8 @@ appBar: AppBar(
               ),
             ),
           ),
-          SizedBox(height: 20),
-          Text('Aquí puedes cambiar tu nombre y foto de perfil.', style: TextStyle(color: GlobalStyles.textColorWithOpacity))
+          const SizedBox(height: 20),
+          const Text('Aquí puedes cambiar tu nombre y foto de perfil.', style: TextStyle(color: GlobalStyles.textColorWithOpacity))
         ],
       ),
     );

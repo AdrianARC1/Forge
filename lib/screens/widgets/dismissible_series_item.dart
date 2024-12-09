@@ -7,11 +7,11 @@ class DismissibleSeriesItem extends StatelessWidget {
   final Widget child;
 
   const DismissibleSeriesItem({
-    Key? key,
+    super.key,
     required this.series,
     required this.onDelete,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +21,13 @@ class DismissibleSeriesItem extends StatelessWidget {
       background: Container(
         color: Colors.red,
         alignment: Alignment.centerRight,
-        padding: EdgeInsets.symmetric(horizontal: 20.0),
-        child: Icon(Icons.delete, color: Colors.white),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (direction) {
         onDelete();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Serie eliminada")),
+          const SnackBar(content: Text("Serie eliminada")),
         );
       },
       child: child,

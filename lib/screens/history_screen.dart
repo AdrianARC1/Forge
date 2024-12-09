@@ -7,6 +7,8 @@ import 'routine/routine_detail_screen.dart';
 import '../styles/global_styles.dart';
 
 class HistoryScreen extends StatelessWidget {
+  const HistoryScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -16,12 +18,12 @@ class HistoryScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Historial", style: GlobalStyles.insideAppTitleStyle),
+        title: const Text("Historial", style: GlobalStyles.insideAppTitleStyle),
         centerTitle: true,
       ),
       backgroundColor: GlobalStyles.backgroundColor,
       body: completedRoutines.isEmpty
-          ? Center(
+          ? const Center(
               child: Text(
                 "No hay rutinas completadas en el historial.",
                 style: GlobalStyles.subtitleStyle,
@@ -34,7 +36,7 @@ class HistoryScreen extends StatelessWidget {
 
                 final String name = completedRoutine.name;
                 final DateTime dateCompleted = completedRoutine.dateCompleted ?? DateTime.now();
-                final Duration duration = completedRoutine.duration ?? Duration.zero;
+                final Duration duration = completedRoutine.duration;
                 final int totalVolume = completedRoutine.totalVolume;
 
                 // Obtener la lista de ejercicios y la vista previa de los primeros 3 ejercicios
@@ -55,17 +57,17 @@ class HistoryScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
-                    contentPadding: EdgeInsets.all(16),
+                    contentPadding: const EdgeInsets.all(16),
                     title: Row(
                       children: [
                         // Foto de perfil del usuario
-                        CircleAvatar(
+                        const CircleAvatar(
                           radius: 24,
                           backgroundImage: AssetImage('assets/icon/icon.png'), // Reemplaza con la imagen de perfil del usuario
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +99,7 @@ class HistoryScreen extends StatelessWidget {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             // Duración
@@ -138,7 +140,7 @@ class HistoryScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Text(
                           "Entrenamiento",
                           style: GlobalStyles.subtitleStyle.copyWith(
@@ -156,7 +158,7 @@ class HistoryScreen extends StatelessWidget {
                                 Container(
                                   width: 40,
                                   height: 40,
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
                                   ),
                                   child: exercise.gifUrl != null
@@ -167,13 +169,13 @@ class HistoryScreen extends StatelessWidget {
                                             height: 40,
                                             fit: BoxFit.cover,
                                             errorBuilder: (context, error, stackTrace) {
-                                              return Icon(Icons.image_not_supported);
+                                              return const Icon(Icons.image_not_supported);
                                             },
                                           ),
                                         )
-                                      : Icon(Icons.image_not_supported),
+                                      : const Icon(Icons.image_not_supported),
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 // Nombre del ejercicio y series
                                 Expanded(
                                   child: Text(
@@ -245,7 +247,7 @@ class HistoryScreen extends StatelessWidget {
       // Si no hay horas, mostrar minutos y segundos
       String minutesStr = minutes > 0 ? '${minutes}min' : '';
       String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
-      return '${minutesStr}${secondsStr}'.trim();
+      return '$minutesStr$secondsStr'.trim();
     }
   }
 }

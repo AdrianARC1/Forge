@@ -10,6 +10,8 @@ import 'auth/login_screen.dart'; // Importa LoginScreen para la navegación
 import 'onboarding/intro_slides.dart'; // Importa IntroSlides para el tutorial
 
 class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
 }
@@ -27,7 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: GlobalStyles.backgroundColor,
         elevation: 0,
         centerTitle: true,
-        title: Text('Ajustes', style: GlobalStyles.insideAppTitleStyle),
+        title: const Text('Ajustes', style: GlobalStyles.insideAppTitleStyle),
         leading: AppBarButton(
           text: 'Atrás',
           onPressed: () => Navigator.pop(context),
@@ -40,7 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Preferencias',
               style: TextStyle(
                 fontSize: 18,
@@ -48,9 +50,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: GlobalStyles.textColor,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             SwitchListTile(
-              title: Text('Modo Oscuro', style: TextStyle(color: GlobalStyles.textColor)),
+              title: const Text('Modo Oscuro', style: TextStyle(color: GlobalStyles.textColor)),
               value: _darkMode,
               onChanged: (value) {
                 setState(() {
@@ -62,7 +64,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               activeColor: GlobalStyles.backgroundButtonsColor,
             ),
             SwitchListTile(
-              title: Text('Notificaciones', style: TextStyle(color: GlobalStyles.textColor)),
+              title: const Text('Notificaciones', style: TextStyle(color: GlobalStyles.textColor)),
               value: _notifications,
               onChanged: (value) {
                 setState(() {
@@ -73,21 +75,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
               activeColor: GlobalStyles.backgroundButtonsColor,
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'Aquí puedes configurar las opciones de la aplicación.',
               style: TextStyle(color: GlobalStyles.textColorWithOpacity),
             ),
-            SizedBox(height: 32),
+            const SizedBox(height: 32),
 
             // Botón para Ver el Tutorial
             ListTile(
-              leading: Icon(Icons.info_outline, color: GlobalStyles.textColor),
-              title: Text(
+              leading: const Icon(Icons.info_outline, color: GlobalStyles.textColor),
+              title: const Text(
                 'Ver Tutorial',
                 style: TextStyle(color: GlobalStyles.textColor, fontSize: 16),
               ),
-              trailing: Icon(Icons.arrow_forward_ios, color: GlobalStyles.textColorWithOpacity),
+              trailing: const Icon(Icons.arrow_forward_ios, color: GlobalStyles.textColorWithOpacity),
               onTap: () async {
                 // Reiniciar el estado del tutorial
                 await appState.resetTutorial();
@@ -98,10 +100,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               },
             ),
-            Divider(color: GlobalStyles.textColorWithOpacity),
-            SizedBox(height: 16),
+            const Divider(color: GlobalStyles.textColorWithOpacity),
+            const SizedBox(height: 16),
 
-            Spacer(), // Empuja el botón de cerrar sesión al final
+            const Spacer(), // Empuja el botón de cerrar sesión al final
 
             // Botón de Cerrar Sesión
             SizedBox(
@@ -112,23 +114,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 onPressed: () async {
                   // Opcional: Mostrar un diálogo de confirmación
                   bool confirm = await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text('Cerrar Sesión'),
-                      content: Text('¿Estás seguro de que deseas cerrar sesión?'),
+                      title: const Text('Cerrar Sesión'),
+                      content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
-                          child: Text('Cancelar'),
+                          child: const Text('Cancelar'),
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(true),
-                          child: Text('Cerrar Sesión'),
+                          child: const Text('Cerrar Sesión'),
                         ),
                       ],
                     ),
@@ -143,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   }
                 },
-                child: Text(
+                child: const Text(
                   'Cerrar Sesión',
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),

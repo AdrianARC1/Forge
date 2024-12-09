@@ -1,6 +1,5 @@
 // main.dart
 import 'package:flutter/material.dart';
-import 'package:forge/database/database_helper.dart';
 import 'package:provider/provider.dart';
 import 'app_state.dart';
 import 'screens/navigation/main_navigation_screen.dart';
@@ -40,7 +39,7 @@ class MyApp extends StatelessWidget {
               primarySwatch: Colors.blue,
               scaffoldBackgroundColor: GlobalStyles.backgroundColor,
               bottomNavigationBarTheme: GlobalStyles.bottomNavBarTheme,
-              appBarTheme: AppBarTheme(
+              appBarTheme: const AppBarTheme(
                 backgroundColor: GlobalStyles.navigationBarColor,
                 centerTitle: true,
                 foregroundColor: Colors.white,
@@ -49,8 +48,8 @@ class MyApp extends StatelessWidget {
             home: appState.isLoading
                 ? Container() // Pantalla vacía mientras carga
                 : appState.hasSeenTutorial
-                    ? (appState.userId == null ? LoginScreen() : MainNavigationScreen())
-                    : IntroSlides(), // Mostrar el tutorial si no se ha visto
+                    ? (appState.userId == null ? const LoginScreen() : const MainNavigationScreen())
+                    : const IntroSlides(), // Mostrar el tutorial si no se ha visto
           );
         },
       ),
