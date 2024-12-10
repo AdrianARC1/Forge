@@ -56,34 +56,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         title: const Text('Perfil', style: GlobalStyles.insideAppTitleStyle),
         leading: IconButton(
-          icon: const Icon(Icons.download, color: GlobalStyles.textColor), // Icono de descarga
+          icon: const Icon(Icons.download, color: GlobalStyles.textColor),
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Funcionalidad en desarrollo')),
             );
           },
         ),
-actions: [
-  Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 14.0),
-    child: IconButton(
-      icon: const Icon(
-        Icons.settings,
-        color: GlobalStyles.textColor,
-        size: 24.0,
-      ),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SettingsScreen()),
-        );
-      },
-      tooltip: 'Configuración',
-    ),
-  ),
-],
-
-
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: IconButton(
+              icon: const Icon(
+                Icons.settings,
+                color: GlobalStyles.textColor,
+                size: 24.0,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                );
+              },
+              tooltip: 'Configuración',
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -177,8 +175,12 @@ actions: [
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
-                color: GlobalStyles.inputBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2C2C2E), Color(0xFF1C1C1E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
               padding: const EdgeInsets.all(16.0),
               height: 350,
@@ -219,7 +221,6 @@ actions: [
                     )
                   : Column(
                       children: [
-                        // Mostrar los top 5 registros si existen
                         ...top5Records.map((record) {
                           return ListTile(
                             leading: CircleAvatar(
@@ -240,8 +241,6 @@ actions: [
                             ),
                           );
                         }),
-
-                        // Botón para ver más ejercicios si hay registros adicionales
                         if (remainingRecords.isNotEmpty && !showAllRecords)
                           TextButton(
                             onPressed: () {
@@ -254,8 +253,6 @@ actions: [
                               style: TextStyle(color: Colors.blue),
                             ),
                           ),
-
-                        // Mostrar los registros restantes si se ha activado "Ver más"
                         if (showAllRecords)
                           ...remainingRecords.map((record) {
                             return ListTile(
@@ -279,8 +276,7 @@ actions: [
                           }),
                       ],
                     ),
-),
-
+            ),
 
             const SizedBox(height: 24),
 
@@ -299,10 +295,6 @@ actions: [
     );
   }
 }
-
-// DataGraphs, DataButton, TimeframeButton son iguales al ejemplo anterior
-// Se asume que ya fueron implementados con intervalos inteligentes y agrupamiento por día/mes/año.
-// Puedes usar la última versión que te pasé de DataGraphs.
 
 class DataGraphs extends StatefulWidget {
   const DataGraphs({super.key});
@@ -323,6 +315,7 @@ class _DataGraphsState extends State<DataGraphs> {
     groupedData = _getGroupedData(appState);
 
     List<BarChartGroupData> barData = getBarChartData();
+    double? maxY = _getMaxY(barData);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,27 +323,55 @@ class _DataGraphsState extends State<DataGraphs> {
         Expanded(
           child: BarChart(
             BarChartData(
-              barGroups: barData,
+              maxY: maxY,
+              groupsSpace: 12,
               titlesData: FlTitlesData(
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    getTitlesWidget: leftTitleWidgets,
-                    reservedSize: 40
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) => leftTitleWidgets(value, meta),
                   ),
                 ),
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    getTitlesWidget: bottomTitleWidgets,
+                    reservedSize: 32,
+                    getTitlesWidget: (value, meta) => bottomTitleWidgets(value, meta),
                   ),
                 ),
                 topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
-              gridData: const FlGridData(show: false),
               borderData: FlBorderData(show: false),
-              barTouchData: BarTouchData(enabled: false),
+              gridData: FlGridData(
+                show: true,
+                drawHorizontalLine: true,
+                horizontalInterval: _calculateInterval(maxY),
+                getDrawingHorizontalLine: (value) {
+                  return FlLine(
+                    color: Colors.white.withOpacity(0.1),
+                    strokeWidth: 1,
+                  );
+                },
+                drawVerticalLine: false,
+              ),
+              barTouchData: BarTouchData(
+                enabled: true,
+                touchTooltipData: BarTouchTooltipData(
+                  tooltipRoundedRadius: 4,
+                  fitInsideHorizontally: true,
+                  fitInsideVertically: true,
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    // Mostrar un decimal para todo, así para grandes números se ve algo
+                    return BarTooltipItem(
+                      '${group.x}: ${rod.toY.toStringAsFixed(1)}',
+                      const TextStyle(color: Colors.white, fontSize: 12),
+                    );
+                  },
+                ),
+              ),
+              barGroups: barData,
             ),
           ),
         ),
@@ -425,6 +446,61 @@ class _DataGraphsState extends State<DataGraphs> {
           ),
         ),
       ],
+    );
+  }
+
+  double? _getMaxY(List<BarChartGroupData> barData) {
+    if (barData.isEmpty) return 0;
+    double maxVal = 0;
+    for (var group in barData) {
+      for (var rod in group.barRods) {
+        if (rod.toY > maxVal) maxVal = rod.toY;
+      }
+    }
+    return maxVal;
+  }
+
+  double _calculateInterval(double? maxY) {
+    if (maxY == null || maxY <= 0) return 1;
+    // 5 líneas aproximadas
+    double interval = maxY / 5;
+    if (interval < 1) {
+      interval = double.parse(interval.toStringAsFixed(1));
+      if (interval <= 0) interval = 0.1;
+    }
+    return interval;
+  }
+
+  Widget leftTitleWidgets(double value, TitleMeta meta) {
+    double interval = _calculateInterval(meta.max);
+    double ratio = value / interval;
+    // Si el valor es cercano a un múltiplo del intervalo, lo mostramos
+    if ((ratio - ratio.round()).abs() < 0.001) {
+      // Mostrar decimales sólo si interval < 1
+      String label = interval < 1 ? value.toStringAsFixed(1) : value.toStringAsFixed(0);
+      return SideTitleWidget(
+        axisSide: meta.axisSide,
+        child: Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w300),
+        ),
+      );
+    }
+    return Container();
+  }
+
+  Widget bottomTitleWidgets(double value, TitleMeta meta) {
+    int index = value.toInt();
+    if (index < 0 || index >= groupedData.length) {
+      return Container();
+    }
+    String text = groupedData[index]['key'];
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w300),
+      ),
     );
   }
 
@@ -517,7 +593,7 @@ class _DataGraphsState extends State<DataGraphs> {
           yValue = groupedData[i]['duracion'];
           break;
         case 'Volumen':
-          yValue = groupedData[i]['volumen'];
+          yValue = groupedData[i]['volumen'].toDouble();
           break;
         case 'RIR Medio':
           yValue = groupedData[i]['rirMedio'];
@@ -532,9 +608,13 @@ class _DataGraphsState extends State<DataGraphs> {
           barRods: [
             BarChartRodData(
               toY: yValue,
-              color: const Color(0xFFFFAA76),
               width: 16,
               borderRadius: BorderRadius.circular(4),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFAA76), Color(0xFFFF7E76)],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ),
             ),
           ],
         ),
@@ -543,56 +623,6 @@ class _DataGraphsState extends State<DataGraphs> {
 
     return barGroups;
   }
-
-  Widget leftTitleWidgets(double value, TitleMeta meta) {
-    double interval = _calculateInterval(meta.max);
-    if (value % interval == 0) {
-      return SideTitleWidget(
-        axisSide: meta.axisSide,
-        child: Text(
-          value.toInt().toString(),
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
-        ),
-      );
-    }
-    return Container();
-  }
-
-  double _calculateInterval(double? maxY) {
-    if (maxY == null || maxY == 0) return 1;
-    double maxVal = maxY;
-    int magnitude = (maxVal / 10).ceil();
-    if (magnitude < 5) {
-      return 5.0;
-    } else if (magnitude < 10) {
-      return 10.0;
-    } else if (magnitude < 20) {
-      return 20.0;
-    } else if (magnitude < 50) {
-      return 25.0;
-    } else if (magnitude < 100) {
-      return 50.0;
-    } else if (magnitude < 200) {
-      return 100.0;
-    } else {
-      return 200.0;
-    }
-  }
-
-  Widget bottomTitleWidgets(double value, TitleMeta meta) {
-    int index = value.toInt();
-    if (index < 0 || index >= groupedData.length) {
-      return Container();
-    }
-    String text = groupedData[index]['key'];
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white70, fontSize: 10),
-      ),
-    );
-  }
 }
 
 class DataButton extends StatelessWidget {
@@ -600,7 +630,8 @@ class DataButton extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const DataButton({super.key, 
+  const DataButton({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -616,7 +647,10 @@ class DataButton extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: onTap,
-        child: Text(label, style: TextStyle(color: selected ? Colors.black : Colors.white)),
+        child: Text(
+          label,
+          style: TextStyle(color: selected ? Colors.black : Colors.white),
+        ),
       ),
     );
   }
@@ -627,7 +661,8 @@ class TimeframeButton extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const TimeframeButton({super.key, 
+  const TimeframeButton({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,
