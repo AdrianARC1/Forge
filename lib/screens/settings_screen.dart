@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Asegúrate de importar Provider
 import '../styles/global_styles.dart';
 import './widgets/base_scaffold.dart';
-import './widgets/app_bar_button.dart';
 import '../app_state.dart'; // Importa AppState para acceder al estado de la aplicación
 import 'auth/login_screen.dart'; // Importa LoginScreen para la navegación
 import 'onboarding/intro_slides.dart'; // Importa IntroSlides para el tutorial
@@ -30,15 +29,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         centerTitle: true,
         title: const Text('Ajustes', style: GlobalStyles.insideAppTitleStyle),
-        leading: AppBarButton(
-          text: 'Atrás',
-          onPressed: () => Navigator.pop(context),
-          textColor: GlobalStyles.textColor,
-          backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back, // Ícono de flecha de retroceso
+            color: GlobalStyles.textColor, // Color personalizado
+            size: 24.0, // Tamaño del ícono (puedes ajustarlo según tus necesidades)
+          ),
+          onPressed: () => Navigator.pop(context), // Acción al presionar
+          tooltip: 'Atrás', // Descripción para accesibilidad
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0), // Ajuste de padding para mejor espaciado
+        padding: const EdgeInsets.all(0), // Ajuste de padding para mejor espaciado
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

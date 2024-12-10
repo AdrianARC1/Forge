@@ -218,6 +218,28 @@ class RoutineDetailScreen extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 20),
+                if (isFromHistory && routine.notes != null && routine.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      'Notas',
+                      style: GlobalStyles.subtitleStyle.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      routine.notes!,
+                      style: GlobalStyles.subtitleStyle,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 20,),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 0),
                   child: Column(
@@ -257,27 +279,6 @@ class RoutineDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (isFromHistory && routine.notes != null && routine.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      'Notas',
-                      style: GlobalStyles.subtitleStyle.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      routine.notes!,
-                      style: GlobalStyles.subtitleStyle,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

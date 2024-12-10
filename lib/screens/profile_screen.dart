@@ -109,7 +109,7 @@ actions: [
                       }
                     },
                     child: CircleAvatar(
-                      radius: 50,
+                      radius: 40,
                       backgroundColor: Colors.transparent,
                       backgroundImage: appState.profileImagePath != null
                           ? FileImage(File(appState.profileImagePath!))

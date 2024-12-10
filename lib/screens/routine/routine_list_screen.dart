@@ -24,7 +24,10 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
 
     return BaseScaffold(
       appBar: AppBar(
-        title: const Text("Entrenamiento", style: GlobalStyles.insideAppTitleStyle),
+        title: const Text(
+          "Entrenamiento",
+          style: GlobalStyles.insideAppTitleStyle,
+        ),
         centerTitle: true,
       ),
       body: Column(
@@ -42,7 +45,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 15,), // Padding interno del botón
+                padding: const EdgeInsets.symmetric(vertical: 10), // Padding interno del botón
                 alignment: Alignment.centerLeft, // Alineación del contenido a la izquierda
                 backgroundColor: GlobalStyles.inputBackgroundColor,
                 foregroundColor: Colors.white,
@@ -64,15 +67,12 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Reemplazado el estilo en línea con GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)
               const Padding(
                 padding: EdgeInsets.only(left: 10.0),
                 child: Text(
                   "Rutinas",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  style: GlobalStyles.subtitleStyle, // Usando estilo global
                 ),
               ),
               Padding(
@@ -93,15 +93,17 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                         icon: const Icon(Icons.add),
                         label: const Text("Nueva Rutina"),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20), // Padding interno (vertical y horizontal)
-                          alignment: Alignment.centerLeft, // Alinea el contenido hacia la izquierda
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20), // Padding interno (vertical y horizontal)
+                          alignment: Alignment.centerLeft,
                           backgroundColor: GlobalStyles.inputBackgroundColor,
                           foregroundColor: Colors.white,
-                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          textStyle: GlobalStyles.buttonTextStyle.copyWith(
+                            fontSize: 14
+                          ),
                         ),
                       ),
                     ),
-                    const Spacer(flex: 2), // Añade espacio proporcional después del botón
+                    const Spacer(flex: 2),
                   ],
                 ),
               ),
@@ -118,14 +120,13 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
               children: [
                 Icon(
                   _isExpanded ? Icons.arrow_drop_down : Icons.arrow_right,
-                  color: Colors.white,
+                  color: GlobalStyles.textColor,
                 ),
+                // Reemplazado el estilo en línea con GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)
                 Text(
                   "Mis rutinas (${appState.routines.length})",
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: GlobalStyles.subtitleStyle.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
                   ),
                 ),
               ],
@@ -219,19 +220,19 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                               ),
                               color: GlobalStyles.inputBackgroundColor, // Color del fondo de la tarjeta
                               child: Padding(
-                                padding: const EdgeInsets.all(16.0), // Padding interno de la tarjeta
+                                padding: const EdgeInsets.all(12.0), // Padding interno de la tarjeta
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
+                                        // Reemplazado el estilo en línea con GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 20)
                                         Text(
                                           routine.name,
-                                          style: const TextStyle(
+                                          style: GlobalStyles.subtitleStyle.copyWith(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.white,
                                           ),
                                         ),
                                         PopupMenuButton<String>(
@@ -266,13 +267,12 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                       ],
                                     ),
                                     const SizedBox(height: 5),
+                                    // Reemplazado el estilo en línea con GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)
                                     Text(
                                       routine.exercises.map((exercise) => exercise.name).join(", "),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white,
+                                      style: GlobalStyles.subtitleStyle.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -296,7 +296,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(12), // Bordes del botón
                                             ),
-                                            textStyle: const TextStyle(
+                                            textStyle: GlobalStyles.buttonTextStyle.copyWith(
                                               fontSize: 15, // Tamaño de texto más pequeño
                                               fontWeight: FontWeight.w900,
                                             ),
