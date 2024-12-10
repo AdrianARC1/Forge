@@ -35,6 +35,15 @@ class GlobalStyles {
     fontSize: 16,
   );
 
+    static const TextStyle exerciseDataStyle = TextStyle(
+    color: textColor,
+    fontSize: 14,
+  );
+    static const TextStyle routineDataStyle = TextStyle(
+    color: backgroundButtonsColor,
+    fontSize: 16,
+  );
+
   static const TextStyle subtitleStyleRoutineData = TextStyle(
     color: textColor,
     fontSize: 14,

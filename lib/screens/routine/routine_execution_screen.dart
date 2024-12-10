@@ -673,7 +673,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                           builder: (context, value, child) {
                             return Text(
                               _formatDuration(value),
-                              style: GlobalStyles.orangeSubtitleStyle,
+                              style: GlobalStyles.routineDataStyle,
                             );
                           },
                         ),
@@ -688,7 +688,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                         Text("Series", style: GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)),
                         Text(
                           "$completedSeries",
-                          style: GlobalStyles.orangeSubtitleStyle,
+                          style: GlobalStyles.routineDataStyle,
                         ),
                       ],
                     ),
@@ -701,7 +701,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                         Text("RPE Medio", style: GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)),
                         Text(
                           averageRPE.toStringAsFixed(1),
-                          style: GlobalStyles.orangeSubtitleStyle,
+                          style: GlobalStyles.routineDataStyle,
                         ),
                       ],
                     ),

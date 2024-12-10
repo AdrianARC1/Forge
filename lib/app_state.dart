@@ -201,6 +201,55 @@ Future<void> _initializeApp() async {
     notifyListeners();
   }
 
+  Future<void> updateUsername(String newUsername) async {
+  if (_userId != null) {
+    final db = await _dbHelper.database;
+    await db.update(
+      'users',
+      {'username': newUsername.trim()},
+      where: 'id = ?',
+      whereArgs: [_userId],
+    );
+
+    _username = newUsername.trim();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', _username!);
+
+    notifyListeners();
+  }
+}
+
+Future<void> updatePassword(String newPassword) async {
+  if (_userId != null) {
+    String salt = generateSalt();
+    String hashedPassword = hashPassword(newPassword, salt);
+
+    final db = await _dbHelper.database;
+    await db.update(
+      'users',
+      {
+        'password': hashedPassword,
+        'salt': salt,
+      },
+      where: 'id = ?',
+      whereArgs: [_userId],
+    );
+  }
+}
+
+Future<bool> validateCurrentPassword(String currentPassword) async {
+  if (_userId == null || _username == null) return false;
+  final user = await _dbHelper.loginUser(_username!);
+  if (user == null) return false;
+
+  String storedHashedPassword = user['password'] as String;
+  String salt = user['salt'] as String;
+  String hashedInputPassword = hashPassword(currentPassword.trim(), salt);
+
+  return hashedInputPassword == storedHashedPassword;
+}
+
+
   List<Map<String, dynamic>> getPersonalRecords() {
     List<Map<String, dynamic>> recordsList = [];
     _maxExerciseRecords.forEach((exerciseName, recordData) {

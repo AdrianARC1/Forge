@@ -237,7 +237,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Slidable(
-          key: ValueKey(widget.exercise.id), // Clave única para cada Slidable
+          key: ValueKey(widget.exercise.id), 
           endActionPane: ActionPane(
             motion: const ScrollMotion(),
             extentRatio: (widget.isExecution || widget.allowEditing) ? 1 : 0.5,
@@ -349,11 +349,12 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                     ],
                   ),
                 ),
-                // Eliminado el PopupMenuButton
               ],
             ),
           ),
         ),
+        
+        // ENCABEZADO: Ajustamos el padding horizontal a 4.0 para igualarlo con las celdas de datos
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 0.0),
           child: Row(
@@ -361,7 +362,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
               const Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                   child: Center(
                     child: Text(
                       "SERIE",
@@ -374,7 +375,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                 const Expanded(
                   flex: 3,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                     child: Center(
                       child: Text(
                         "ANTERIOR",
@@ -388,7 +389,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
               const Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                   child: Center(
                     child: Text(
                       "KG",
@@ -400,7 +401,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
               const Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                   child: Center(
                     child: Text(
                       "REPS",
@@ -413,7 +414,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                 const Expanded(
                   flex: 2,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                     child: Center(
                       child: Text(
                         "RPE",
@@ -427,7 +428,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
               if (showRPEAndCheckbox)
                 Container(
                   width: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                   child: const SizedBox(),
                 )
               else
@@ -435,6 +436,8 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
             ],
           ),
         ),
+        
+        // FILAS DE DATOS
         Column(
           children: widget.exercise.series.asMap().entries.map((entry) {
             int seriesIndex = entry.key;
@@ -446,7 +449,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
               onDelete: () => widget.onDeleteSeries?.call(seriesIndex),
               child: Container(
                 decoration: BoxDecoration(
-                  // Solo verde si isExecution es true
                   color: (series.isCompleted && widget.isExecution)
                       ? const Color(0xFF008922)
                       : Colors.transparent,
@@ -457,13 +459,13 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                   padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 2.0),
                   child: Row(
                     children: [
+                      // SERIE
                       Expanded(
                         flex: 2,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 10.0),
-                            
                             child: Center(
                               child: Text(
                                 "${seriesIndex + 1}",
@@ -473,11 +475,13 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                           ),
                         ),
                       ),
+
+                      // ANTERIOR (si isExecution)
                       if (widget.isExecution)
                         Expanded(
                           flex: 3,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                             child: GestureDetector(
                               onTap: () {
                                 if (widget.onAutofillSeries != null) {
@@ -495,7 +499,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                 child: Center(
                                   child: Text(
                                     "${series.previousWeight ?? '-'} kg x ${series.previousReps ?? '-'}",
-                                    style: GlobalStyles.subtitleStyle
+                                    style: GlobalStyles.exerciseDataStyle
                                         .copyWith(color: Colors.grey),
                                     textAlign: TextAlign.center,
                                   ),
@@ -506,11 +510,13 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                         )
                       else
                         const SizedBox(),
+
+                      // KG
                       Expanded(
                         flex: 2,
                         child: widget.isReadOnly
                             ? Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   decoration: BoxDecoration(
@@ -529,7 +535,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                 ),
                               )
                             : Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                                   decoration: BoxDecoration(
@@ -546,7 +552,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                       hintText: series.previousWeight != null
                                           ? "${series.previousWeight}"
                                           : 'KG',
-                                      hintStyle: GlobalStyles.subtitleStyle.copyWith(
+                                      hintStyle: GlobalStyles.exerciseDataStyle.copyWith(
                                           color: GlobalStyles.placeholderColor),
                                       isDense: true,
                                       filled: true,
@@ -559,7 +565,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
-                                    style: GlobalStyles.subtitleStyle,
+                                    style: GlobalStyles.exerciseDataStyle,
                                     onChanged: (value) {
                                       setState(() {
                                         series.weight = int.tryParse(value) ?? 0;
@@ -569,11 +575,13 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                 ),
                               ),
                       ),
+
+                      // REPS
                       Expanded(
                         flex: 2,
                         child: widget.isReadOnly
                             ? Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                                   decoration: BoxDecoration(
@@ -592,7 +600,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                 ),
                               )
                             : Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 2.0),
                                   decoration: BoxDecoration(
@@ -609,7 +617,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                       hintText: series.previousReps != null
                                           ? "${series.previousReps}"
                                           : 'Reps',
-                                      hintStyle: GlobalStyles.subtitleStyle.copyWith(
+                                      hintStyle: GlobalStyles.exerciseDataStyle.copyWith(
                                           color: GlobalStyles.placeholderColor),
                                       isDense: true,
                                       filled: true,
@@ -622,7 +630,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
-                                    style: GlobalStyles.subtitleStyle,
+                                    style: GlobalStyles.exerciseDataStyle,
                                     onChanged: (value) {
                                       setState(() {
                                         series.reps = int.tryParse(value) ?? 0;
@@ -632,11 +640,13 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                 ),
                               ),
                       ),
+
+                      // RPE
                       if (showRPEAndCheckbox)
                         Expanded(
                           flex: 2,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                             child: GestureDetector(
                               onTap: () {
                                 setState(() {
@@ -671,7 +681,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                     series.perceivedExertion > 0
                                         ? series.perceivedExertion.toString()
                                         : '-',
-                                    style: GlobalStyles.subtitleStyle,
+                                    style: GlobalStyles.exerciseDataStyle,
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -681,10 +691,12 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                         )
                       else
                         const SizedBox(),
+
+                      // CHECKBOX
                       if (showRPEAndCheckbox)
                         Container(
                           width: 40,
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                           child: GestureDetector(
                             onTap: () {
                               setState(() {
@@ -738,6 +750,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
             );
           }).toList(),
         ),
+
         if (!widget.isReadOnly)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
