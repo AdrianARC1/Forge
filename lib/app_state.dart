@@ -628,6 +628,39 @@ Future<bool> validateCurrentPassword(String currentPassword) async {
     }
   }
 
+  Future<String> exportUserData() async {
+    if (_userId == null) {
+      return '';
+    }
+
+    final db = await _dbHelper.database;
+
+    // Obtener datos del usuario
+    // Aquí puedes agregar más tablas si lo deseas.
+    final userData = <String, dynamic>{};
+    userData['userId'] = _userId;
+    userData['username'] = _username;
+
+    // Routines (tanto completadas como no completadas)
+    final allRoutines = await db.query('routines', where: 'userId = ?', whereArgs: [_userId]);
+    userData['routines'] = allRoutines;
+
+    // Ejercicios
+    final exercises = await db.query('exercises');
+    userData['exercises'] = exercises;
+
+    // Series
+    final series = await db.query('series');
+    userData['series'] = series;
+
+    // Records de ejercicios
+    final exerciseRecords = await db.query('exercise_records', where: 'userId = ?', whereArgs: [_userId]);
+    userData['exerciseRecords'] = exerciseRecords;
+
+    // Convertir a JSON
+    return jsonEncode(userData);
+  }
+
   int calculateTotalVolume(Routine routine) {
     int totalVolume = 0;
     for (var exercise in routine.exercises) {

@@ -1,5 +1,6 @@
 // lib/screens/widgets/history_list_widget.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app_state.dart';
@@ -51,9 +52,12 @@ class HistoryListWidget extends StatelessWidget {
             contentPadding: const EdgeInsets.all(16),
             title: Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 24,
-                  backgroundImage: AssetImage('assets/icon/icon.png'),
+                  backgroundColor: Colors.transparent,
+                  backgroundImage: appState.profileImagePath != null
+                      ? FileImage(File(appState.profileImagePath!))
+                      : const AssetImage('assets/default_profile.png') as ImageProvider,
                 ),
                 const SizedBox(width: 16),
                 Expanded(

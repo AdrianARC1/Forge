@@ -12,6 +12,7 @@ import 'package:fl_chart/fl_chart.dart';
 import './widgets/base_scaffold.dart';
 import '../styles/global_styles.dart';
 import 'widgets/history_list_widget.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -57,9 +58,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Perfil', style: GlobalStyles.insideAppTitleStyle),
         leading: IconButton(
           icon: const Icon(Icons.download, color: GlobalStyles.textColor),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Funcionalidad en desarrollo')),
+          onPressed: () async {
+            final jsonData = await appState.exportUserData();
+            if (jsonData.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('No se encontraron datos del usuario')),
+              );
+              return;
+            }
+
+            // Muestra un diálogo para elegir dónde guardar
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text('Exportar datos'),
+                  content: const Text('Elige una opción para gestionar tus datos:'),
+                  actions: [
+                    TextButton(
+                      onPressed: () async {
+                        // Guardar en directorio interno de la aplicación
+                        final directory = await getApplicationDocumentsDirectory();
+                        final file = File('${directory.path}/user_data.json');
+                        await file.writeAsString(jsonData);
+
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Datos exportados en: ${file.path}')),
+                        );
+                      },
+                      child: const Text('Guardar interno'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        // Guardar en directorio de descargas (solo Android)
+                        // Nota: Esto puede variar según la plataforma. En Android 10+, es posible que se deba usar el Storage Access Framework.
+                        final directories = await getExternalStorageDirectories(type: StorageDirectory.downloads);
+                        if (directories != null && directories.isNotEmpty) {
+                          final downloadDir = directories.first;
+                          final file = File('${downloadDir.path}/user_data.json');
+                          await file.writeAsString(jsonData);
+
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Datos exportados en: ${file.path}')),
+                          );
+                        } else {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('No se pudo acceder a la carpeta de descargas')),
+                          );
+                        }
+                      },
+                      child: const Text('Guardar en Descargas'),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
@@ -363,7 +418,6 @@ class _DataGraphsState extends State<DataGraphs> {
                   fitInsideHorizontally: true,
                   fitInsideVertically: true,
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                    // Mostrar un decimal para todo, así para grandes números se ve algo
                     return BarTooltipItem(
                       '${group.x}: ${rod.toY.toStringAsFixed(1)}',
                       const TextStyle(color: Colors.white, fontSize: 12),
@@ -462,7 +516,6 @@ class _DataGraphsState extends State<DataGraphs> {
 
   double _calculateInterval(double? maxY) {
     if (maxY == null || maxY <= 0) return 1;
-    // 5 líneas aproximadas
     double interval = maxY / 5;
     if (interval < 1) {
       interval = double.parse(interval.toStringAsFixed(1));
@@ -474,9 +527,7 @@ class _DataGraphsState extends State<DataGraphs> {
   Widget leftTitleWidgets(double value, TitleMeta meta) {
     double interval = _calculateInterval(meta.max);
     double ratio = value / interval;
-    // Si el valor es cercano a un múltiplo del intervalo, lo mostramos
     if ((ratio - ratio.round()).abs() < 0.001) {
-      // Mostrar decimales sólo si interval < 1
       String label = interval < 1 ? value.toStringAsFixed(1) : value.toStringAsFixed(0);
       return SideTitleWidget(
         axisSide: meta.axisSide,
