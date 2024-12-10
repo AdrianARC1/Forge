@@ -1,5 +1,3 @@
-// lib/widgets/app_bar_button.dart
-
 import 'package:flutter/material.dart';
 import 'package:forge/styles/global_styles.dart';
 
@@ -26,7 +24,7 @@ class AppBarButton extends StatelessWidget {
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
-          backgroundColor: backgroundColor, // Eliminado el valor por defecto
+          backgroundColor: backgroundColor,
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           minimumSize: const Size(50, 36),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,

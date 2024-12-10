@@ -1,5 +1,3 @@
-// lib/screens/routine/routine_form.dart
-
 import 'package:flutter/material.dart';
 import 'package:forge/styles/global_styles.dart';
 import 'package:provider/provider.dart';
@@ -12,7 +10,7 @@ import '../widgets/app_bar_button.dart';
 import 'package:toastification/toastification.dart';
 
 class RoutineForm extends StatefulWidget {
-  final Routine? routine; // Si es null, estamos creando una nueva rutina
+  final Routine? routine;
   final String title;
   final Function(Routine) onSave;
   final Function() onCancel;
@@ -42,18 +40,16 @@ class _RoutineFormState extends State<RoutineForm> {
   void initState() {
     super.initState();
     if (widget.routine != null) {
-      // Estamos editando una rutina existente
       _routineNameController.text = widget.routine!.name;
       selectedExercises = widget.routine!.exercises;
 
-      // Inicializar controladores para los ejercicios existentes
       for (var exercise in selectedExercises) {
         for (var series in exercise.series) {
           weightControllers[series.id] =
               TextEditingController(text: series.weight.toString());
           repsControllers[series.id] =
               TextEditingController(text: series.reps.toString());
-          exertionControllers[series.id] = TextEditingController(); 
+          exertionControllers[series.id] = TextEditingController();
         }
       }
     }
@@ -84,7 +80,6 @@ class _RoutineFormState extends State<RoutineForm> {
           );
           selectedExercises.add(exercise);
 
-          // Inicializar controladores para la nueva serie
           for (var series in exercise.series) {
             weightControllers[series.id] = TextEditingController();
             repsControllers[series.id] = TextEditingController();
@@ -106,7 +101,6 @@ class _RoutineFormState extends State<RoutineForm> {
       );
       exercise.series.add(newSeries);
 
-      // Inicializar controladores
       weightControllers[newSeries.id] = TextEditingController();
       repsControllers[newSeries.id] = TextEditingController();
       exertionControllers[newSeries.id] = TextEditingController();
@@ -117,7 +111,6 @@ class _RoutineFormState extends State<RoutineForm> {
     setState(() {
       Series seriesToRemove = exercise.series[seriesIndex];
 
-      // Liberar y eliminar controladores
       weightControllers[seriesToRemove.id]?.dispose();
       weightControllers.remove(seriesToRemove.id);
       repsControllers[seriesToRemove.id]?.dispose();
@@ -131,7 +124,6 @@ class _RoutineFormState extends State<RoutineForm> {
 
   void _deleteExercise(Exercise exercise) {
     setState(() {
-      // Liberar controladores de todas las series del ejercicio
       for (var series in exercise.series) {
         weightControllers[series.id]?.dispose();
         weightControllers.remove(series.id);
@@ -143,10 +135,6 @@ class _RoutineFormState extends State<RoutineForm> {
 
       selectedExercises.remove(exercise);
     });
-  }
-
-  void _cancel() {
-    widget.onCancel();
   }
 
   bool _areAllSeriesCompleted() {
@@ -196,12 +184,10 @@ class _RoutineFormState extends State<RoutineForm> {
         type: ToastificationType.info,
         autoCloseDuration: const Duration(seconds: 3),
         alignment: Alignment.bottomCenter
-
       );
       return;
     }
 
-    // Actualizar los valores de weight y reps en las series
     for (var exercise in selectedExercises) {
       for (var series in exercise.series) {
         series.weight =
@@ -218,13 +204,50 @@ class _RoutineFormState extends State<RoutineForm> {
     );
 
     widget.onSave(newRoutine);
-      toastification.show(
-        context: context,
-        title: const Text('Rutina guardada'),
-        description: const Text("La rutina se ha guardado correctamente"),
-        type: ToastificationType.success,
-        autoCloseDuration: const Duration(seconds: 2),
-      );
+  }
+
+  Future<void> _replaceExercise(Exercise oldExercise) async {
+    final selectedExercise = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen(singleSelection: true)),
+    );
+
+    if (selectedExercise != null) {
+      setState(() {
+        for (var series in oldExercise.series) {
+          weightControllers[series.id]?.dispose();
+          weightControllers.remove(series.id);
+          repsControllers[series.id]?.dispose();
+          repsControllers.remove(series.id);
+          exertionControllers[series.id]?.dispose();
+          exertionControllers.remove(series.id);
+        }
+        int index = selectedExercises.indexOf(oldExercise);
+
+        final newExercise = Exercise(
+          id: selectedExercise['id'].toString(),
+          name: selectedExercise['name'],
+          gifUrl: selectedExercise['gifUrl'],
+          series: [
+            Series(
+              id: const Uuid().v4(),
+              weight: 0,
+              reps: 0,
+              perceivedExertion: 0,
+              isCompleted: false,
+            ),
+          ],
+        );
+
+        selectedExercises[index] = newExercise;
+
+        for (var series in newExercise.series) {
+          weightControllers[series.id] = TextEditingController();
+          repsControllers[series.id] = TextEditingController();
+          exertionControllers[series.id] = TextEditingController();
+        }
+      });
+    }
   }
 
   @override
@@ -241,54 +264,6 @@ class _RoutineFormState extends State<RoutineForm> {
       controller.dispose();
     }
     super.dispose();
-  }
-
-  Future<void> _replaceExercise(Exercise oldExercise) async {
-    final selectedExercise = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen()),
-    );
-
-    if (selectedExercise != null) {
-      setState(() {
-        // Eliminar controladores del ejercicio antiguo
-        for (var series in oldExercise.series) {
-          weightControllers[series.id]?.dispose();
-          weightControllers.remove(series.id);
-          repsControllers[series.id]?.dispose();
-          repsControllers.remove(series.id);
-          exertionControllers[series.id]?.dispose();
-          exertionControllers.remove(series.id);
-        }
-        int index = selectedExercises.indexOf(oldExercise);
-
-        // Crear nuevo ejercicio
-        final newExercise = Exercise(
-          id: selectedExercise['id'].toString(),
-          name: selectedExercise['name'],
-          gifUrl: selectedExercise['gifUrl'],
-          series: [
-            Series(
-              id: const Uuid().v4(),
-              weight: 0,
-              reps: 0,
-              perceivedExertion: 0,
-              isCompleted: false,
-            ),
-          ],
-        );
-
-        // Reemplazar en la lista
-        selectedExercises[index] = newExercise;
-
-        // Inicializar controladores para el nuevo ejercicio
-        for (var series in newExercise.series) {
-          weightControllers[series.id] = TextEditingController();
-          repsControllers[series.id] = TextEditingController();
-          exertionControllers[series.id] = TextEditingController();
-        }
-      });
-    }
   }
 
   @override
@@ -308,7 +283,7 @@ class _RoutineFormState extends State<RoutineForm> {
         centerTitle: true,
         leading: AppBarButton(
           text: 'Cancelar',
-          onPressed: _cancel,
+          onPressed: widget.onCancel,
           textColor: GlobalStyles.textColor,
           backgroundColor: Colors.transparent,
         ),
@@ -326,11 +301,10 @@ class _RoutineFormState extends State<RoutineForm> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0), 
+            padding: const EdgeInsets.symmetric(horizontal: 0.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Campo para el nombre de la rutina con sombra en el borde inferior
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -342,7 +316,7 @@ class _RoutineFormState extends State<RoutineForm> {
                         hintStyle: GlobalStyles.subtitleStyle.copyWith(
                           color: GlobalStyles.placeholderColor,
                         ),
-                        filled: false, 
+                        filled: false,
                         border: InputBorder.none,
                       ),
                       style: GlobalStyles.subtitleStyle,
@@ -353,9 +327,9 @@ class _RoutineFormState extends State<RoutineForm> {
                         color: GlobalStyles.inputBorderColor,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.6), 
-                            offset: const Offset(0, 5), 
-                            blurRadius: 2, 
+                            color: Colors.black.withOpacity(0.6),
+                            offset: const Offset(0, 5),
+                            blurRadius: 2,
                           ),
                         ],
                       ),
@@ -363,6 +337,9 @@ class _RoutineFormState extends State<RoutineForm> {
                   ],
                 ),
                 const SizedBox(height: 20), 
+                const SizedBox(height: 20), 
+
+                const SizedBox(height: 20),
 
                 if (selectedExercises.isEmpty) ...[
                   const SizedBox(height: 80),
@@ -378,7 +355,7 @@ class _RoutineFormState extends State<RoutineForm> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: SizedBox(
-                      width: double.infinity, 
+                      width: double.infinity,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: GlobalStyles.backgroundButtonsColor,
@@ -396,7 +373,6 @@ class _RoutineFormState extends State<RoutineForm> {
                     ),
                   ),
                 ] else ...[
-                  // Lista de ejercicios
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: Column(
@@ -420,7 +396,6 @@ class _RoutineFormState extends State<RoutineForm> {
                       }).toList(),
                     ),
                   ),
-                  // Botón para añadir más ejercicios
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: SizedBox(

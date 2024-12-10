@@ -1,5 +1,3 @@
-// lib/api/exercise_db_api_service.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';

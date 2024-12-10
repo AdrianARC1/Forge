@@ -108,10 +108,14 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 flutter_native_splash:
-  color: "#000000" # Cambia este valor al color deseado
-  image: assets/icon/icon.png # Ruta al ícono de la aplicación
+  color: "#000000"
+  image: assets/icon/icon.png
   android: true
   ios: true
   web: false
   android_gravity: center
   ios_content_mode: scaleAspectFit
+
+  android_12:
+    color: "#000000"
+    image: assets/icon/icon.png

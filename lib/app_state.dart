@@ -1,5 +1,3 @@
-// lib/app_state.dart
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -147,7 +145,7 @@ class AppState with ChangeNotifier {
 Future<void> _initializeApp() async {
     try {
       await _loadUserSession();
-      await _loadTutorialStatus(); // Cargar el estado del tutorial
+      await _loadTutorialStatus();
     } catch (e) {
       // Error
     } finally {
@@ -636,7 +634,6 @@ Future<bool> validateCurrentPassword(String currentPassword) async {
     final db = await _dbHelper.database;
 
     // Obtener datos del usuario
-    // Aquí puedes agregar más tablas si lo deseas.
     final userData = <String, dynamic>{};
     userData['userId'] = _userId;
     userData['username'] = _username;

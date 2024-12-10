@@ -1,10 +1,10 @@
-// lib/screens/widgets/exercise_form_widget.dart
-
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart'; // Importa flutter_slidable
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:forge/screens/widgets/app_bar_button.dart';
 import 'package:forge/styles/global_styles.dart';
 import '../../app_state.dart';
 import '../widgets/dismissible_series_item.dart';
+import '../widgets/custom_alert_dialog.dart';
 
 class ExerciseFormWidget extends StatefulWidget {
   final Exercise exercise;
@@ -258,6 +258,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                   },
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
+                  icon: Icons.find_replace_rounded,
                   label: 'Reemplazar',
                 ),
             ],
@@ -322,20 +323,21 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                             const SizedBox(width: 4),
                             GestureDetector(
                               onTap: () {
-                                showDialog(
+                                // Reemplazar showDialog con showCustomAlertDialog
+                                showCustomAlertDialog(
                                   context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Máximo Histórico'),
-                                    content: const Text(
-                                        'Este es tu mejor rendimiento registrado en este ejercicio.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(),
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  ),
+                                  title: 'Máximo Histórico',
+                                  content: const Text(
+                                      'Este es tu mejor rendimiento registrado en este ejercicio.'),
+                                  actions: [
+                                    AppBarButton(
+                                      text: 'OK',
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      textColor: Colors.blue,
+                                      backgroundColor: Colors.transparent,
+                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    ),
+                                  ],
                                 );
                               },
                               child: const Icon(
@@ -354,7 +356,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
           ),
         ),
         
-        // ENCABEZADO: Ajustamos el padding horizontal a 4.0 para igualarlo con las celdas de datos
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 0.0),
           child: Row(
@@ -476,7 +477,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                         ),
                       ),
 
-                      // ANTERIOR (si isExecution)
+                      // ANTERIOR
                       if (widget.isExecution)
                         Expanded(
                           flex: 3,

@@ -1,5 +1,3 @@
-// lib/screens/profile_screen.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +12,7 @@ import '../styles/global_styles.dart';
 import 'widgets/history_list_widget.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:toastification/toastification.dart';
+import './widgets/custom_alert_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -72,68 +71,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
               return;
             }
 
-            // Muestra un diálogo para elegir dónde guardar
-            showDialog(
+            // Muestra un diálogo personalizado para elegir dónde guardar
+            await showCustomAlertDialog(
               context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: const Text('Exportar datos'),
-                  content: const Text('Elige una opción para gestionar tus datos:'),
-                  actions: [
-                    TextButton(
-                      onPressed: () async {
-                        // Guardar en directorio interno de la aplicación
-                        final directory = await getApplicationDocumentsDirectory();
-                        final file = File('${directory.path}/user_data.json');
-                        await file.writeAsString(jsonData);
+              title: 'Exportar datos',
+              content: const Text(
+                'Elige una opción para gestionar tus datos:',
+                style: TextStyle(color: Colors.white),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    // Guardar en directorio interno de la aplicación
+                    final directory = await getApplicationDocumentsDirectory();
+                    final file = File('${directory.path}/user_data.json');
+                    await file.writeAsString(jsonData);
 
-                        Navigator.pop(context);
-                        toastification.show(
-                          context: context,
-                          title: const Text('Datos exportados'),
-                          description: Text('Datos exportados en: ${file.path}'),
-                          type: ToastificationType.success,
-                          autoCloseDuration: const Duration(seconds: 3),
-                          alignment: Alignment.bottomCenter
-                        );
-                      },
-                      child: const Text('Guardar interno'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        // Guardar en directorio de descargas (solo Android)
-                        final directories = await getExternalStorageDirectories(type: StorageDirectory.downloads);
-                        if (directories != null && directories.isNotEmpty) {
-                          final downloadDir = directories.first;
-                          final file = File('${downloadDir.path}/user_data.json');
-                          await file.writeAsString(jsonData);
+                    Navigator.pop(context);
+                    toastification.show(
+                      context: context,
+                      title: const Text('Datos exportados'),
+                      description: Text('Datos exportados en: ${file.path}'),
+                      type: ToastificationType.success,
+                      autoCloseDuration: const Duration(seconds: 3),
+                      alignment: Alignment.bottomCenter,
+                    );
+                  },
+                  child: const Text('Guardar interno'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    // Guardar en directorio de descargas (solo Android)
+                    final directories = await getExternalStorageDirectories(type: StorageDirectory.downloads);
+                    if (directories != null && directories.isNotEmpty) {
+                      final downloadDir = directories.first;
+                      final file = File('${downloadDir.path}/user_data.json');
+                      await file.writeAsString(jsonData);
 
-                          Navigator.pop(context);
-                          toastification.show(
-                            context: context,
-                            title: const Text('Datos exportados'),
-                            description: Text('Datos exportados en: ${file.path}'),
-                            type: ToastificationType.success,
-                            autoCloseDuration: const Duration(seconds: 3),
-                            alignment: Alignment.bottomCenter
-                          );
-                        } else {
-                          Navigator.pop(context);
-                          toastification.show(
-                            context: context,
-                            title: const Text('Error'),
-                            description: const Text('No se pudo acceder a la carpeta de descargas'),
-                            type: ToastificationType.error,
-                            autoCloseDuration: const Duration(seconds: 3),
-                            alignment: Alignment.bottomCenter
-                          );
-                        }
-                      },
-                      child: const Text('Guardar en Descargas'),
-                    ),
-                  ],
-                );
-              },
+                      Navigator.pop(context);
+                      toastification.show(
+                        context: context,
+                        title: const Text('Datos exportados'),
+                        description: Text('Datos exportados en: ${file.path}'),
+                        type: ToastificationType.success,
+                        autoCloseDuration: const Duration(seconds: 3),
+                        alignment: Alignment.bottomCenter,
+                      );
+                    } else {
+                      Navigator.pop(context);
+                      toastification.show(
+                        context: context,
+                        title: const Text('Error'),
+                        description: const Text('No se pudo acceder a la carpeta de descargas'),
+                        type: ToastificationType.error,
+                        autoCloseDuration: const Duration(seconds: 3),
+                        alignment: Alignment.bottomCenter,
+                      );
+                    }
+                  },
+                  child: const Text('Guardar en Descargas'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
             );
           },
         ),

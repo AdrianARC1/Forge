@@ -1,4 +1,3 @@
-// main_navigation_screen.dart
 import 'package:flutter/material.dart';
 import 'package:forge/screens/profile_screen.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +5,8 @@ import '../../app_state.dart';
 import '../routine/routine_list_screen.dart';
 import '../history_screen.dart';
 import '../routine/routine_execution_screen.dart';
-import '../../styles/global_styles.dart'; // Importa el archivo de estilos
+import '../../styles/global_styles.dart';
+import '../widgets/custom_alert_dialog.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -21,7 +21,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = [
     const HistoryScreen(),
     const RoutineListScreen(),
-    const ProfileScreen(), // Descomentar si tienes una pantalla de perfil
+    const ProfileScreen(),
   ];
 
   void _onTabTapped(int index) {
@@ -35,7 +35,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
-      backgroundColor: GlobalStyles.backgroundColor, // Usa el color de fondo global
+      backgroundColor: GlobalStyles.backgroundColor,
       body: Stack(
         children: [
           _screens[_currentIndex],
@@ -45,45 +45,55 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               left: 0,
               right: 0,
               child: Container(
-                color: GlobalStyles.navigationBarColor, // Fondo igual que la barra de navegación
+                color: GlobalStyles.navigationBarColor,
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min, // Para que la columna ocupe el espacio mínimo
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Nombre de la rutina centrado
                     Text(
                       appState.minimizedRoutine!.name,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
                       textAlign: TextAlign.center,
                     ),
-                    // Temporizador centrado
                     Text(
                       _formatDuration(appState.minimizedRoutineDuration),
-                      style: const TextStyle(color: Colors.white70, fontSize: 18),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 18,
+                      ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 2.0), // Espacio entre el temporizador y los botones
-                    // Fila con los dos botones
+                    const SizedBox(height: 2.0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        // Botón "Descartar"
                         TextButton.icon(
                           style: TextButton.styleFrom(
-                            backgroundColor: Colors.transparent, // Sin fondo
+                            backgroundColor: Colors.transparent,
                           ),
                           onPressed: () => _cancelMinimizedRoutine(context),
-                          icon: const Icon(Icons.close, color: Colors.red, size: 26,),
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.red,
+                            size: 26,
+                          ),
                           label: const Text(
                             'Descartar',
-                            style: TextStyle(color: Colors.red, fontSize: 14),
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
 
                         // Botón "Volver a la rutina"
                         TextButton.icon(
                           style: TextButton.styleFrom(
-                            backgroundColor: Colors.transparent, // Sin fondo
+                            backgroundColor: Colors.transparent,
                           ),
                           onPressed: () {
                             Navigator.push(
@@ -93,10 +103,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                               ),
                             );
                           },
-                          icon: const Icon(Icons.play_arrow, color: GlobalStyles.backgroundButtonsColor, size: 26),
+                          icon: const Icon(
+                            Icons.play_arrow,
+                            color: GlobalStyles.backgroundButtonsColor,
+                            size: 26,
+                          ),
                           label: const Text(
                             'Volver a la rutina',
-                            style: TextStyle(color: GlobalStyles.backgroundButtonsColor, fontSize: 14),
+                            style: TextStyle(
+                              color: GlobalStyles.backgroundButtonsColor,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ],
@@ -111,39 +128,39 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         height: 70,
         child: Theme(
           data: Theme.of(context).copyWith(
-            splashFactory: NoSplash.splashFactory, // Desactiva el splash
-            highlightColor: Colors.transparent,    // Asegura que no haya highlight
+            splashFactory: NoSplash.splashFactory,
+            highlightColor: Colors.transparent,
           ),
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
             onTap: _onTabTapped,
             backgroundColor: GlobalStyles.bottomNavBarTheme.backgroundColor,
-            selectedItemColor: GlobalStyles.backgroundButtonsColor, // Color de ítem seleccionado
-            unselectedItemColor: GlobalStyles.bottomNavBarTheme.unselectedItemColor, // Color de ítem no seleccionado
-            type: BottomNavigationBarType.fixed, // Tipo de barra (fija o shifting)
-            showUnselectedLabels: true, // Mostrar etiquetas para los no seleccionados
-            showSelectedLabels: true, // Mostrar etiquetas para los seleccionados
+            selectedItemColor: GlobalStyles.backgroundButtonsColor,
+            unselectedItemColor: GlobalStyles.bottomNavBarTheme.unselectedItemColor,
+            type: BottomNavigationBarType.fixed,
+            showUnselectedLabels: true,
+            showSelectedLabels: true,
 
             // Estilos de íconos
             selectedIconTheme: const IconThemeData(
-              size: 32, // Tamaño de los íconos seleccionados
-              color: GlobalStyles.backgroundButtonsColor, // Asegura el color del ícono seleccionado
+              size: 32,
+              color: GlobalStyles.backgroundButtonsColor,
             ),
             unselectedIconTheme: IconThemeData(
-              size: 24, // Tamaño de los íconos no seleccionados
-              color: GlobalStyles.bottomNavBarTheme.unselectedItemColor, // Color de íconos no seleccionados
+              size: 24,
+              color: GlobalStyles.bottomNavBarTheme.unselectedItemColor,
             ),
 
             // Estilos de texto (labels)
             selectedLabelStyle: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: GlobalStyles.backgroundButtonsColor, // Color de la etiqueta seleccionada
+              color: GlobalStyles.backgroundButtonsColor,
             ),
             unselectedLabelStyle: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.normal,
-              color: GlobalStyles.bottomNavBarTheme.unselectedItemColor, // Color de la etiqueta no seleccionada
+              color: GlobalStyles.bottomNavBarTheme.unselectedItemColor,
             ),
 
             items: const [
@@ -174,29 +191,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return "$hours:$minutes:$seconds";
   }
 
-  void _cancelMinimizedRoutine(BuildContext context) {
-    showDialog(
+  Future<void> _cancelMinimizedRoutine(BuildContext context) async {
+    bool? confirm = await showCustomAlertDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("¿Cancelar rutina?"),
-          content: const Text("¿Realmente quieres cancelar la rutina en ejecución?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("No"),
-            ),
-            TextButton(
-              onPressed: () {
-                final appState = Provider.of<AppState>(context, listen: false);
-                appState.cancelMinimizedRoutine(); // Elimina la rutina minimizada
-                Navigator.of(context).pop();
-              },
-              child: const Text("Sí"),
-            ),
-          ],
-        );
-      },
+      title: '¿Cancelar rutina?',
+      content: const Text(
+        '¿Realmente quieres cancelar la rutina en ejecución?',
+        style: TextStyle(color: Colors.white),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text("No"),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text("Sí"),
+        ),
+      ],
     );
+
+    if (confirm == true) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      appState.cancelMinimizedRoutine();
+    }
   }
 }

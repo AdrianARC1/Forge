@@ -45,8 +45,8 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 10), // Padding interno del botón
-                alignment: Alignment.centerLeft, // Alineación del contenido a la izquierda
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                alignment: Alignment.centerLeft,
                 backgroundColor: GlobalStyles.inputBackgroundColor,
                 foregroundColor: Colors.white,
               ),
@@ -54,10 +54,10 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(left: 20), // Padding izquierdo
+                    padding: EdgeInsets.only(left: 20),
                     child: Icon(Icons.play_arrow),
                   ),
-                  SizedBox(width: 10), // Espaciado entre ícono y texto
+                  SizedBox(width: 10),
                   Text("Empezar entrenamiento vacío"),
                 ],
               ),
@@ -67,12 +67,11 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Reemplazado el estilo en línea con GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)
               const Padding(
                 padding: EdgeInsets.only(left: 10.0),
                 child: Text(
                   "Rutinas",
-                  style: GlobalStyles.subtitleStyle, // Usando estilo global
+                  style: GlobalStyles.subtitleStyle,
                 ),
               ),
               Padding(
@@ -80,7 +79,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      flex: 3, // Controla cuánto espacio ocupa el botón
+                      flex: 3,
                       child: ElevatedButton.icon(
                         onPressed: () {
                           Navigator.push(
@@ -93,7 +92,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                         icon: const Icon(Icons.add),
                         label: const Text("Nueva Rutina"),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20), // Padding interno (vertical y horizontal)
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                           alignment: Alignment.centerLeft,
                           backgroundColor: GlobalStyles.inputBackgroundColor,
                           foregroundColor: Colors.white,
@@ -135,7 +134,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
           Expanded(
             child: ClipRect(
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300), // Duración total para expansión
+                duration: const Duration(milliseconds: 300),
                 transitionBuilder: (Widget child, Animation<double> animation) {
                   if (child.key == const ValueKey(true)) {
                     final inAnimation = Tween<Offset>(
@@ -161,7 +160,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                         parent: animation,
                         curve: const Interval(
                           0.0,
-                          0.25, // 25% del tiempo total (100ms)
+                          0.25,
                           curve: Curves.easeInOut,
                         ),
                       ),
@@ -174,7 +173,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                         parent: animation,
                         curve: const Interval(
                           0.0,
-                          0.25, // 25% del tiempo total (100ms)
+                          0.25,
                           curve: Curves.easeInOut,
                         ),
                       ),
@@ -215,18 +214,17 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                             child: Card(
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              color: GlobalStyles.inputBackgroundColor, // Color del fondo de la tarjeta
+                              color: GlobalStyles.inputBackgroundColor,
                               child: Padding(
-                                padding: const EdgeInsets.all(12.0), // Padding interno de la tarjeta
+                                padding: const EdgeInsets.all(12.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        // Reemplazado el estilo en línea con GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 20)
                                         Text(
                                           routine.name,
                                           style: GlobalStyles.subtitleStyle.copyWith(
@@ -266,7 +264,6 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                       ],
                                     ),
                                     const SizedBox(height: 5),
-                                    // Reemplazado el estilo en línea con GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)
                                     Text(
                                       routine.exercises.map((exercise) => exercise.name).join(", "),
                                       maxLines: 1,
@@ -278,7 +275,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                     const SizedBox(height: 10),
                                     Row(
                                       children: [
-                                        const Spacer(), // Empuja el botón hacia la derecha
+                                        const Spacer(),
                                         ElevatedButton(
                                           onPressed: () {
                                             Navigator.push(
@@ -289,14 +286,14 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                                             );
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15), // Tamaño más compacto
-                                            backgroundColor: GlobalStyles.backgroundButtonsColor, // Color del botón
+                                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                                            backgroundColor: GlobalStyles.backgroundButtonsColor,
                                             foregroundColor: Colors.black,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12), // Bordes del botón
+                                              borderRadius: BorderRadius.circular(12),
                                             ),
                                             textStyle: GlobalStyles.buttonTextStyle.copyWith(
-                                              fontSize: 15, // Tamaño de texto más pequeño
+                                              fontSize: 15,
                                               fontWeight: FontWeight.w900,
                                             ),
                                           ),

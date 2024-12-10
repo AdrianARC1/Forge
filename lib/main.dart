@@ -1,4 +1,3 @@
-// main.dart
 import 'package:flutter/material.dart';
 import 'package:forge/database/database_helper.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +15,6 @@ void main() async {
 
   // Mantener la splash screen nativa hasta que la aplicación esté lista
   FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-  // await DatabaseHelper().resetDatabase();
   runApp(const MyApp());
 }
 

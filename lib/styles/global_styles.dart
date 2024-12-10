@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class GlobalStyles {
   // Colores
   static const Color backgroundColor = Color(0xFF373737);
-  static const Color navigationBarColor = Color(0xFF262626); // Color de fondo de la barra de navegación
-  static const Color navigationBarIconColor = Colors.white; // Color de los iconos y texto
+  static const Color navigationBarColor = Color(0xFF262626);
+  static const Color navigationBarIconColor = Colors.white;
   static const Color buttonColor = Color(0xFFC3C3C3);
   static const Color textColor = Colors.white;
   static const Color textColorWithOpacity = Color.fromARGB(60, 255, 255, 255);
@@ -14,7 +14,7 @@ class GlobalStyles {
   static const Color focusedBorderColor = Colors.blueAccent;
   static const Color errorBorderColor = Colors.redAccent;
   static const Color backgroundButtonsColor = Color(0xFFFFAA76);
-  static const Color inputBorderColor = Colors.grey; // Color del borde inferior cuando está habilitado
+  static const Color inputBorderColor = Colors.grey;
 
   // Text Styles
   static const TextStyle titleStyle = TextStyle(
@@ -91,11 +91,9 @@ class GlobalStyles {
     backgroundColor: navigationBarColor,
     selectedItemColor: navigationBarIconColor,
     unselectedItemColor: navigationBarIconColor,
-    // Puedes ajustar otros parámetros si lo deseas
     type: BottomNavigationBarType.fixed,
     showUnselectedLabels: true,
     showSelectedLabels: true,
-    // Define estilos de texto si es necesario
     selectedLabelStyle: TextStyle(
       fontWeight: FontWeight.bold,
     ),

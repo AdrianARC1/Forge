@@ -277,6 +277,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // Todo OK, actualizar la contraseña
       await appState.updatePassword(newPassword);
+      toastification.show(
+        context: context,
+        title: const Text('Éxito'),
+        description: const Text('Tu contraseña se ha actualizado correctamente.'),
+        type: ToastificationType.success,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.bottomCenter
+      );
     }
 
     Navigator.pop(context);
