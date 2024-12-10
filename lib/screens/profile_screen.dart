@@ -13,6 +13,7 @@ import './widgets/base_scaffold.dart';
 import '../styles/global_styles.dart';
 import 'widgets/history_list_widget.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:toastification/toastification.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -61,8 +62,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onPressed: () async {
             final jsonData = await appState.exportUserData();
             if (jsonData.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No se encontraron datos del usuario')),
+              toastification.show(
+                context: context,
+                title: const Text('Atención'),
+                description: const Text('No se encontraron datos del usuario'),
+                type: ToastificationType.warning,
+                autoCloseDuration: const Duration(seconds: 3),
               );
               return;
             }
@@ -83,8 +88,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         await file.writeAsString(jsonData);
 
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Datos exportados en: ${file.path}')),
+                        toastification.show(
+                          context: context,
+                          title: const Text('Datos exportados'),
+                          description: Text('Datos exportados en: ${file.path}'),
+                          type: ToastificationType.success,
+                          autoCloseDuration: const Duration(seconds: 3),
+                          alignment: Alignment.bottomCenter
                         );
                       },
                       child: const Text('Guardar interno'),
@@ -92,7 +102,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     TextButton(
                       onPressed: () async {
                         // Guardar en directorio de descargas (solo Android)
-                        // Nota: Esto puede variar según la plataforma. En Android 10+, es posible que se deba usar el Storage Access Framework.
                         final directories = await getExternalStorageDirectories(type: StorageDirectory.downloads);
                         if (directories != null && directories.isNotEmpty) {
                           final downloadDir = directories.first;
@@ -100,13 +109,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           await file.writeAsString(jsonData);
 
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Datos exportados en: ${file.path}')),
+                          toastification.show(
+                            context: context,
+                            title: const Text('Datos exportados'),
+                            description: Text('Datos exportados en: ${file.path}'),
+                            type: ToastificationType.success,
+                            autoCloseDuration: const Duration(seconds: 3),
+                            alignment: Alignment.bottomCenter
                           );
                         } else {
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('No se pudo acceder a la carpeta de descargas')),
+                          toastification.show(
+                            context: context,
+                            title: const Text('Error'),
+                            description: const Text('No se pudo acceder a la carpeta de descargas'),
+                            type: ToastificationType.error,
+                            autoCloseDuration: const Duration(seconds: 3),
+                            alignment: Alignment.bottomCenter
                           );
                         }
                       },

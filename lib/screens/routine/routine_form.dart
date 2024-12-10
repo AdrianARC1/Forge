@@ -7,8 +7,9 @@ import '../exercice_selection_screen.dart';
 import '../../app_state.dart';
 import 'package:uuid/uuid.dart';
 import '../widgets/exercise_form_widget.dart';
-import '../widgets/base_scaffold.dart'; // Importa el BaseScaffold
-import '../widgets/app_bar_button.dart'; // Importa AppBarButton
+import '../widgets/base_scaffold.dart';
+import '../widgets/app_bar_button.dart';
+import 'package:toastification/toastification.dart';
 
 class RoutineForm extends StatefulWidget {
   final Routine? routine; // Si es null, estamos creando una nueva rutina
@@ -16,7 +17,8 @@ class RoutineForm extends StatefulWidget {
   final Function(Routine) onSave;
   final Function() onCancel;
 
-  const RoutineForm({super.key, 
+  const RoutineForm({
+    super.key,
     this.routine,
     required this.title,
     required this.onSave,
@@ -51,7 +53,7 @@ class _RoutineFormState extends State<RoutineForm> {
               TextEditingController(text: series.weight.toString());
           repsControllers[series.id] =
               TextEditingController(text: series.reps.toString());
-          exertionControllers[series.id] = TextEditingController(); // No se utiliza en creación/edición
+          exertionControllers[series.id] = TextEditingController(); 
         }
       }
     }
@@ -162,23 +164,39 @@ class _RoutineFormState extends State<RoutineForm> {
     FocusScope.of(context).unfocus();
 
     if (!_areAllSeriesCompleted()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Completa todas las series antes de guardar")),
+      toastification.show(
+        context: context,
+        title: const Text('Atención'),
+        description: const Text("Completa todas las series antes de guardar"),
+        type: ToastificationType.info,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.bottomCenter
       );
       return;
     }
 
     final routineName = _routineNameController.text.trim();
     if (routineName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor, ingresa un nombre para la rutina")),
+      toastification.show(
+        context: context,
+        title: const Text('Atención'),
+        description: const Text("Por favor, ingresa un nombre para la rutina"),
+        type: ToastificationType.warning,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.bottomCenter
       );
       return;
     }
 
     if (selectedExercises.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Agrega al menos un ejercicio a la rutina")),
+      toastification.show(
+        context: context,
+        title: const Text('Atención'),
+        description: const Text("Agrega al menos un ejercicio a la rutina"),
+        type: ToastificationType.info,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.bottomCenter
+
       );
       return;
     }
@@ -200,6 +218,13 @@ class _RoutineFormState extends State<RoutineForm> {
     );
 
     widget.onSave(newRoutine);
+      toastification.show(
+        context: context,
+        title: const Text('Rutina guardada'),
+        description: const Text("La rutina se ha guardado correctamente"),
+        type: ToastificationType.success,
+        autoCloseDuration: const Duration(seconds: 2),
+      );
   }
 
   @override
@@ -241,7 +266,7 @@ class _RoutineFormState extends State<RoutineForm> {
         final newExercise = Exercise(
           id: selectedExercise['id'].toString(),
           name: selectedExercise['name'],
-          gifUrl: selectedExercise['gifUrl'], // Añade esta línea
+          gifUrl: selectedExercise['gifUrl'],
           series: [
             Series(
               id: const Uuid().v4(),
@@ -301,9 +326,9 @@ class _RoutineFormState extends State<RoutineForm> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0), // Sin padding general
+            padding: const EdgeInsets.symmetric(horizontal: 0.0), 
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch, // Asegura que los hijos ocupen todo el ancho
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Campo para el nombre de la rutina con sombra en el borde inferior
                 Column(
@@ -317,34 +342,32 @@ class _RoutineFormState extends State<RoutineForm> {
                         hintStyle: GlobalStyles.subtitleStyle.copyWith(
                           color: GlobalStyles.placeholderColor,
                         ),
-                        filled: false, // Eliminamos el fondo relleno
-                        border: InputBorder.none, // Eliminamos los bordes por defecto
+                        filled: false, 
+                        border: InputBorder.none,
                       ),
                       style: GlobalStyles.subtitleStyle,
                     ),
-                    // Línea inferior con sombra
                     Container(
                       height: 2,
                       decoration: BoxDecoration(
                         color: GlobalStyles.inputBorderColor,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.6), // Sombra sutil
-                            offset: const Offset(0, 5), // Posición de la sombra
-                            blurRadius: 2, // Radio de desenfoque
+                            color: Colors.black.withOpacity(0.6), 
+                            offset: const Offset(0, 5), 
+                            blurRadius: 2, 
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20), // Espacio entre el TextField y los siguientes widgets
+                const SizedBox(height: 20), 
 
-                // Gestión de ejercicios seleccionados
                 if (selectedExercises.isEmpty) ...[
                   const SizedBox(height: 80),
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0), // Añade padding solo aquí
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
                       'Introduce algún ejercicio para empezar',
                       style: GlobalStyles.subtitleStyleHighFont,
@@ -353,9 +376,9 @@ class _RoutineFormState extends State<RoutineForm> {
                   ),
                   const SizedBox(height: 16),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: SizedBox(
-                      width: double.infinity, // Hace que el botón llene horizontalmente
+                      width: double.infinity, 
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: GlobalStyles.backgroundButtonsColor,
@@ -375,7 +398,7 @@ class _RoutineFormState extends State<RoutineForm> {
                 ] else ...[
                   // Lista de ejercicios
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: Column(
                       children: selectedExercises.map((exercise) {
                         final maxRecord = appState.maxExerciseRecords[exercise.name];
@@ -392,16 +415,16 @@ class _RoutineFormState extends State<RoutineForm> {
                           onReplaceExercise: () => _replaceExercise(exercise),
                           maxRecord: maxRecord,
                           allowEditing: true,
-                          showMaxRecord: widget.routine != null, // Mostrar en edición, ocultar en creación
+                          showMaxRecord: widget.routine != null,
                         );
                       }).toList(),
                     ),
                   ),
                   // Botón para añadir más ejercicios
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: SizedBox(
-                      width: double.infinity, // Hace que el botón llene horizontalmente
+                      width: double.infinity,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: GlobalStyles.backgroundButtonsColor,

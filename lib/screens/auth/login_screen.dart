@@ -5,6 +5,7 @@ import 'registration_screen.dart';
 import '../navigation/main_navigation_screen.dart';
 import '../widgets/shared_widgets.dart';
 import '../../styles/global_styles.dart';
+import 'package:toastification/toastification.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -122,12 +123,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 setState(() {
                                   _isLoggingIn = false;
                                 });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Usuario o contraseña incorrectos.'),
-                                    backgroundColor: GlobalStyles.errorColor,
-                                    duration: Duration(milliseconds: 1500),
-                                  ),
+                                toastification.show(
+                                  context: context,
+                                  title: const Text('Error'),
+                                  description: const Text('Usuario o contraseña incorrectos.'),
+                                  type: ToastificationType.error,
+                                  autoCloseDuration: const Duration(milliseconds: 1500),
+                                  alignment: Alignment.bottomCenter
                                 );
                               }
                             }

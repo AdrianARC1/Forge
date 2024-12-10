@@ -6,6 +6,7 @@ import '../styles/global_styles.dart';
 import './widgets/base_scaffold.dart';
 import './widgets/app_bar_button.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:toastification/toastification.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -56,7 +57,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Foto de perfil
             const SizedBox(height: 20),
             GestureDetector(
               onTap: _changeProfileImage,
@@ -215,37 +215,62 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     // Verificación para el cambio de contraseña
     if (newPassword.isNotEmpty || confirmPassword.isNotEmpty || currentPassword.isNotEmpty) {
       if (currentPassword.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Debes ingresar tu contraseña actual para cambiarla.'))
+        toastification.show(
+          context: context,
+          title: const Text('Atención'),
+          description: const Text('Debes ingresar tu contraseña actual para cambiarla.'),
+          type: ToastificationType.warning,
+          autoCloseDuration: const Duration(seconds: 3),
+          alignment: Alignment.bottomCenter
         );
         return;
       }
 
       bool currentPassValid = await appState.validateCurrentPassword(currentPassword);
       if (!currentPassValid) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('La contraseña actual no es correcta.'))
+        toastification.show(
+          context: context,
+          title: const Text('Error'),
+          description: const Text('La contraseña actual no es correcta.'),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
+          alignment: Alignment.bottomCenter
         );
         return;
       }
 
       if (newPassword.isEmpty || confirmPassword.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Debes ingresar y confirmar la nueva contraseña.'))
+        toastification.show(
+          context: context,
+          title: const Text('Atención'),
+          description: const Text('Debes ingresar y confirmar la nueva contraseña.'),
+          type: ToastificationType.warning,
+          autoCloseDuration: const Duration(seconds: 3),
+          alignment: Alignment.bottomCenter
         );
         return;
       }
 
       if (newPassword != confirmPassword) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('La nueva contraseña no coincide con la confirmación.'))
+        toastification.show(
+          context: context,
+          title: const Text('Atención'),
+          description: const Text('La nueva contraseña no coincide con la confirmación.'),
+          type: ToastificationType.warning,
+          autoCloseDuration: const Duration(seconds: 3),
+          alignment: Alignment.bottomCenter
         );
         return;
       }
 
       if (newPassword.length < 6) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('La nueva contraseña debe tener al menos 6 caracteres.'))
+        toastification.show(
+          context: context,
+          title: const Text('Atención'),
+          description: const Text('La nueva contraseña debe tener al menos 6 caracteres.'),
+          type: ToastificationType.warning,
+          autoCloseDuration: const Duration(seconds: 3),
+          alignment: Alignment.bottomCenter
         );
         return;
       }

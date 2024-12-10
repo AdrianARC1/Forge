@@ -12,6 +12,7 @@ import '../mixins/exercise_management_mixin.dart';
 import '../widgets/base_scaffold.dart'; 
 import '../widgets/app_bar_button.dart';
 import '../../styles/global_styles.dart';
+import 'package:toastification/toastification.dart';
 
 class RoutineExecutionScreen extends StatefulWidget {
   final Routine? routine;
@@ -138,8 +139,13 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
 
   void _finishRoutine() {
     if (!_areAllSeriesCompleted()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Completa todas las series para finalizar la rutina")),
+      toastification.show(
+        context: context,
+        title: const Text("Atención"),
+        description: const Text("Completa todas las series para finalizar la rutina"),
+        type: ToastificationType.info,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.bottomCenter
       );
       return;
     }
@@ -416,8 +422,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         (route) => false,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al finalizar la rutina: $e")),
+      toastification.show(
+        context: context,
+        title: const Text("Error"),
+        description: Text("Error al finalizar la rutina: $e"),
+        type: ToastificationType.error,
+        autoCloseDuration: const Duration(seconds: 3),
       );
     }
   }
@@ -481,7 +491,6 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
   }
 
   String _formatDuration(Duration duration) {
-    // Formato dinámico
     int totalSeconds = duration.inSeconds;
     int hours = duration.inHours;
     int minutes = duration.inMinutes % 60;
@@ -654,11 +663,10 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Stats en fila alineados a la izquierda: Duración, Series, RPE
+            // Stats
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
               child: Row(
-                // Alineación a la izquierda
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

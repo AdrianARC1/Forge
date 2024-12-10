@@ -122,7 +122,6 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                   _isExpanded ? Icons.arrow_drop_down : Icons.arrow_right,
                   color: GlobalStyles.textColor,
                 ),
-                // Reemplazado el estilo en línea con GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)
                 Text(
                   "Mis rutinas (${appState.routines.length})",
                   style: GlobalStyles.subtitleStyle.copyWith(
