@@ -58,34 +58,36 @@ class _RoutineFormState extends State<RoutineForm> {
   }
 
   Future<void> _addExercise() async {
-    final selectedExercise = await Navigator.push(
+    final selectedExercisesFromScreen = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen()),
     );
 
-    if (selectedExercise != null) {
+    if (selectedExercisesFromScreen != null && selectedExercisesFromScreen is List) {
       setState(() {
-        final exercise = Exercise(
-          id: selectedExercise['id'].toString(),
-          name: selectedExercise['name'],
-          gifUrl: selectedExercise['gifUrl'],
-          series: [
-            Series(
-              id: const Uuid().v4(),
-              weight: 0,
-              reps: 0,
-              perceivedExertion: 0,
-              isCompleted: false,
-            ),
-          ],
-        );
-        selectedExercises.add(exercise);
+        for (var selectedExercise in selectedExercisesFromScreen) {
+          final exercise = Exercise(
+            id: selectedExercise['id'].toString(),
+            name: selectedExercise['name'],
+            gifUrl: selectedExercise['gifUrl'],
+            series: [
+              Series(
+                id: const Uuid().v4(),
+                weight: 0,
+                reps: 0,
+                perceivedExertion: 0,
+                isCompleted: false,
+              ),
+            ],
+          );
+          selectedExercises.add(exercise);
 
-        // Inicializar controladores para la nueva serie
-        for (var series in exercise.series) {
-          weightControllers[series.id] = TextEditingController();
-          repsControllers[series.id] = TextEditingController();
-          exertionControllers[series.id] = TextEditingController();
+          // Inicializar controladores para la nueva serie
+          for (var series in exercise.series) {
+            weightControllers[series.id] = TextEditingController();
+            repsControllers[series.id] = TextEditingController();
+            exertionControllers[series.id] = TextEditingController();
+          }
         }
       });
     }
@@ -239,6 +241,7 @@ class _RoutineFormState extends State<RoutineForm> {
         final newExercise = Exercise(
           id: selectedExercise['id'].toString(),
           name: selectedExercise['name'],
+          gifUrl: selectedExercise['gifUrl'], // Añade esta línea
           series: [
             Series(
               id: const Uuid().v4(),

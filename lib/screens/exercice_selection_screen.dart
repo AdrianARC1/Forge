@@ -20,12 +20,12 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   String? selectedEquipment;
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
-
   final String allMusclesOption = "Todos\n los músculos";
   final String allEquipmentOption = "Todos\n los equipos";
-
   late AppState appState; 
   bool _initialized = false;
+
+  final Set<String> _selectedExercises = {};
 
   List<String> getMuscleGroups() {
     return [allMusclesOption, ...appState.muscleGroups];
@@ -51,11 +51,9 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   }
 
   Future<void> _initializeData() async {
-    // Espera a que se carguen ejercicios, grupos musculares y equipamientos
     await appState.fetchAllExercises();
     await appState.loadMuscleGroups();
     await appState.loadEquipment();
-
     setState(() {
       _initialized = true;
     });
@@ -115,10 +113,29 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
     _filterExercises();
   }
 
+  void _toggleSelection(Map<String, dynamic> exercise) {
+    String exerciseId = exercise['id'].toString();
+    setState(() {
+      if (_selectedExercises.contains(exerciseId)) {
+        _selectedExercises.remove(exerciseId);
+      } else {
+        _selectedExercises.add(exerciseId);
+      }
+    });
+  }
+
+  void _onAddSelected() {
+    // Devuelve una lista de ejercicios seleccionados con todos sus datos
+    final selectedExData = appState.exercises
+        .where((ex) => _selectedExercises.contains(ex['id'].toString()))
+        .toList();
+
+    Navigator.pop(context, selectedExData);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_initialized) {
-      // Todavía no se han cargado los datos iniciales
       return BaseScaffold(
         backgroundColor: GlobalStyles.backgroundColor,
         appBar: AppBar(
@@ -131,7 +148,6 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
       );
     }
 
-    // Ya se inicializó appState, podemos acceder a sus datos
     final exercises = appState.exercises;
 
     return BaseScaffold(
@@ -156,7 +172,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
             },
             textColor: GlobalStyles.textColor,
             backgroundColor: Colors.transparent,
-          )
+          ),
         ],
       ),
       body: Column(
@@ -192,12 +208,11 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
             ),
           ),
 
-          // Filtros con ancho equitativo y margen
+          // Filtros
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0), // Padding consistente
+            padding: const EdgeInsets.symmetric(horizontal: 0),
             child: Row(
               children: [
-                // Primer Filtro: Músculo
                 Expanded(
                   child: _buildDropdown(
                     hint: "Músculo",
@@ -206,10 +221,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
                     onChanged: _onMuscleGroupChanged,
                   ),
                 ),
-
-                const SizedBox(width: 10), // Espaciado entre filtros
-
-                // Segundo Filtro: Equipo
+                const SizedBox(width: 10),
                 Expanded(
                   child: _buildDropdown(
                     hint: "Equipo",
@@ -225,7 +237,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
           // Lista de ejercicios
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0), // Alinea con otros elementos
+              padding: const EdgeInsets.symmetric(horizontal: 0),
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: GlobalStyles.textColor))
                   : exercises.isEmpty
@@ -246,17 +258,21 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
                           itemBuilder: (context, index) {
                             final exercise = exercises[index];
                             final exerciseName = exercise['name'] as String;
+                            final exerciseId = exercise['id'].toString();
+                            final isSelected = _selectedExercises.contains(exerciseId);
 
                             return ListTile(
-                              contentPadding: EdgeInsets.zero, // Elimina padding interno
-                              minLeadingWidth: 0, // Reduce espacio para el leading
-                              visualDensity: VisualDensity.compact, // Reduce la densidad vertical
-                              tileColor: Colors.transparent,
+                              contentPadding: EdgeInsets.zero,
+                              minLeadingWidth: 0,
+                              visualDensity: VisualDensity.compact,
+                              tileColor: isSelected
+                                  ? GlobalStyles.inputBackgroundColor.withOpacity(0.5)
+                                  : Colors.transparent,
                               leading: exercise['gifUrl'] != null
                                   ? ClipOval(
                                       child: Image.network(
                                         exercise['gifUrl'],
-                                        width: 50, // Ajusta el tamaño si es necesario
+                                        width: 50,
                                         height: 60,
                                         fit: BoxFit.cover,
                                         errorBuilder: (context, error, stackTrace) {
@@ -273,12 +289,33 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
                                 '${exercise['target']}',
                                 style: GlobalStyles.subtitleStyle.copyWith(color: Colors.grey[400]),
                               ),
+                              trailing: isSelected
+                                  ? const Icon(Icons.check, color: Colors.white)
+                                  : null,
                               onTap: () {
-                                Navigator.pop(context, exercise);
+                                _toggleSelection(exercise);
                               },
                             );
                           },
                         ),
+            ),
+          ),
+
+          // Botón para añadir ejercicios seleccionados
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: GlobalStyles.backgroundButtonsColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _selectedExercises.isEmpty ? null : _onAddSelected,
+              child: Text(
+                "Añadir ${_selectedExercises.isEmpty ? '' : _selectedExercises.length.toString() + ' '}ejercicio(s)",
+                style: GlobalStyles.buttonTextStyle,
+              ),
             ),
           ),
         ],
@@ -293,7 +330,6 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
     required void Function(String?) onChanged,
   }) {
     return Container(
-      // No establezcas un ancho fijo aquí para permitir que Expanded lo controle
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: GlobalStyles.inputBackgroundColor,
@@ -302,7 +338,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          isExpanded: true, // Asegura que ocupe todo el ancho del contenedor
+          isExpanded: true,
           hint: Text(
             hint,
             style: GlobalStyles.subtitleStyle.copyWith(color: GlobalStyles.placeholderColor),
@@ -312,9 +348,9 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
           icon: const Icon(
             Icons.arrow_drop_down,
             color: GlobalStyles.textColor,
-            size: 24, // Ajusta el tamaño si es necesario
+            size: 24,
           ),
-          iconSize: 24, // Asegura que el ícono tenga un tamaño adecuado
+          iconSize: 24,
           style: GlobalStyles.subtitleStyle,
           onChanged: onChanged,
           items: items.map<DropdownMenuItem<String>>((option) {

@@ -11,33 +11,35 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
   Map<String, TextEditingController> exertionControllers = {};
 
   Future<void> addExercise() async {
-    final selectedExercise = await Navigator.push(
+    final selectedExercisesFromScreen = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen()),
     );
 
-    if (selectedExercise != null) {
+    if (selectedExercisesFromScreen != null && selectedExercisesFromScreen is List) {
       setState(() {
-        final exercise = Exercise(
-          id: const Uuid().v4(), // Genera un nuevo UUID para el ejercicio
-          name: selectedExercise['name'],
-          series: [
-            Series(
-              id: const Uuid().v4(), // Genera un nuevo UUID para la serie
-              weight: 0,
-              reps: 0,
-              perceivedExertion: 1,
-              isCompleted: false,
-            ),
-          ],
-        );
-        exercises.add(exercise);
+        for (var selectedExercise in selectedExercisesFromScreen) {
+          final exercise = Exercise(
+            id: const Uuid().v4(),
+            name: selectedExercise['name'],
+            gifUrl: selectedExercise['gifUrl'],
+            series: [
+              Series(
+                id: const Uuid().v4(),
+                weight: 0,
+                reps: 0,
+                perceivedExertion: 1,
+                isCompleted: false,
+              ),
+            ],
+          );
+          exercises.add(exercise);
 
-        // Inicializar controladores para la nueva serie
-        for (var series in exercise.series) {
-          weightControllers[series.id] = TextEditingController();
-          repsControllers[series.id] = TextEditingController();
-          exertionControllers[series.id] = TextEditingController();
+          for (var series in exercise.series) {
+            weightControllers[series.id] = TextEditingController();
+            repsControllers[series.id] = TextEditingController();
+            exertionControllers[series.id] = TextEditingController();
+          }
         }
       });
     }
