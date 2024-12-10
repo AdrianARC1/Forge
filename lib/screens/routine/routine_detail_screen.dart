@@ -14,7 +14,7 @@ class RoutineDetailScreen extends StatelessWidget {
   final Routine routine;
   final bool isFromHistory;
 
-  RoutineDetailScreen({
+  const RoutineDetailScreen({super.key, 
     required this.routine,
     this.isFromHistory = false,
   });
@@ -39,7 +39,7 @@ class RoutineDetailScreen extends StatelessWidget {
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: GlobalStyles.textColor),
+          icon: const Icon(Icons.arrow_back, color: GlobalStyles.textColor),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -47,7 +47,7 @@ class RoutineDetailScreen extends StatelessWidget {
         actions: isFromHistory
             ? [
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: Colors.white),
+                  icon: const Icon(Icons.more_vert, color: Colors.white),
                   onSelected: (value) {
                     if (value == 'edit') {
                       Navigator.push(
@@ -60,7 +60,7 @@ class RoutineDetailScreen extends StatelessWidget {
                   },
                   itemBuilder: (BuildContext context) {
                     return [
-                      PopupMenuItem<String>(
+                      const PopupMenuItem<String>(
                         value: 'edit',
                         child: Text('Editar Rutina'),
                       ),
@@ -81,7 +81,7 @@ class RoutineDetailScreen extends StatelessWidget {
                   },
                   textColor: GlobalStyles.buttonTextStyle.color,
                   backgroundColor: GlobalStyles.backgroundButtonsColor,
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 ),
               ],
       ),
@@ -89,20 +89,20 @@ class RoutineDetailScreen extends StatelessWidget {
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 0.0),
+            padding: const EdgeInsets.symmetric(horizontal: 0.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (isFromHistory) ...[
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Center(
                     child: Column(
                       children: [
-                        CircleAvatar(
+                        const CircleAvatar(
                           radius: 40,
                           backgroundImage: AssetImage('assets/icon/icon.png'),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           appState.username ?? 'Usuario',
                           style: GlobalStyles.subtitleStyle.copyWith(
@@ -110,7 +110,7 @@ class RoutineDetailScreen extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           _formatDate(completionDate ?? DateTime.now()),
                           style: GlobalStyles.subtitleStyle.copyWith(
@@ -136,14 +136,14 @@ class RoutineDetailScreen extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.6),
-                        offset: Offset(0, 5),
+                        offset: const Offset(0, 5),
                         blurRadius: 2,
                       ),
                     ],
                   ),
                 ),
                 if (isFromHistory) ...[
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
@@ -217,9 +217,31 @@ class RoutineDetailScreen extends StatelessWidget {
                     ),
                   ),
                 ],
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
+                if (isFromHistory && routine.notes != null && routine.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      'Notas',
+                      style: GlobalStyles.subtitleStyle.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      routine.notes!,
+                      style: GlobalStyles.subtitleStyle,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 20,),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 0),
                   child: Column(
                     children: [
                       if (isFromHistory)
@@ -233,7 +255,7 @@ class RoutineDetailScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       ...routine.exercises.map((exercise) {
                         final maxRecord = appState.maxExerciseRecords[exercise.name];
 
@@ -244,40 +266,19 @@ class RoutineDetailScreen extends StatelessWidget {
                             gifUrl: exercise.gifUrl,
                             series: exercise.series,
                           ),
-                          weightControllers: {},
-                          repsControllers: {},
-                          exertionControllers: {},
+                          weightControllers: const {},
+                          repsControllers: const {},
+                          exertionControllers: const {},
                           isExecution: false,
                           isReadOnly: true,
                           maxRecord: maxRecord,
                           allowEditing: false,
                           showMaxRecord: !isFromHistory,
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),
-                if (isFromHistory && routine.notes != null && routine.notes!.isNotEmpty) ...[
-                  SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      'Notas',
-                      style: GlobalStyles.subtitleStyle.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      routine.notes!,
-                      style: GlobalStyles.subtitleStyle,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -338,7 +339,7 @@ class RoutineDetailScreen extends StatelessWidget {
     } else {
       String minutesStr = minutes > 0 ? '${minutes}min' : '';
       String secondsStr = seconds > 0 ? ' ${seconds}s' : '';
-      return '${minutesStr}${secondsStr}'.trim();
+      return '$minutesStr$secondsStr'.trim();
     }
   }
 

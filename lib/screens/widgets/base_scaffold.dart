@@ -12,7 +12,7 @@ class BaseScaffold extends StatelessWidget {
   final Color? backgroundColor; // Nuevo parámetro opcional
 
   const BaseScaffold({
-    Key? key,
+    super.key,
     this.appBar,
     required this.body,
     this.floatingActionButton,
@@ -21,7 +21,7 @@ class BaseScaffold extends StatelessWidget {
     this.bottomNavigationBar,
     this.resizeToAvoidBottomInset = true,
     this.backgroundColor, // Inicialización del nuevo parámetro
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

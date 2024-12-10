@@ -83,7 +83,7 @@ class Routine {
     return Routine(
       id: id ?? this.id,
       name: name ?? this.name,
-      dateCreated: this.dateCreated,
+      dateCreated: dateCreated,
       dateCompleted: dateCompleted ?? this.dateCompleted,
       exercises: exercises ?? this.exercises,
       duration: duration ?? this.duration,
@@ -101,7 +101,7 @@ class AppState with ChangeNotifier {
   List<Map<String, dynamic>> _allExercises = [];
   List<Map<String, dynamic>> _filteredExercises = [];
   List<Map<String, dynamic>> _visibleExercises = [];
-  int _exercisesPerPage = 20;
+  final int _exercisesPerPage = 20;
   int _currentPage = 0;
 
   List<String> _muscleGroups = [];
@@ -149,7 +149,7 @@ Future<void> _initializeApp() async {
       await _loadUserSession();
       await _loadTutorialStatus(); // Cargar el estado del tutorial
     } catch (e) {
-      print("Error durante la inicialización: $e");
+      // Error
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -190,7 +190,7 @@ Future<void> _initializeApp() async {
         await loadMaxExerciseRecords();
       }
     } catch (e) {
-      print("Error al cargar la sesión: $e");
+      // Error
     }
   }
 
@@ -324,8 +324,8 @@ Future<void> _initializeApp() async {
 
   void startRoutineTimer() {
     stopRoutineTimer();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      minimizedRoutineDuration += Duration(seconds: 1);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      minimizedRoutineDuration += const Duration(seconds: 1);
       notifyListeners();
     });
   }
@@ -367,7 +367,7 @@ Future<void> _initializeApp() async {
         notifyListeners();
       }
     } catch (e) {
-      print("Error al obtener ejercicios: $e");
+      // Error
     }
   }
 
@@ -419,7 +419,7 @@ Future<void> _initializeApp() async {
       _muscleGroups = await _apiService.fetchMuscleGroups();
       notifyListeners();
     } catch (e) {
-      print("Error al cargar grupos musculares: $e");
+      // Error
     }
   }
 
@@ -428,7 +428,7 @@ Future<void> _initializeApp() async {
       _equipment = await _apiService.fetchEquipmentList();
       notifyListeners();
     } catch (e) {
-      print("Error al cargar equipo: $e");
+      // Error
     }
   }
 
@@ -437,8 +437,8 @@ Future<void> _initializeApp() async {
       try {
         _routines = await _dbHelper.getRoutines(_userId!);
       } catch (e) {
-        print("Error al cargar rutinas: $e");
-      }
+      // Error
+    }
       notifyListeners();
     }
   }
@@ -448,8 +448,8 @@ Future<void> _initializeApp() async {
       try {
         _completedRoutines = await _dbHelper.getCompletedRoutines(_userId!);
       } catch (e) {
-        print("Error al cargar rutinas completadas: $e");
-      }
+      // Error
+    }
       notifyListeners();
     }
   }
@@ -464,8 +464,8 @@ Future<void> _initializeApp() async {
         };
         notifyListeners();
       } catch (e) {
-        print("Error al cargar registros máximos: $e");
-      }
+      // Error
+    }
     }
   }
 
@@ -485,7 +485,7 @@ Future<void> _initializeApp() async {
       await updateMaxRecordsFromRoutine(completedRoutine);
       await _loadCompletedRoutines();
     } catch (e) {
-      print("Error al completar la rutina: $e");
+      // Error
     }
   }
 
@@ -516,8 +516,8 @@ Future<void> _initializeApp() async {
         _routines.add(routine);
         notifyListeners();
       } catch (e) {
-        print("Error al guardar la rutina: $e");
-      }
+      // Error
+    }
     }
   }
 
@@ -531,8 +531,8 @@ Future<void> _initializeApp() async {
           notifyListeners();
         }
       } catch (e) {
-        print("Error al actualizar la rutina: $e");
-      }
+      // Error
+    }
     }
   }
 
@@ -543,7 +543,7 @@ Future<void> _initializeApp() async {
       routine.exercises.add(exercise);
       notifyListeners();
     } catch (e) {
-      print("Error al añadir ejercicio a la rutina: $e");
+      // Error
     }
   }
 
@@ -555,7 +555,7 @@ Future<void> _initializeApp() async {
       exercise.series.add(series);
       notifyListeners();
     } catch (e) {
-      print("Error al añadir serie al ejercicio: $e");
+      // Error
     }
   }
 
@@ -565,7 +565,7 @@ Future<void> _initializeApp() async {
       routine.duration = duration;
       notifyListeners();
     } catch (e) {
-      print("Error al actualizar duración: $e");
+      // Error
     }
   }
 
@@ -575,7 +575,7 @@ Future<void> _initializeApp() async {
       _routines.removeWhere((routine) => routine.id == id);
       notifyListeners();
     } catch (e) {
-      print("Error al eliminar la rutina: $e");
+      // Error
     }
   }
 

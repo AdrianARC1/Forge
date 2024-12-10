@@ -16,7 +16,7 @@ void main() async {
 
   // Mantener la splash screen nativa hasta que la aplicación esté lista
   FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-  // await DatabaseHelper().resetDatabase();
+  await DatabaseHelper().resetDatabase();
   runApp(const MyApp());
 }
 
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
               primarySwatch: Colors.blue,
               scaffoldBackgroundColor: GlobalStyles.backgroundColor,
               bottomNavigationBarTheme: GlobalStyles.bottomNavBarTheme,
-              appBarTheme: AppBarTheme(
+              appBarTheme: const AppBarTheme(
                 backgroundColor: GlobalStyles.navigationBarColor,
                 centerTitle: true,
                 foregroundColor: Colors.white,
@@ -49,8 +49,8 @@ class MyApp extends StatelessWidget {
             home: appState.isLoading
                 ? Container() // Pantalla vacía mientras carga
                 : appState.hasSeenTutorial
-                    ? (appState.userId == null ? LoginScreen() : MainNavigationScreen())
-                    : IntroSlides(), // Mostrar el tutorial si no se ha visto
+                    ? (appState.userId == null ? const LoginScreen() : const MainNavigationScreen())
+                    : const IntroSlides(), // Mostrar el tutorial si no se ha visto
           );
         },
       ),

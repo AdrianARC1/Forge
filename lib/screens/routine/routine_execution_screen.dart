@@ -16,16 +16,16 @@ import '../../styles/global_styles.dart';
 class RoutineExecutionScreen extends StatefulWidget {
   final Routine? routine;
 
-  RoutineExecutionScreen({this.routine});
+  const RoutineExecutionScreen({super.key, this.routine});
 
   @override
-  _RoutineExecutionScreenState createState() => _RoutineExecutionScreenState();
+  State<RoutineExecutionScreen> createState() => _RoutineExecutionScreenState();
 }
 
 class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with ExerciseManagementMixin {
   List<Exercise> originalExercises = [];
   String routineName = "Entrenamiento Vacío";
-  ValueNotifier<Duration> _displayDuration = ValueNotifier(Duration.zero);
+  final ValueNotifier<Duration> _displayDuration = ValueNotifier(Duration.zero);
   Timer? _localTimer;
 
   @override
@@ -112,9 +112,15 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
 
   @override
   void dispose() {
-    weightControllers.values.forEach((controller) => controller.dispose());
-    repsControllers.values.forEach((controller) => controller.dispose());
-    exertionControllers.values.forEach((controller) => controller.dispose());
+    for (var controller in weightControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in repsControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in exertionControllers.values) {
+      controller.dispose();
+    }
     _localTimer?.cancel();
     _displayDuration.dispose();
     super.dispose();
@@ -122,8 +128,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
 
   void _startLocalTimer() {
     if (_localTimer == null || !_localTimer!.isActive) {
-      _localTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-        _displayDuration.value += Duration(seconds: 1);
+      _localTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        _displayDuration.value += const Duration(seconds: 1);
         final appState = Provider.of<AppState>(context, listen: false);
         appState.minimizedRoutineDuration = _displayDuration.value;
       });
@@ -133,7 +139,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
   void _finishRoutine() {
     if (!_areAllSeriesCompleted()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Completa todas las series para finalizar la rutina")),
+        const SnackBar(content: Text("Completa todas las series para finalizar la rutina")),
       );
       return;
     }
@@ -163,8 +169,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Descartar Entrenamiento"),
-          content: Text("¿Estás seguro de que deseas descartar este entrenamiento? Todos los progresos no guardados se perderán."),
+          title: const Text("Descartar Entrenamiento"),
+          content: const Text("¿Estás seguro de que deseas descartar este entrenamiento? Todos los progresos no guardados se perderán."),
           actions: [
             AppBarButton(
               text: "No",
@@ -173,7 +179,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
               },
               textColor: Colors.blue,
               backgroundColor: Colors.transparent,
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
             ),
             AppBarButton(
               text: "Sí",
@@ -184,7 +190,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
               },
               textColor: Colors.red,
               backgroundColor: Colors.transparent,
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
             ),
           ],
         );
@@ -207,16 +213,16 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Guardar Rutina"),
+            title: const Text("Guardar Rutina"),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("¿Deseas guardar esta rutina como una nueva rutina?"),
+                const Text("¿Deseas guardar esta rutina como una nueva rutina?"),
                 TextField(
                   onChanged: (value) {
                     newRoutineName = value;
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Nombre de la nueva rutina",
                   ),
                 ),
@@ -231,7 +237,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                 },
                 textColor: Colors.blue,
                 backgroundColor: Colors.transparent,
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
               ),
               AppBarButton(
                 text: "No",
@@ -241,7 +247,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                 },
                 textColor: Colors.blue,
                 backgroundColor: Colors.transparent,
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
               ),
             ],
           );
@@ -256,7 +262,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Actualizar Rutina"),
+              title: const Text("Actualizar Rutina"),
               content: Text("$changeDescription\n¿Deseas actualizarla con estos cambios?"),
               actions: [
                 AppBarButton(
@@ -267,7 +273,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                   },
                   textColor: Colors.blue,
                   backgroundColor: Colors.transparent,
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 ),
                 AppBarButton(
                   text: "Sí",
@@ -277,7 +283,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                   },
                   textColor: Colors.blue,
                   backgroundColor: Colors.transparent,
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 ),
                 AppBarButton(
                   text: "Cancelar",
@@ -286,7 +292,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                   },
                   textColor: Colors.red,
                   backgroundColor: Colors.transparent,
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 ),
               ],
             );
@@ -311,17 +317,17 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     try {
       if (saveAsNewRoutine && newRoutineName != null && newRoutineName.trim().isNotEmpty) {
         Routine newRoutine = Routine(
-          id: Uuid().v4(),
+          id: const Uuid().v4(),
           name: newRoutineName.trim(),
           dateCreated: DateTime.now(),
           exercises: exercises.map((exercise) {
             return Exercise(
-              id: Uuid().v4(),
+              id: const Uuid().v4(),
               name: exercise.name,
               gifUrl: exercise.gifUrl,
               series: exercise.series.map((series) {
                 return Series(
-                  id: Uuid().v4(),
+                  id: const Uuid().v4(),
                   previousWeight: series.previousWeight,
                   previousReps: series.previousReps,
                   lastSavedWeight: series.lastSavedWeight,
@@ -345,12 +351,12 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         Routine updatedRoutine = widget.routine!.copyWith(
           exercises: exercises.map((exercise) {
             return Exercise(
-              id: Uuid().v4(),
+              id: const Uuid().v4(),
               name: exercise.name,
               gifUrl: exercise.gifUrl,
               series: exercise.series.map((series) {
                 return Series(
-                  id: Uuid().v4(),
+                  id: const Uuid().v4(),
                   previousWeight: series.previousWeight,
                   previousReps: series.previousReps,
                   lastSavedWeight: series.lastSavedWeight,
@@ -372,17 +378,17 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       }
 
       Routine completedRoutine = Routine(
-        id: Uuid().v4(),
+        id: const Uuid().v4(),
         name: routineName,
         dateCreated: DateTime.now(),
         exercises: exercises.map((exercise) {
           return Exercise(
-            id: Uuid().v4(),
+            id: const Uuid().v4(),
             name: exercise.name,
             gifUrl: exercise.gifUrl,
             series: exercise.series.map((series) {
               return Series(
-                id: Uuid().v4(),
+                id: const Uuid().v4(),
                 previousWeight: series.previousWeight,
                 previousReps: series.previousReps,
                 lastSavedWeight: series.lastSavedWeight,
@@ -406,11 +412,10 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => MainNavigationScreen()),
+        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
         (route) => false,
       );
     } catch (e) {
-      print("Error en _finalizeRoutine: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error al finalizar la rutina: $e")),
       );
@@ -446,15 +451,15 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("¿Cancelar rutina?"),
-          content: Text("¿Realmente quieres cancelar la rutina en ejecución?"),
+          title: const Text("¿Cancelar rutina?"),
+          content: const Text("¿Realmente quieres cancelar la rutina en ejecución?"),
           actions: [
             AppBarButton(
               text: "No",
               onPressed: () => Navigator.of(context).pop(),
               textColor: Colors.blue,
               backgroundColor: Colors.transparent,
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
             ),
             AppBarButton(
               text: "Sí",
@@ -467,7 +472,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
               },
               textColor: Colors.red,
               backgroundColor: Colors.transparent,
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
             ),
           ],
         );
@@ -621,7 +626,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                   onTap: () {
                     _minimizeRoutine();
                   },
-                  child: Icon(
+                  child: const Icon(
                     Icons.arrow_back,
                     color: GlobalStyles.textColor,
                     size: 24.0,
@@ -642,7 +647,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
               onPressed: _finishRoutine,
               textColor: GlobalStyles.buttonTextStyle.color,
               backgroundColor: GlobalStyles.backgroundButtonsColor,
-              padding: EdgeInsets.symmetric(horizontal: 18.0),
+              padding: const EdgeInsets.symmetric(horizontal: 18.0),
             ),
           ],
         ),
@@ -712,7 +717,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.6),
-                    offset: Offset(0, 5),
+                    offset: const Offset(0, 5),
                     blurRadius: 2,
                   ),
                 ],
@@ -721,7 +726,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
             Expanded(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
                   child: Column(
                     children: [
                       ...exercises.map((exercise) {
@@ -744,8 +749,8 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                           maxRecord: maxRecord,
                           showMaxRecord: true,
                         );
-                      }).toList(),
-                      SizedBox(height: 2),
+                      }),
+                      const SizedBox(height: 2),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -759,14 +764,14 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                             addExercise();
                             setState(() {});
                           },
-                          icon: Icon(Icons.add, color: Colors.black),
-                          label: Text(
+                          icon: const Icon(Icons.add, color: Colors.black),
+                          label: const Text(
                             "Introducir Ejercicio",
                             style: GlobalStyles.buttonTextStyle,
                           ),
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                     ],
                   ),
                 ),

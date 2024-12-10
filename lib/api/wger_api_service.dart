@@ -30,17 +30,16 @@ class WgerApiService {
         }
 
         // Agregar la URL de la imagen a cada ejercicio
-        exercises.forEach((exercise) {
+        for (var exercise in exercises) {
           int id = exercise['id'];
           exercise['image'] = exerciseImages[id];
-        });
+        }
 
         return exercises.cast<Map<String, dynamic>>();
       } else {
         throw Exception("Error al obtener ejercicios: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error en la API de Wger: $e");
       return [];
     }
   }
@@ -72,7 +71,7 @@ class WgerApiService {
         }
       }
     } catch (e) {
-      print("Error en la API de Wger: $e");
+      // Error
     }
   }
 
@@ -88,7 +87,6 @@ class WgerApiService {
         throw Exception("Error al obtener categorías de músculos: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error en la API de Wger: $e");
       return [];
     }
   }
@@ -105,7 +103,6 @@ class WgerApiService {
         throw Exception("Error al obtener equipos: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error en la API de Wger: $e");
       return [];
     }
   }

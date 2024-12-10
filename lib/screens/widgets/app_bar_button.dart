@@ -11,13 +11,13 @@ class AppBarButton extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
 
   const AppBarButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.textColor,
     this.backgroundColor,
     this.padding,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,12 +25,6 @@ class AppBarButton extends StatelessWidget {
       padding: padding ?? const EdgeInsets.symmetric(horizontal: 0.0),
       child: TextButton(
         onPressed: onPressed,
-        child: Text(
-          text,
-          style: GlobalStyles.buttonTextStyle.copyWith(
-            color: textColor ?? GlobalStyles.buttonTextStyle.color,
-          ),
-        ),
         style: TextButton.styleFrom(
           backgroundColor: backgroundColor, // Eliminado el valor por defecto
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -38,6 +32,12 @@ class AppBarButton extends StatelessWidget {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Text(
+          text,
+          style: GlobalStyles.buttonTextStyle.copyWith(
+            color: textColor ?? GlobalStyles.buttonTextStyle.color,
           ),
         ),
       ),

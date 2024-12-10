@@ -22,7 +22,8 @@ class ExerciseFormWidget extends StatefulWidget {
   final bool isReadOnly;
   final bool showMaxRecord;
 
-  ExerciseFormWidget({
+  const ExerciseFormWidget({
+    super.key, 
     required this.exercise,
     this.onAddSeries,
     this.onDeleteSeries,
@@ -40,7 +41,7 @@ class ExerciseFormWidget extends StatefulWidget {
   });
 
   @override
-  _ExerciseFormWidgetState createState() => _ExerciseFormWidgetState();
+  State<ExerciseFormWidget> createState() => _ExerciseFormWidgetState();
 }
 
 class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTickerProviderStateMixin {
@@ -64,7 +65,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
 
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 1),
+      duration: const Duration(seconds: 1),
     );
 
     _initializeMaxRecord();
@@ -116,12 +117,12 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
         child: Material(
           color: Colors.transparent,
           child: Container(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black26,
                   blurRadius: 4.0,
@@ -172,7 +173,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                               activeSliderSeriesId = null;
                             });
                           },
-                          child: Text(
+                          child: const Text(
                             'Cancelar',
                             style: TextStyle(color: Colors.red),
                           ),
@@ -187,7 +188,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                               activeSliderSeriesId = null;
                             });
                           },
-                          child: Text('Guardar'),
+                          child: const Text('Guardar'),
                         ),
                       ],
                     ),
@@ -200,7 +201,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
       ),
     );
 
-    Overlay.of(context)!.insert(activeOverlay!);
+    Overlay.of(context).insert(activeOverlay!);
   }
 
   void _checkForNewRecord(Series series) {
@@ -231,7 +232,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
   @override
   Widget build(BuildContext context) {
     bool showRPEAndCheckbox = widget.isExecution;
-    bool showEditOptions = widget.isExecution || widget.allowEditing;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,7 +239,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
         Slidable(
           key: ValueKey(widget.exercise.id), // Clave única para cada Slidable
           endActionPane: ActionPane(
-            motion: ScrollMotion(),
+            motion: const ScrollMotion(),
             extentRatio: (widget.isExecution || widget.allowEditing) ? 1 : 0.5,
             children: [
               SlidableAction(
@@ -280,10 +280,10 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                         : null,
                   ),
                   child: widget.exercise.gifUrl == null
-                      ? Icon(Icons.image_not_supported, color: Colors.grey)
+                      ? const Icon(Icons.image_not_supported, color: Colors.grey)
                       : null,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +303,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                               builder: (context, child) {
                                 return Transform.scale(
                                   scale: 1.0 + (_animationController.value * 0.5),
-                                  child: Icon(
+                                  child: const Icon(
                                     Icons.emoji_events,
                                     color: Colors.amber,
                                     size: 20,
@@ -311,34 +311,34 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                 );
                               },
                             ),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
-                              '${currentMaxWeight}kg x ${currentMaxReps} reps',
+                              '${currentMaxWeight}kg x $currentMaxReps reps',
                               style: GlobalStyles.subtitleStyle.copyWith(
                                 fontSize: 14,
                                 color: Colors.grey[300],
                               ),
                             ),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             GestureDetector(
                               onTap: () {
                                 showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: Text('Máximo Histórico'),
-                                    content: Text(
+                                    title: const Text('Máximo Histórico'),
+                                    content: const Text(
                                         'Este es tu mejor rendimiento registrado en este ejercicio.'),
                                     actions: [
                                       TextButton(
                                         onPressed: () =>
                                             Navigator.of(context).pop(),
-                                        child: Text('OK'),
+                                        child: const Text('OK'),
                                       ),
                                     ],
                                   ),
                                 );
                               },
-                              child: Icon(
+                              child: const Icon(
                                 Icons.info_outline,
                                 color: Colors.white,
                                 size: 20,
@@ -358,90 +358,80 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
           padding: const EdgeInsets.symmetric(horizontal: 0.0),
           child: Row(
             children: [
-              Expanded(
+              const Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  child: Container(
-                    child: Center(
-                      child: Text(
-                        "SERIE",
-                        style: GlobalStyles.subtitleStyleRoutineData,
-                      ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Center(
+                    child: Text(
+                      "SERIE",
+                      style: GlobalStyles.subtitleStyleRoutineData,
                     ),
                   ),
                 ),
               ),
               if (widget.isExecution)
-                Expanded(
+                const Expanded(
                   flex: 3,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                    child: Container(
-                      child: Center(
-                        child: Text(
-                          "ANTERIOR",
-                          style: GlobalStyles.subtitleStyleRoutineData,
-                        ),
+                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    child: Center(
+                      child: Text(
+                        "ANTERIOR",
+                        style: GlobalStyles.subtitleStyleRoutineData,
                       ),
                     ),
                   ),
                 )
               else
-                SizedBox(),
-              Expanded(
+                const SizedBox(),
+              const Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  child: Container(
-                    child: Center(
-                      child: Text(
-                        "KG",
-                        style: GlobalStyles.subtitleStyleRoutineData,
-                      ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Center(
+                    child: Text(
+                      "KG",
+                      style: GlobalStyles.subtitleStyleRoutineData,
                     ),
                   ),
                 ),
               ),
-              Expanded(
+              const Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  child: Container(
-                    child: Center(
-                      child: Text(
-                        "REPS",
-                        style: GlobalStyles.subtitleStyleRoutineData,
-                      ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Center(
+                    child: Text(
+                      "REPS",
+                      style: GlobalStyles.subtitleStyleRoutineData,
                     ),
                   ),
                 ),
               ),
               if (showRPEAndCheckbox)
-                Expanded(
+                const Expanded(
                   flex: 2,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                    child: Container(
-                      child: Center(
-                        child: Text(
-                          "RPE",
-                          style: GlobalStyles.subtitleStyleRoutineData,
-                        ),
+                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    child: Center(
+                      child: Text(
+                        "RPE",
+                        style: GlobalStyles.subtitleStyleRoutineData,
                       ),
                     ),
                   ),
                 )
               else
-                SizedBox(),
+                const SizedBox(),
               if (showRPEAndCheckbox)
                 Container(
                   width: 40,
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  child: SizedBox(),
+                  child: const SizedBox(),
                 )
               else
-                SizedBox(),
+                const SizedBox(),
             ],
           ),
         ),
@@ -450,8 +440,6 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
             int seriesIndex = entry.key;
             Series series = entry.value;
             bool isActive = activeSliderSeriesId == series.id;
-            double currentRPE = tempRPEValues[series.id]?.toDouble() ??
-                series.perceivedExertion.toDouble();
 
             return DismissibleSeriesItem(
               series: series,
@@ -460,7 +448,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                 decoration: BoxDecoration(
                   // Solo verde si isExecution es true
                   color: (series.isCompleted && widget.isExecution)
-                      ? Color(0xFF008922)
+                      ? const Color(0xFF008922)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -517,7 +505,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                           ),
                         )
                       else
-                        SizedBox(),
+                        const SizedBox(),
                       Expanded(
                         flex: 2,
                         child: widget.isReadOnly
@@ -565,7 +553,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                       fillColor: series.isCompleted
                                           ? Colors.transparent
                                           : GlobalStyles.inputBackgroundColor,
-                                      contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide.none,
                                         borderRadius: BorderRadius.circular(8),
@@ -628,7 +616,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                       fillColor: series.isCompleted
                                           ? Colors.transparent
                                           : GlobalStyles.inputBackgroundColor,
-                                      contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide.none,
                                         borderRadius: BorderRadius.circular(8),
@@ -692,7 +680,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                           ),
                         )
                       else
-                        SizedBox(),
+                        const SizedBox(),
                       if (showRPEAndCheckbox)
                         Container(
                           width: 40,
@@ -724,16 +712,16 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                                     }
                                   });
                                 },
-                                activeColor: Color(0xFF2D753F),
+                                activeColor: const Color(0xFF2D753F),
                                 checkColor: Colors.white,
-                                side: BorderSide(
+                                side: const BorderSide(
                                   color: Color(0xFF2D753F),
                                   width: 2.0,
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                visualDensity: VisualDensity(
+                                visualDensity: const VisualDensity(
                                   horizontal: -4,
                                   vertical: -4,
                                 ),
@@ -742,7 +730,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                           ),
                         )
                       else
-                        SizedBox(),
+                        const SizedBox(),
                     ],
                   ),
                 ),
@@ -763,7 +751,7 @@ class _ExerciseFormWidgetState extends State<ExerciseFormWidget> with SingleTick
                   ),
                 ),
                 onPressed: widget.onAddSeries,
-                icon: Icon(Icons.add, color: Colors.white),
+                icon: const Icon(Icons.add, color: Colors.white),
                 label: Text(
                   "Introducir serie",
                   style: GlobalStyles.buttonTextStyle.copyWith(color: Colors.white),

@@ -27,7 +27,6 @@ class ExerciseDbApiService {
         throw Exception("Error al obtener ejercicios: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error en la API de ExerciseDB: $e");
       return [];
     }
   }
@@ -53,7 +52,6 @@ class ExerciseDbApiService {
         throw Exception("Error al obtener ejercicios filtrados: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error en la API de ExerciseDB: $e");
       return [];
     }
   }
@@ -71,7 +69,6 @@ class ExerciseDbApiService {
         throw Exception("Error al obtener ejercicios por músculo: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error en la API de ExerciseDB: $e");
       return [];
     }
   }
@@ -89,7 +86,6 @@ class ExerciseDbApiService {
         throw Exception("Error al obtener ejercicios por equipo: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error en la API de ExerciseDB: $e");
       return [];
     }
   }
@@ -107,7 +103,6 @@ class ExerciseDbApiService {
         throw Exception("Error al obtener grupos musculares: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error en la API de ExerciseDB: $e");
       return [];
     }
   }
@@ -125,7 +120,6 @@ class ExerciseDbApiService {
         throw Exception("Error al obtener lista de equipos: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error en la API de ExerciseDB: $e");
       return [];
     }
   }

@@ -10,13 +10,14 @@ import 'edit_profile_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:fl_chart/fl_chart.dart';
 import './widgets/base_scaffold.dart';
-import './widgets/app_bar_button.dart';
 import '../styles/global_styles.dart';
 import 'widgets/history_list_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
@@ -30,11 +31,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
           (route) => false,
         );
       });
-      return Scaffold(backgroundColor: GlobalStyles.backgroundColor);
+      return const Scaffold(backgroundColor: GlobalStyles.backgroundColor);
     }
 
     int totalWorkouts = appState.completedRoutines.length;
@@ -53,12 +54,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        title: Text('Perfil', style: GlobalStyles.insideAppTitleStyle),
+        title: const Text('Perfil', style: GlobalStyles.insideAppTitleStyle),
         leading: IconButton(
-          icon: Icon(Icons.download, color: GlobalStyles.textColor), // Icono de descarga
+          icon: const Icon(Icons.download, color: GlobalStyles.textColor), // Icono de descarga
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Funcionalidad en desarrollo')),
+              const SnackBar(content: Text('Funcionalidad en desarrollo')),
             );
           },
         ),
@@ -66,7 +67,7 @@ actions: [
   Padding(
     padding: const EdgeInsets.symmetric(horizontal: 14.0),
     child: IconButton(
-      icon: Icon(
+      icon: const Icon(
         Icons.settings,
         color: GlobalStyles.textColor,
         size: 24.0,
@@ -74,7 +75,7 @@ actions: [
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SettingsScreen()),
+          MaterialPageRoute(builder: (context) => const SettingsScreen()),
         );
       },
       tooltip: 'Configuración',
@@ -94,8 +95,8 @@ actions: [
                 color: GlobalStyles.inputBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: EdgeInsets.all(16.0),
-              margin: EdgeInsets.only(top: 16.0),
+              padding: const EdgeInsets.all(16.0),
+              margin: const EdgeInsets.only(top: 16.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -108,36 +109,36 @@ actions: [
                       }
                     },
                     child: CircleAvatar(
-                      radius: 50,
+                      radius: 40,
                       backgroundColor: Colors.transparent,
                       backgroundImage: appState.profileImagePath != null
                           ? FileImage(File(appState.profileImagePath!))
-                          : AssetImage('assets/default_profile.png') as ImageProvider,
+                          : const AssetImage('assets/default_profile.png') as ImageProvider,
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           appState.username ?? 'Usuario',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: GlobalStyles.textColor),
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: GlobalStyles.textColor),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           'Rutinas completadas: $totalWorkouts',
-                          style: TextStyle(color: GlobalStyles.textColorWithOpacity),
+                          style: const TextStyle(color: GlobalStyles.textColorWithOpacity),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.edit, color: GlobalStyles.textColor),
+                    icon: const Icon(Icons.edit, color: GlobalStyles.textColor),
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => EditProfileScreen()),
+                        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
                       );
                     },
                   ),
@@ -145,50 +146,50 @@ actions: [
               ),
             ),
 
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             // Volumen total
             Container(
               decoration: BoxDecoration(
                 color: GlobalStyles.inputBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Icon(Icons.fitness_center, color: GlobalStyles.textColor),
-                  SizedBox(width: 8),
+                  const Icon(Icons.fitness_center, color: GlobalStyles.textColor),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Volumen total acumulado: $totalVolume kg',
-                      style: TextStyle(color: GlobalStyles.textColor),
+                      style: const TextStyle(color: GlobalStyles.textColor),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // Gráficos
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 0),
               child: Text('Progreso', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
                 color: GlobalStyles.inputBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               height: 350,
-              child: DataGraphs(),
+              child: const DataGraphs(),
             ),
 
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // Mejores marcas personales
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 0),
               child: Text(
                 'Mejores Marcas Personales',
                 style: TextStyle(
@@ -198,15 +199,15 @@ actions: [
                 ),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
                 color: GlobalStyles.inputBackgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
               child: top5Records.isEmpty && remainingRecords.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Text(
                         'No hay marcas personales registradas.',
                         style: TextStyle(
@@ -226,19 +227,19 @@ actions: [
                                   ? NetworkImage(record['gifUrl'])
                                   : null,
                               child: record['gifUrl'] == null
-                                  ? Icon(Icons.image_not_supported)
+                                  ? const Icon(Icons.image_not_supported)
                                   : null,
                             ),
                             title: Text(
                               record['exerciseName'],
-                              style: TextStyle(color: GlobalStyles.textColor),
+                              style: const TextStyle(color: GlobalStyles.textColor),
                             ),
                             subtitle: Text(
                               '${record['maxWeight']} kg x ${record['maxReps']} reps',
-                              style: TextStyle(color: GlobalStyles.textColorWithOpacity),
+                              style: const TextStyle(color: GlobalStyles.textColorWithOpacity),
                             ),
                           );
-                        }).toList(),
+                        }),
 
                         // Botón para ver más ejercicios si hay registros adicionales
                         if (remainingRecords.isNotEmpty && !showAllRecords)
@@ -248,7 +249,7 @@ actions: [
                                 showAllRecords = true;
                               });
                             },
-                            child: Text(
+                            child: const Text(
                               'Ver más ejercicios',
                               style: TextStyle(color: Colors.blue),
                             ),
@@ -263,35 +264,35 @@ actions: [
                                     ? NetworkImage(record['gifUrl'])
                                     : null,
                                 child: record['gifUrl'] == null
-                                    ? Icon(Icons.image_not_supported)
+                                    ? const Icon(Icons.image_not_supported)
                                     : null,
                               ),
                               title: Text(
                                 record['exerciseName'],
-                                style: TextStyle(color: GlobalStyles.textColor),
+                                style: const TextStyle(color: GlobalStyles.textColor),
                               ),
                               subtitle: Text(
                                 '${record['maxWeight']} kg x ${record['maxReps']} reps',
-                                style: TextStyle(color: GlobalStyles.textColorWithOpacity),
+                                style: const TextStyle(color: GlobalStyles.textColorWithOpacity),
                               ),
                             );
-                          }).toList(),
+                          }),
                       ],
                     ),
 ),
 
 
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // Historial
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 0),
               child: Text('Historial', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: GlobalStyles.textColor)),
             ),
-            SizedBox(height: 8),
-            HistoryListWidget(),
+            const SizedBox(height: 8),
+            const HistoryListWidget(),
 
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -304,8 +305,10 @@ actions: [
 // Puedes usar la última versión que te pasé de DataGraphs.
 
 class DataGraphs extends StatefulWidget {
+  const DataGraphs({super.key});
+
   @override
-  _DataGraphsState createState() => _DataGraphsState();
+  State<DataGraphs> createState() => _DataGraphsState();
 }
 
 class _DataGraphsState extends State<DataGraphs> {
@@ -342,16 +345,16 @@ class _DataGraphsState extends State<DataGraphs> {
                     getTitlesWidget: bottomTitleWidgets,
                   ),
                 ),
-                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
-              gridData: FlGridData(show: false),
+              gridData: const FlGridData(show: false),
               borderData: FlBorderData(show: false),
               barTouchData: BarTouchData(enabled: false),
             ),
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -386,7 +389,7 @@ class _DataGraphsState extends State<DataGraphs> {
             ],
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -529,7 +532,7 @@ class _DataGraphsState extends State<DataGraphs> {
           barRods: [
             BarChartRodData(
               toY: yValue,
-              color: Color(0xFFFFAA76),
+              color: const Color(0xFFFFAA76),
               width: 16,
               borderRadius: BorderRadius.circular(4),
             ),
@@ -542,14 +545,13 @@ class _DataGraphsState extends State<DataGraphs> {
   }
 
   Widget leftTitleWidgets(double value, TitleMeta meta) {
-    if (meta.max == null || meta.min == null) return Container();
     double interval = _calculateInterval(meta.max);
     if (value % interval == 0) {
       return SideTitleWidget(
         axisSide: meta.axisSide,
         child: Text(
           value.toInt().toString(),
-          style: TextStyle(color: Colors.white70, fontSize: 12),
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
         ),
       );
     }
@@ -587,7 +589,7 @@ class _DataGraphsState extends State<DataGraphs> {
       axisSide: meta.axisSide,
       child: Text(
         text,
-        style: TextStyle(color: Colors.white70, fontSize: 10),
+        style: const TextStyle(color: Colors.white70, fontSize: 10),
       ),
     );
   }
@@ -598,7 +600,7 @@ class DataButton extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const DataButton({
+  const DataButton({super.key, 
     required this.label,
     required this.selected,
     required this.onTap,
@@ -625,7 +627,7 @@ class TimeframeButton extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const TimeframeButton({
+  const TimeframeButton({super.key, 
     required this.label,
     required this.selected,
     required this.onTap,
@@ -641,7 +643,7 @@ class TimeframeButton extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: onTap,
-        child: Text(label, style: TextStyle(color: Colors.white)),
+        child: Text(label, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
