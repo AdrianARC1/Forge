@@ -1,5 +1,3 @@
-// lib/screens/routine/routine_form.dart
-
 import 'package:flutter/material.dart';
 import 'package:forge/styles/global_styles.dart';
 import 'package:provider/provider.dart';
@@ -7,16 +5,18 @@ import '../exercice_selection_screen.dart';
 import '../../app_state.dart';
 import 'package:uuid/uuid.dart';
 import '../widgets/exercise_form_widget.dart';
-import '../widgets/base_scaffold.dart'; // Importa el BaseScaffold
-import '../widgets/app_bar_button.dart'; // Importa AppBarButton
+import '../widgets/base_scaffold.dart';
+import '../widgets/app_bar_button.dart';
+import 'package:toastification/toastification.dart';
 
 class RoutineForm extends StatefulWidget {
-  final Routine? routine; // Si es null, estamos creando una nueva rutina
+  final Routine? routine;
   final String title;
   final Function(Routine) onSave;
   final Function() onCancel;
 
-  const RoutineForm({super.key, 
+  const RoutineForm({
+    super.key,
     this.routine,
     required this.title,
     required this.onSave,
@@ -40,18 +40,16 @@ class _RoutineFormState extends State<RoutineForm> {
   void initState() {
     super.initState();
     if (widget.routine != null) {
-      // Estamos editando una rutina existente
       _routineNameController.text = widget.routine!.name;
       selectedExercises = widget.routine!.exercises;
 
-      // Inicializar controladores para los ejercicios existentes
       for (var exercise in selectedExercises) {
         for (var series in exercise.series) {
           weightControllers[series.id] =
               TextEditingController(text: series.weight.toString());
           repsControllers[series.id] =
               TextEditingController(text: series.reps.toString());
-          exertionControllers[series.id] = TextEditingController(); // No se utiliza en creación/edición
+          exertionControllers[series.id] = TextEditingController();
         }
       }
     }
@@ -82,7 +80,6 @@ class _RoutineFormState extends State<RoutineForm> {
           );
           selectedExercises.add(exercise);
 
-          // Inicializar controladores para la nueva serie
           for (var series in exercise.series) {
             weightControllers[series.id] = TextEditingController();
             repsControllers[series.id] = TextEditingController();
@@ -104,7 +101,6 @@ class _RoutineFormState extends State<RoutineForm> {
       );
       exercise.series.add(newSeries);
 
-      // Inicializar controladores
       weightControllers[newSeries.id] = TextEditingController();
       repsControllers[newSeries.id] = TextEditingController();
       exertionControllers[newSeries.id] = TextEditingController();
@@ -115,7 +111,6 @@ class _RoutineFormState extends State<RoutineForm> {
     setState(() {
       Series seriesToRemove = exercise.series[seriesIndex];
 
-      // Liberar y eliminar controladores
       weightControllers[seriesToRemove.id]?.dispose();
       weightControllers.remove(seriesToRemove.id);
       repsControllers[seriesToRemove.id]?.dispose();
@@ -129,7 +124,6 @@ class _RoutineFormState extends State<RoutineForm> {
 
   void _deleteExercise(Exercise exercise) {
     setState(() {
-      // Liberar controladores de todas las series del ejercicio
       for (var series in exercise.series) {
         weightControllers[series.id]?.dispose();
         weightControllers.remove(series.id);
@@ -141,10 +135,6 @@ class _RoutineFormState extends State<RoutineForm> {
 
       selectedExercises.remove(exercise);
     });
-  }
-
-  void _cancel() {
-    widget.onCancel();
   }
 
   bool _areAllSeriesCompleted() {
@@ -162,28 +152,42 @@ class _RoutineFormState extends State<RoutineForm> {
     FocusScope.of(context).unfocus();
 
     if (!_areAllSeriesCompleted()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Completa todas las series antes de guardar")),
+      toastification.show(
+        context: context,
+        title: const Text('Atención'),
+        description: const Text("Completa todas las series antes de guardar"),
+        type: ToastificationType.info,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.bottomCenter
       );
       return;
     }
 
     final routineName = _routineNameController.text.trim();
     if (routineName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor, ingresa un nombre para la rutina")),
+      toastification.show(
+        context: context,
+        title: const Text('Atención'),
+        description: const Text("Por favor, ingresa un nombre para la rutina"),
+        type: ToastificationType.warning,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.bottomCenter
       );
       return;
     }
 
     if (selectedExercises.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Agrega al menos un ejercicio a la rutina")),
+      toastification.show(
+        context: context,
+        title: const Text('Atención'),
+        description: const Text("Agrega al menos un ejercicio a la rutina"),
+        type: ToastificationType.info,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.bottomCenter
       );
       return;
     }
 
-    // Actualizar los valores de weight y reps en las series
     for (var exercise in selectedExercises) {
       for (var series in exercise.series) {
         series.weight =
@@ -202,6 +206,50 @@ class _RoutineFormState extends State<RoutineForm> {
     widget.onSave(newRoutine);
   }
 
+  Future<void> _replaceExercise(Exercise oldExercise) async {
+    final selectedExercise = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen(singleSelection: true)),
+    );
+
+    if (selectedExercise != null) {
+      setState(() {
+        for (var series in oldExercise.series) {
+          weightControllers[series.id]?.dispose();
+          weightControllers.remove(series.id);
+          repsControllers[series.id]?.dispose();
+          repsControllers.remove(series.id);
+          exertionControllers[series.id]?.dispose();
+          exertionControllers.remove(series.id);
+        }
+        int index = selectedExercises.indexOf(oldExercise);
+
+        final newExercise = Exercise(
+          id: selectedExercise['id'].toString(),
+          name: selectedExercise['name'],
+          gifUrl: selectedExercise['gifUrl'],
+          series: [
+            Series(
+              id: const Uuid().v4(),
+              weight: 0,
+              reps: 0,
+              perceivedExertion: 0,
+              isCompleted: false,
+            ),
+          ],
+        );
+
+        selectedExercises[index] = newExercise;
+
+        for (var series in newExercise.series) {
+          weightControllers[series.id] = TextEditingController();
+          repsControllers[series.id] = TextEditingController();
+          exertionControllers[series.id] = TextEditingController();
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
     _routineNameController.dispose();
@@ -216,54 +264,6 @@ class _RoutineFormState extends State<RoutineForm> {
       controller.dispose();
     }
     super.dispose();
-  }
-
-  Future<void> _replaceExercise(Exercise oldExercise) async {
-    final selectedExercise = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen()),
-    );
-
-    if (selectedExercise != null) {
-      setState(() {
-        // Eliminar controladores del ejercicio antiguo
-        for (var series in oldExercise.series) {
-          weightControllers[series.id]?.dispose();
-          weightControllers.remove(series.id);
-          repsControllers[series.id]?.dispose();
-          repsControllers.remove(series.id);
-          exertionControllers[series.id]?.dispose();
-          exertionControllers.remove(series.id);
-        }
-        int index = selectedExercises.indexOf(oldExercise);
-
-        // Crear nuevo ejercicio
-        final newExercise = Exercise(
-          id: selectedExercise['id'].toString(),
-          name: selectedExercise['name'],
-          gifUrl: selectedExercise['gifUrl'], // Añade esta línea
-          series: [
-            Series(
-              id: const Uuid().v4(),
-              weight: 0,
-              reps: 0,
-              perceivedExertion: 0,
-              isCompleted: false,
-            ),
-          ],
-        );
-
-        // Reemplazar en la lista
-        selectedExercises[index] = newExercise;
-
-        // Inicializar controladores para el nuevo ejercicio
-        for (var series in newExercise.series) {
-          weightControllers[series.id] = TextEditingController();
-          repsControllers[series.id] = TextEditingController();
-          exertionControllers[series.id] = TextEditingController();
-        }
-      });
-    }
   }
 
   @override
@@ -283,7 +283,7 @@ class _RoutineFormState extends State<RoutineForm> {
         centerTitle: true,
         leading: AppBarButton(
           text: 'Cancelar',
-          onPressed: _cancel,
+          onPressed: widget.onCancel,
           textColor: GlobalStyles.textColor,
           backgroundColor: Colors.transparent,
         ),
@@ -301,11 +301,10 @@ class _RoutineFormState extends State<RoutineForm> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0), // Sin padding general
+            padding: const EdgeInsets.symmetric(horizontal: 0.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch, // Asegura que los hijos ocupen todo el ancho
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Campo para el nombre de la rutina con sombra en el borde inferior
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -317,34 +316,35 @@ class _RoutineFormState extends State<RoutineForm> {
                         hintStyle: GlobalStyles.subtitleStyle.copyWith(
                           color: GlobalStyles.placeholderColor,
                         ),
-                        filled: false, // Eliminamos el fondo relleno
-                        border: InputBorder.none, // Eliminamos los bordes por defecto
+                        filled: false,
+                        border: InputBorder.none,
                       ),
                       style: GlobalStyles.subtitleStyle,
                     ),
-                    // Línea inferior con sombra
                     Container(
                       height: 2,
                       decoration: BoxDecoration(
                         color: GlobalStyles.inputBorderColor,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.6), // Sombra sutil
-                            offset: const Offset(0, 5), // Posición de la sombra
-                            blurRadius: 2, // Radio de desenfoque
+                            color: Colors.black.withOpacity(0.6),
+                            offset: const Offset(0, 5),
+                            blurRadius: 2,
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20), // Espacio entre el TextField y los siguientes widgets
+                const SizedBox(height: 20), 
+                const SizedBox(height: 20), 
 
-                // Gestión de ejercicios seleccionados
+                const SizedBox(height: 20),
+
                 if (selectedExercises.isEmpty) ...[
                   const SizedBox(height: 80),
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0), // Añade padding solo aquí
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
                       'Introduce algún ejercicio para empezar',
                       style: GlobalStyles.subtitleStyleHighFont,
@@ -353,9 +353,9 @@ class _RoutineFormState extends State<RoutineForm> {
                   ),
                   const SizedBox(height: 16),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: SizedBox(
-                      width: double.infinity, // Hace que el botón llene horizontalmente
+                      width: double.infinity,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: GlobalStyles.backgroundButtonsColor,
@@ -373,9 +373,8 @@ class _RoutineFormState extends State<RoutineForm> {
                     ),
                   ),
                 ] else ...[
-                  // Lista de ejercicios
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: Column(
                       children: selectedExercises.map((exercise) {
                         final maxRecord = appState.maxExerciseRecords[exercise.name];
@@ -392,16 +391,15 @@ class _RoutineFormState extends State<RoutineForm> {
                           onReplaceExercise: () => _replaceExercise(exercise),
                           maxRecord: maxRecord,
                           allowEditing: true,
-                          showMaxRecord: widget.routine != null, // Mostrar en edición, ocultar en creación
+                          showMaxRecord: widget.routine != null,
                         );
                       }).toList(),
                     ),
                   ),
-                  // Botón para añadir más ejercicios
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0), // Añade padding solo aquí
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
                     child: SizedBox(
-                      width: double.infinity, // Hace que el botón llene horizontalmente
+                      width: double.infinity,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: GlobalStyles.backgroundButtonsColor,

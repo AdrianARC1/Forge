@@ -1,5 +1,3 @@
-// lib/screens/routine/routine_summary_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../../app_state.dart';
 import '../widgets/base_scaffold.dart';
@@ -10,7 +8,7 @@ class RoutineSummaryScreen extends StatefulWidget {
   final Duration duration;
   final VoidCallback onDiscard;
   final VoidCallback onResume;
-  final void Function(Routine updatedRoutine) onSave; // se cambia a aceptar un Routine
+  final void Function(Routine updatedRoutine) onSave;
 
   const RoutineSummaryScreen({super.key, 
     required this.routine,

@@ -1,4 +1,3 @@
-// lib/mixins/exercise_management_mixin.dart
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:forge/app_state.dart';
@@ -48,7 +47,7 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
   void addSeriesToExercise(Exercise exercise) {
     setState(() {
       Series newSeries = Series(
-        id: const Uuid().v4(), // Genera un nuevo UUID para la serie
+        id: const Uuid().v4(),
         weight: 0,
         reps: 0,
         perceivedExertion: 1,
@@ -56,7 +55,6 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
       );
       exercise.series.add(newSeries);
 
-      // Inicializar controladores
       weightControllers[newSeries.id] = TextEditingController();
       repsControllers[newSeries.id] = TextEditingController();
       exertionControllers[newSeries.id] = TextEditingController();
@@ -67,7 +65,6 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
     setState(() {
       Series seriesToRemove = exercise.series[seriesIndex];
 
-      // Liberar y eliminar controladores
       weightControllers[seriesToRemove.id]?.dispose();
       weightControllers.remove(seriesToRemove.id);
       repsControllers[seriesToRemove.id]?.dispose();
@@ -81,7 +78,6 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
 
   void deleteExercise(Exercise exercise) {
     setState(() {
-      // Liberar controladores asociados a las series del ejercicio
       for (var series in exercise.series) {
         weightControllers[series.id]?.dispose();
         weightControllers.remove(series.id);
@@ -97,12 +93,11 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
   Future<void> replaceExercise(Exercise oldExercise) async {
     final selectedExercise = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen()),
+      MaterialPageRoute(builder: (context) => const ExerciseSelectionScreen(singleSelection: true)),
     );
 
     if (selectedExercise != null) {
       setState(() {
-        // Eliminar controladores del ejercicio antiguo
         for (var series in oldExercise.series) {
           weightControllers[series.id]?.dispose();
           weightControllers.remove(series.id);
@@ -113,10 +108,10 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
         }
         int index = exercises.indexOf(oldExercise);
 
-        // Crear nuevo ejercicio
         final newExercise = Exercise(
           id: selectedExercise['id'].toString(),
           name: selectedExercise['name'],
+          gifUrl: selectedExercise['gifUrl'],
           series: [
             Series(
               id: const Uuid().v4(),
@@ -128,10 +123,8 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
           ],
         );
 
-        // Reemplazar en la lista
         exercises[index] = newExercise;
 
-        // Inicializar controladores para el nuevo ejercicio
         for (var series in newExercise.series) {
           weightControllers[series.id] = TextEditingController();
           repsControllers[series.id] = TextEditingController();
@@ -141,7 +134,7 @@ mixin ExerciseManagementMixin<T extends StatefulWidget> on State<T> {
     }
   }
 
-void autofillSeries(Series series, {bool markCompleted = true}) {
+  void autofillSeries(Series series, {bool markCompleted = true}) {
     setState(() {
       if (series.weight == 0 && series.previousWeight != null) {
         series.weight = series.previousWeight!;

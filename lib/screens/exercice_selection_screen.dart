@@ -1,5 +1,3 @@
-// lib/screens/exercise_selection_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
@@ -8,7 +6,9 @@ import 'widgets/base_scaffold.dart';
 import 'widgets/app_bar_button.dart';
 
 class ExerciseSelectionScreen extends StatefulWidget {
-  const ExerciseSelectionScreen({super.key});
+  final bool singleSelection;
+
+  const ExerciseSelectionScreen({super.key, this.singleSelection = false});
 
   @override
   State<ExerciseSelectionScreen> createState() => _ExerciseSelectionScreenState();
@@ -22,7 +22,7 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   bool _isLoading = false;
   final String allMusclesOption = "Todos\n los músculos";
   final String allEquipmentOption = "Todos\n los equipos";
-  late AppState appState; 
+  late AppState appState;
   bool _initialized = false;
 
   final Set<String> _selectedExercises = {};
@@ -125,7 +125,6 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
   }
 
   void _onAddSelected() {
-    // Devuelve una lista de ejercicios seleccionados con todos sus datos
     final selectedExData = appState.exercises
         .where((ex) => _selectedExercises.contains(ex['id'].toString()))
         .toList();
@@ -177,7 +176,6 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
       ),
       body: Column(
         children: [
-          // Campo de búsqueda
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
             child: TextField(
@@ -207,8 +205,6 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
               },
             ),
           ),
-
-          // Filtros
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 0),
             child: Row(
@@ -233,8 +229,6 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
               ],
             ),
           ),
-
-          // Lista de ejercicios
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
@@ -289,35 +283,38 @@ class _ExerciseSelectionScreenState extends State<ExerciseSelectionScreen> {
                                 '${exercise['target']}',
                                 style: GlobalStyles.subtitleStyle.copyWith(color: Colors.grey[400]),
                               ),
-                              trailing: isSelected
+                              onTap: () {
+                                if (widget.singleSelection) {
+                                  Navigator.pop(context, exercise);
+                                } else {
+                                  _toggleSelection(exercise);
+                                }
+                              },
+                              trailing: isSelected && !widget.singleSelection
                                   ? const Icon(Icons.check, color: Colors.white)
                                   : null,
-                              onTap: () {
-                                _toggleSelection(exercise);
-                              },
                             );
                           },
                         ),
             ),
           ),
-
-          // Botón para añadir ejercicios seleccionados
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: GlobalStyles.backgroundButtonsColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          if (!widget.singleSelection)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: GlobalStyles.backgroundButtonsColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _selectedExercises.isEmpty ? null : _onAddSelected,
+                child: Text(
+                  "Añadir ${_selectedExercises.isEmpty ? '' : _selectedExercises.length.toString() + ' '}ejercicio(s)",
+                  style: GlobalStyles.buttonTextStyle,
                 ),
               ),
-              onPressed: _selectedExercises.isEmpty ? null : _onAddSelected,
-              child: Text(
-                "Añadir ${_selectedExercises.isEmpty ? '' : _selectedExercises.length.toString() + ' '}ejercicio(s)",
-                style: GlobalStyles.buttonTextStyle,
-              ),
             ),
-          ),
         ],
       ),
     );

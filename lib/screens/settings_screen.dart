@@ -1,12 +1,12 @@
-// lib/screens/settings_screen.dart
-
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Asegúrate de importar Provider
+import 'package:provider/provider.dart';
 import '../styles/global_styles.dart';
 import './widgets/base_scaffold.dart';
-import '../app_state.dart'; // Importa AppState para acceder al estado de la aplicación
-import 'auth/login_screen.dart'; // Importa LoginScreen para la navegación
-import 'onboarding/intro_slides.dart'; // Importa IntroSlides para el tutorial
+import '../app_state.dart';
+import 'auth/login_screen.dart';
+import 'onboarding/intro_slides.dart';
+import './widgets/custom_alert_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -21,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context); // Accede al estado de la aplicación
+    final appState = Provider.of<AppState>(context);
 
     return BaseScaffold(
       appBar: AppBar(
@@ -31,16 +31,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Ajustes', style: GlobalStyles.insideAppTitleStyle),
         leading: IconButton(
           icon: const Icon(
-            Icons.arrow_back, // Ícono de flecha de retroceso
-            color: GlobalStyles.textColor, // Color personalizado
-            size: 24.0, // Tamaño del ícono (puedes ajustarlo según tus necesidades)
+            Icons.arrow_back,
+            color: GlobalStyles.textColor,
+            size: 24.0,
           ),
-          onPressed: () => Navigator.pop(context), // Acción al presionar
-          tooltip: 'Atrás', // Descripción para accesibilidad
+          onPressed: () => Navigator.pop(context),
+          tooltip: 'Atrás',
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(0), // Ajuste de padding para mejor espaciado
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -59,8 +59,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: (value) {
                 setState(() {
                   _darkMode = value;
-                  // Aquí puedes agregar lógica para cambiar el tema de la aplicación
-                  // Por ejemplo: appState.toggleDarkMode(value);
                 });
               },
               activeColor: GlobalStyles.backgroundButtonsColor,
@@ -71,8 +69,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: (value) {
                 setState(() {
                   _notifications = value;
-                  // Aquí puedes agregar lógica para manejar las notificaciones
-                  // Por ejemplo: appState.toggleNotifications(value);
                 });
               },
               activeColor: GlobalStyles.backgroundButtonsColor,
@@ -105,41 +101,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const Divider(color: GlobalStyles.textColorWithOpacity),
             const SizedBox(height: 16),
 
-            const Spacer(), // Empuja el botón de cerrar sesión al final
+            const Spacer(),
 
             // Botón de Cerrar Sesión
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent, // Color destacado para cerrar sesión
+                  backgroundColor: Colors.redAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 onPressed: () async {
-                  // Opcional: Mostrar un diálogo de confirmación
-                  bool confirm = await showDialog(
+                  // Mostrar un diálogo de confirmación con fondo difuminado usando la función personalizada
+                  bool? confirm = await showCustomAlertDialog<bool>(
                     context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Cerrar Sesión'),
-                      content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('Cancelar'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text('Cerrar Sesión'),
-                        ),
-                      ],
+                    title: 'Cerrar Sesión',
+                    content: const Text(
+                      '¿Estás seguro de que deseas cerrar sesión?',
+                      style: TextStyle(color: Colors.white),
                     ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text(
+                          'Cancelar',
+                          style: TextStyle(color: Colors.blueAccent),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text(
+                          'Cerrar Sesión',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
+                      ),
+                    ],
                   );
 
-                  if (confirm) {
-                    await appState.logout(); // Llama al método de logout
+                  if (confirm == true) {
+                    await appState.logout();
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => const LoginScreen()),

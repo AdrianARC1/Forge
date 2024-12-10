@@ -1,5 +1,3 @@
-// lib/app_state.dart
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -147,7 +145,7 @@ class AppState with ChangeNotifier {
 Future<void> _initializeApp() async {
     try {
       await _loadUserSession();
-      await _loadTutorialStatus(); // Cargar el estado del tutorial
+      await _loadTutorialStatus();
     } catch (e) {
       // Error
     } finally {
@@ -200,6 +198,55 @@ Future<void> _initializeApp() async {
     await prefs.setString('profileImagePath', path);
     notifyListeners();
   }
+
+  Future<void> updateUsername(String newUsername) async {
+  if (_userId != null) {
+    final db = await _dbHelper.database;
+    await db.update(
+      'users',
+      {'username': newUsername.trim()},
+      where: 'id = ?',
+      whereArgs: [_userId],
+    );
+
+    _username = newUsername.trim();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', _username!);
+
+    notifyListeners();
+  }
+}
+
+Future<void> updatePassword(String newPassword) async {
+  if (_userId != null) {
+    String salt = generateSalt();
+    String hashedPassword = hashPassword(newPassword, salt);
+
+    final db = await _dbHelper.database;
+    await db.update(
+      'users',
+      {
+        'password': hashedPassword,
+        'salt': salt,
+      },
+      where: 'id = ?',
+      whereArgs: [_userId],
+    );
+  }
+}
+
+Future<bool> validateCurrentPassword(String currentPassword) async {
+  if (_userId == null || _username == null) return false;
+  final user = await _dbHelper.loginUser(_username!);
+  if (user == null) return false;
+
+  String storedHashedPassword = user['password'] as String;
+  String salt = user['salt'] as String;
+  String hashedInputPassword = hashPassword(currentPassword.trim(), salt);
+
+  return hashedInputPassword == storedHashedPassword;
+}
+
 
   List<Map<String, dynamic>> getPersonalRecords() {
     List<Map<String, dynamic>> recordsList = [];
@@ -577,6 +624,38 @@ Future<void> _initializeApp() async {
     } catch (e) {
       // Error
     }
+  }
+
+  Future<String> exportUserData() async {
+    if (_userId == null) {
+      return '';
+    }
+
+    final db = await _dbHelper.database;
+
+    // Obtener datos del usuario
+    final userData = <String, dynamic>{};
+    userData['userId'] = _userId;
+    userData['username'] = _username;
+
+    // Routines (tanto completadas como no completadas)
+    final allRoutines = await db.query('routines', where: 'userId = ?', whereArgs: [_userId]);
+    userData['routines'] = allRoutines;
+
+    // Ejercicios
+    final exercises = await db.query('exercises');
+    userData['exercises'] = exercises;
+
+    // Series
+    final series = await db.query('series');
+    userData['series'] = series;
+
+    // Records de ejercicios
+    final exerciseRecords = await db.query('exercise_records', where: 'userId = ?', whereArgs: [_userId]);
+    userData['exerciseRecords'] = exerciseRecords;
+
+    // Convertir a JSON
+    return jsonEncode(userData);
   }
 
   int calculateTotalVolume(Routine routine) {

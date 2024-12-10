@@ -1,11 +1,10 @@
-// lib/screens/registration_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../app_state.dart';
 import '../onboarding/intro_slides.dart';
 import '../widgets/shared_widgets.dart';
 import '../../styles/global_styles.dart';
+import 'package:toastification/toastification.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -15,7 +14,7 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  final _formKey = GlobalKey<FormState>(); // Clave para el formulario
+  final _formKey = GlobalKey<FormState>(); 
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _repeatPasswordController = TextEditingController();
@@ -28,7 +27,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     // Limpiar cualquier SnackBar existente cuando se inicializa la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      _formKey.currentState?.reset(); // Reiniciar el formulario
+      _formKey.currentState?.reset(); 
       _usernameController.clear();
       _passwordController.clear();
       _repeatPasswordController.clear();
@@ -45,10 +44,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Ocultar cualquier SnackBar existente cuando se reconstruye la RegistrationScreen
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      _formKey.currentState?.reset(); // Reiniciar el formulario
+      _formKey.currentState?.reset(); 
       _usernameController.clear();
       _passwordController.clear();
       _repeatPasswordController.clear();
@@ -61,20 +59,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView( // Para evitar overflow en pantallas pequeñas
+          child: SingleChildScrollView( 
             child: Form(
               key: _formKey,
               child: Column(
-                // Alineamos al centro y eliminamos textos adicionales
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
-                    'assets/icon/icon.png', // Reemplaza con la ruta de tu logo
+                    'assets/icon/icon.png', 
                     height: 100,
                   ),
-                  const SizedBox(height: 60), // Ajustamos el espaciado
-
+                  const SizedBox(height: 60),
                   const Text(
                     'FORGE',
                     style: GlobalStyles.titleStyle,
@@ -134,9 +130,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     text: 'Registrarse',
                     isLoading: _isRegistering,
                     enabled: !_isRegistering,
-                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20), // Padding personalizado
+                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
                     onPressed: _isRegistering ? () {} : () async {
-                      if (_formKey.currentState!.validate()) { // Validar el formulario
+                      if (_formKey.currentState!.validate()) { 
                         setState(() {
                           _isRegistering = true;
                         });
@@ -148,17 +144,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (success) {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const IntroSlides()), // Navegar al IntroSlides
+                            MaterialPageRoute(builder: (context) => const IntroSlides()),
                           );
                         } else {
                           setState(() {
                             _isRegistering = false;
                           });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('El nombre de usuario ya existe o hubo un error.'),
-                              backgroundColor: GlobalStyles.errorColor,
-                            ),
+                          toastification.show(
+                            context: context,
+                            title: const Text('Error'),
+                            description: const Text('El nombre de usuario ya existe o hubo un error.'),
+                            type: ToastificationType.error,
+                            autoCloseDuration: const Duration(seconds: 3),
+                            alignment: Alignment.bottomCenter
                           );
                         }
                       }

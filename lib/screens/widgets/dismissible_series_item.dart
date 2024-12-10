@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:toastification/toastification.dart';
 import '../../app_state.dart';
 
 class DismissibleSeriesItem extends StatelessWidget {
@@ -26,8 +27,12 @@ class DismissibleSeriesItem extends StatelessWidget {
       ),
       onDismissed: (direction) {
         onDelete();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Serie eliminada")),
+        toastification.show(
+          context: context,
+          title: const Text('Serie eliminada'),
+          type: ToastificationType.success,
+          autoCloseDuration: const Duration(seconds: 2),
+          alignment: Alignment.bottomCenter
         );
       },
       child: child,

@@ -45,6 +45,9 @@ dependencies:
   image_picker: ^1.1.2
   introduction_screen: ^3.1.14
   flutter_slidable: ^3.1.1
+  share_plus: ^10.1.2
+  cross_file: ^0.3.3
+  toastification: ^2.3.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -105,10 +108,14 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 flutter_native_splash:
-  color: "#000000" # Cambia este valor al color deseado
-  image: assets/icon/icon.png # Ruta al ícono de la aplicación
+  color: "#000000"
+  image: assets/icon/icon.png
   android: true
   ios: true
   web: false
   android_gravity: center
   ios_content_mode: scaleAspectFit
+
+  android_12:
+    color: "#000000"
+    image: assets/icon/icon.png

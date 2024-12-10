@@ -1,5 +1,3 @@
-// lib/screens/routine_execution_screen.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forge/screens/navigation/main_navigation_screen.dart';
@@ -12,6 +10,8 @@ import '../mixins/exercise_management_mixin.dart';
 import '../widgets/base_scaffold.dart'; 
 import '../widgets/app_bar_button.dart';
 import '../../styles/global_styles.dart';
+import 'package:toastification/toastification.dart';
+import '../widgets/custom_alert_dialog.dart';
 
 class RoutineExecutionScreen extends StatefulWidget {
   final Routine? routine;
@@ -138,8 +138,13 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
 
   void _finishRoutine() {
     if (!_areAllSeriesCompleted()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Completa todas las series para finalizar la rutina")),
+      toastification.show(
+        context: context,
+        title: const Text("Atención"),
+        description: const Text("Completa todas las series para finalizar la rutina"),
+        type: ToastificationType.info,
+        autoCloseDuration: const Duration(seconds: 3),
+        alignment: Alignment.bottomCenter
       );
       return;
     }
@@ -164,142 +169,139 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     );
   }
 
-  void _discardRoutine() {
-    showDialog(
+  Future<void> _discardRoutine() async {
+    // Usar el diálogo personalizado
+    bool? confirm = await showCustomAlertDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Descartar Entrenamiento"),
-          content: const Text("¿Estás seguro de que deseas descartar este entrenamiento? Todos los progresos no guardados se perderán."),
+      title: 'Descartar Entrenamiento',
+      content: const Text(
+        '¿Estás seguro de que deseas descartar este entrenamiento? Todos los progresos no guardados se perderán.',
+        style: TextStyle(color: Colors.white),
+      ),
+      actions: [
+        AppBarButton(
+          text: "No",
+          onPressed: () => Navigator.of(context).pop(false),
+          textColor: Colors.blue,
+          backgroundColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        ),
+        AppBarButton(
+          text: "Sí",
+          onPressed: () => Navigator.of(context).pop(true),
+          textColor: Colors.red,
+          backgroundColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        ),
+      ],
+    );
+
+    if (confirm == true && mounted) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      appState.cancelMinimizedRoutine();
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
+  void _resumeRoutine() {
+    if (mounted) {
+      _startLocalTimer();
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> _saveRoutine(Routine updatedRoutine) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    routineName = updatedRoutine.name; 
+
+    if (widget.routine == null) {
+      String newRoutineName = "Nueva Rutina";
+      // Usar el diálogo personalizado para guardar rutina
+      bool? saveAsNew = await showCustomAlertDialog<bool>(
+        context: context,
+        title: 'Guardar Rutina',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("¿Deseas guardar esta rutina como una nueva rutina?"),
+            TextField(
+              onChanged: (value) {
+                newRoutineName = value;
+              },
+              decoration: const InputDecoration(
+                labelText: "Nombre de la nueva rutina",
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          AppBarButton(
+            text: "Sí",
+            onPressed: () => Navigator.of(context).pop(true),
+            textColor: Colors.blue,
+            backgroundColor: Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          ),
+          AppBarButton(
+            text: "No",
+            onPressed: () => Navigator.of(context).pop(false),
+            textColor: Colors.blue,
+            backgroundColor: Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          ),
+        ],
+      );
+
+      if (saveAsNew == true && mounted) {
+        await _finalizeRoutine(appState, saveAsNewRoutine: true, newRoutineName: newRoutineName, notes: updatedRoutine.notes);
+      } else if (saveAsNew == false && mounted) {
+        await _finalizeRoutine(appState, saveAsNewRoutine: false, notes: updatedRoutine.notes);
+      }
+    } else {
+      bool routineChanged = _hasRoutineChanged();
+
+      if (routineChanged) {
+        String changeDescription = _getRoutineChanges();
+        // Usar el diálogo personalizado para actualizar rutina
+        bool? update = await showCustomAlertDialog<bool>(
+          context: context,
+          title: 'Actualizar Rutina',
+          content: Text("$changeDescription\n¿Deseas actualizarla con estos cambios?"),
           actions: [
             AppBarButton(
               text: "No",
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(false),
               textColor: Colors.blue,
               backgroundColor: Colors.transparent,
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
             ),
             AppBarButton(
               text: "Sí",
-              onPressed: () {
-                final appState = Provider.of<AppState>(context, listen: false);
-                appState.cancelMinimizedRoutine();
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
+              onPressed: () => Navigator.of(context).pop(true),
+              textColor: Colors.blue,
+              backgroundColor: Colors.transparent,
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            ),
+            AppBarButton(
+              text: "Cancelar",
+              onPressed: () => Navigator.of(context).pop(null),
               textColor: Colors.red,
               backgroundColor: Colors.transparent,
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
             ),
           ],
         );
-      },
-    );
-  }
 
-  void _resumeRoutine() {
-    _startLocalTimer();
-    Navigator.of(context).pop();
-  }
-
-  void _saveRoutine(Routine updatedRoutine) async {
-    final appState = Provider.of<AppState>(context, listen: false);
-    routineName = updatedRoutine.name; 
-
-    if (widget.routine == null) {
-      String newRoutineName = "Nueva Rutina";
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text("Guardar Rutina"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("¿Deseas guardar esta rutina como una nueva rutina?"),
-                TextField(
-                  onChanged: (value) {
-                    newRoutineName = value;
-                  },
-                  decoration: const InputDecoration(
-                    labelText: "Nombre de la nueva rutina",
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              AppBarButton(
-                text: "Sí",
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _finalizeRoutine(appState, saveAsNewRoutine: true, newRoutineName: newRoutineName, notes: updatedRoutine.notes);
-                },
-                textColor: Colors.blue,
-                backgroundColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              ),
-              AppBarButton(
-                text: "No",
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _finalizeRoutine(appState, saveAsNewRoutine: false, notes: updatedRoutine.notes);
-                },
-                textColor: Colors.blue,
-                backgroundColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      bool routineChanged = _hasRoutineChanged();
-
-      if (routineChanged) {
-        String changeDescription = _getRoutineChanges();
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Actualizar Rutina"),
-              content: Text("$changeDescription\n¿Deseas actualizarla con estos cambios?"),
-              actions: [
-                AppBarButton(
-                  text: "No",
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _finalizeRoutine(appState, updateRoutine: false, notes: updatedRoutine.notes);
-                  },
-                  textColor: Colors.blue,
-                  backgroundColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                ),
-                AppBarButton(
-                  text: "Sí",
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _finalizeRoutine(appState, updateRoutine: true, notes: updatedRoutine.notes);
-                  },
-                  textColor: Colors.blue,
-                  backgroundColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                ),
-                AppBarButton(
-                  text: "Cancelar",
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  textColor: Colors.red,
-                  backgroundColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                ),
-              ],
-            );
-          },
-        );
+        if (update == true && mounted) {
+          await _finalizeRoutine(appState, updateRoutine: true, notes: updatedRoutine.notes);
+        } else if (update == false && mounted) {
+          await _finalizeRoutine(appState, updateRoutine: false, notes: updatedRoutine.notes);
+        }
+        // Si update == null, el usuario canceló, no hacer nada
       } else {
-        _finalizeRoutine(appState, updateRoutine: false, notes: updatedRoutine.notes);
+        if (mounted) {
+          await _finalizeRoutine(appState, updateRoutine: false, notes: updatedRoutine.notes);
+        }
       }
     }
   }
@@ -313,7 +315,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     return false;
   }
 
-  void _finalizeRoutine(AppState appState, {bool updateRoutine = false, bool saveAsNewRoutine = false, String? newRoutineName, String? notes}) async {
+  Future<void> _finalizeRoutine(AppState appState, {bool updateRoutine = false, bool saveAsNewRoutine = false, String? newRoutineName, String? notes}) async {
     try {
       if (saveAsNewRoutine && newRoutineName != null && newRoutineName.trim().isNotEmpty) {
         Routine newRoutine = Routine(
@@ -410,15 +412,23 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
       await appState.completeRoutine(completedRoutine, _displayDuration.value);
       appState.restoreRoutine();
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-        (route) => false,
-      );
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+          (route) => false,
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al finalizar la rutina: $e")),
-      );
+      if (mounted) {
+        toastification.show(
+          context: context,
+          title: const Text("Error"),
+          description: Text("Error al finalizar la rutina: $e"),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+      }
     }
   }
 
@@ -432,6 +442,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
   }
 
   void _minimizeRoutine() {
+    if (!mounted) return;
     final appState = Provider.of<AppState>(context, listen: false);
     appState.minimizeRoutine(
       Routine(
@@ -446,42 +457,41 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
     Navigator.pop(context);
   }
 
-  void _cancelExecution() {
-    showDialog(
+  Future<void> _cancelExecution() async {
+    bool? confirm = await showCustomAlertDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("¿Cancelar rutina?"),
-          content: const Text("¿Realmente quieres cancelar la rutina en ejecución?"),
-          actions: [
-            AppBarButton(
-              text: "No",
-              onPressed: () => Navigator.of(context).pop(),
-              textColor: Colors.blue,
-              backgroundColor: Colors.transparent,
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            ),
-            AppBarButton(
-              text: "Sí",
-              onPressed: () {
-                final appState = Provider.of<AppState>(context, listen: false);
-                appState.cancelMinimizedRoutine();
-                _localTimer?.cancel();
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-              textColor: Colors.red,
-              backgroundColor: Colors.transparent,
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            ),
-          ],
-        );
-      },
+      title: '¿Cancelar rutina?',
+      content: const Text(
+        '¿Realmente quieres cancelar la rutina en ejecución?',
+        style: TextStyle(color: Colors.white),
+      ),
+      actions: [
+        AppBarButton(
+          text: "No",
+          onPressed: () => Navigator.of(context).pop(false),
+          textColor: Colors.blue,
+          backgroundColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        ),
+        AppBarButton(
+          text: "Sí",
+          onPressed: () => Navigator.of(context).pop(true),
+          textColor: Colors.red,
+          backgroundColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        ),
+      ],
     );
+
+    if (confirm == true && mounted) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      appState.cancelMinimizedRoutine();
+      _localTimer?.cancel();
+      Navigator.of(context).pop();
+    }
   }
 
   String _formatDuration(Duration duration) {
-    // Formato dinámico
     int totalSeconds = duration.inSeconds;
     int hours = duration.inHours;
     int minutes = duration.inMinutes % 60;
@@ -654,11 +664,10 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Stats en fila alineados a la izquierda: Duración, Series, RPE
+            // Stats
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
               child: Row(
-                // Alineación a la izquierda
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -673,7 +682,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                           builder: (context, value, child) {
                             return Text(
                               _formatDuration(value),
-                              style: GlobalStyles.orangeSubtitleStyle,
+                              style: GlobalStyles.routineDataStyle,
                             );
                           },
                         ),
@@ -688,7 +697,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                         Text("Series", style: GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)),
                         Text(
                           "$completedSeries",
-                          style: GlobalStyles.orangeSubtitleStyle,
+                          style: GlobalStyles.routineDataStyle,
                         ),
                       ],
                     ),
@@ -701,7 +710,7 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                         Text("RPE Medio", style: GlobalStyles.subtitleStyle.copyWith(fontWeight: FontWeight.bold)),
                         Text(
                           averageRPE.toStringAsFixed(1),
-                          style: GlobalStyles.orangeSubtitleStyle,
+                          style: GlobalStyles.routineDataStyle,
                         ),
                       ],
                     ),
@@ -744,7 +753,9 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                           onReplaceExercise: () => replaceExercise(exercise),
                           onAutofillSeries: (series, {bool markCompleted = true}) {
                             autofillSeries(series, markCompleted: markCompleted);
-                            setState(() {}); 
+                            if (mounted) {
+                              setState(() {}); 
+                            }
                           },
                           maxRecord: maxRecord,
                           showMaxRecord: true,
@@ -762,7 +773,9 @@ class _RoutineExecutionScreenState extends State<RoutineExecutionScreen> with Ex
                           ),
                           onPressed: () {
                             addExercise();
-                            setState(() {});
+                            if (mounted) {
+                              setState(() {});
+                            }
                           },
                           icon: const Icon(Icons.add, color: Colors.black),
                           label: const Text(
